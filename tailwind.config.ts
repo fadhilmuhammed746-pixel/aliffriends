@@ -63,8 +63,10 @@ const config: Config = {
         coral: "0 8px 24px -6px rgba(230, 107, 78, 0.28)",
       },
       animation: {
-        "fade-in": "fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-        "fade-up": "fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "fade-in": "fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "fade-up": "fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        fadeIn: "fadeIn 0.25s ease-out forwards",
+        slideInRight: "slideInRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       },
       keyframes: {
         fadeIn: {
@@ -74,6 +76,10 @@ const config: Config = {
         fadeUp: {
           "0%": { opacity: "0", transform: "translateY(14px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        slideInRight: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
         },
       },
     },

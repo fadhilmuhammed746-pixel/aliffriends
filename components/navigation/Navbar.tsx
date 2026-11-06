@@ -5,206 +5,323 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '../brand/Logo';
 import {
-  Menu,
   X,
   BookOpen,
   ShieldCheck,
-  ChevronRight,
-  ExternalLink,
+  Youtube,
+  Instagram,
+  Mail,
+  ArrowUpRight,
+  Sparkles,
 } from 'lucide-react';
 
-const navItems = [
-  { name: 'Home', href: '/' },
-  { name: 'Magazine', href: '/magazine', badge: 'XII' },
-  { name: 'Newspaper', href: '/newspaper' },
-  { name: 'Programs', href: '/programs' },
-  { name: 'Videos', href: '/videos' },
-  { name: 'Gallery', href: '/gallery' },
-  { name: 'Members', href: '/members' },
-  { name: 'Achievements', href: '/achievements' },
-  { name: 'Announcements', href: '/announcements' },
-  { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
+const menuItems = [
+  { index: '01', name: 'Home', href: '/', description: 'Signature Frontpage' },
+  { index: '02', name: 'Magazine', href: '/magazine', badge: 'Edition XII', description: 'Digital Editions & PDF Archive' },
+  { index: '03', name: 'Newspaper', href: '/newspaper', description: 'Broadsheet Dispatches & News' },
+  { index: '04', name: 'Programs', href: '/programs', description: 'Conclaves & Official Events' },
+  { index: '05', name: 'Videos', href: '/videos', description: 'Cinematic Archive & YouTube' },
+  { index: '06', name: 'Gallery', href: '/gallery', description: 'Photographic Heritage & Memories' },
+  { index: '07', name: 'Members', href: '/members', description: 'Class Directory & Leadership' },
+  { index: '08', name: 'Achievements', href: '/achievements', description: 'Honors, Laurels & Distinctions' },
+  { index: '09', name: 'Announcements', href: '/announcements', description: 'Official Bulletins & Notices' },
+  { index: '10', name: 'About Us', href: '/about', description: 'Mission, History & Retrospective' },
+  { index: '11', name: 'Contact Us', href: '/contact', description: 'Inquiries, Letters & Directorate' },
 ];
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Scroll detection for header backdrop
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 24);
+      setScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile drawer on route change
+  // Close menu on route change
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setMenuOpen(false);
   }, [pathname]);
 
-  const isAdmin = pathname.startsWith('/admin');
-  if (isAdmin) {
+  // Lock body scroll when menu is opened
+  useEffect(() => {
+    if (menuOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [menuOpen]);
+
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && menuOpen) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [menuOpen]);
+
+  // Don't render public navbar in admin routes
+  if (pathname.startsWith('/admin')) {
     return null;
   }
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-[#F7F6F0]/95 backdrop-blur-md shadow-subtle border-b border-editorial-border py-3'
-          : 'bg-canvas border-b border-editorial-border py-4'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          {/* Brand Logo in Modern Editorial Palette */}
-          <Logo variant="dark" size="md" showTagline={!scrolled} />
+    <>
+      {/* Clean Minimalist Editorial Header */}
+      <header
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          scrolled
+            ? 'bg-[#F7F6F0]/95 backdrop-blur-md shadow-editorial border-b border-editorial-border py-3.5'
+            : 'bg-canvas border-b border-editorial-border py-4 sm:py-5'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            {/* ALIF FRIENDS 12 Brand Logo (Left) */}
+            <div className="flex items-center">
+              <Logo variant="dark" size="md" showTagline={!scrolled} />
+            </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const isActive =
-                item.href === '/'
-                  ? pathname === '/'
-                  : pathname.startsWith(item.href);
+            {/* Right Side: Editorial Edition Indicator & Three-Line Hamburger Button */}
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Optional Small Editorial Edition Indicator */}
+              <Link
+                href="/magazine"
+                className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-forest/10 hover:bg-forest/15 border border-forest/20 text-forest text-xs font-serif transition-colors"
+                title="View Latest Digital Magazine Edition"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-coral animate-pulse" />
+                <span className="font-semibold tracking-wide">Edition XII</span>
+                <span className="text-muted text-[10px] font-mono">2026</span>
+              </Link>
 
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`relative px-3 py-2 text-xs uppercase tracking-wider font-sans transition-colors duration-200 rounded-md ${
-                    isActive
-                      ? 'text-forest font-bold'
-                      : 'text-ink/80 hover:text-forest hover:bg-forest-50/70 font-medium'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {item.name}
-                    {item.badge && (
-                      <span className="text-[9px] bg-coral/15 text-coral px-1.5 py-0.2 rounded font-mono font-semibold">
-                        {item.badge}
-                      </span>
-                    )}
-                  </span>
-                  {isActive && (
-                    <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-coral rounded-full" />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+              {/* Sophisticated Three-Line Animated Hamburger Button */}
+              <button
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className={`relative group flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-300 border focus:outline-none focus-visible:ring-2 focus-visible:ring-forest ${
+                  menuOpen
+                    ? 'bg-forest text-white border-forest shadow-sm'
+                    : 'bg-white hover:bg-canvas-subtle text-forest border-editorial-border hover:border-forest/40 shadow-sm'
+                }`}
+                aria-label={menuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+                aria-expanded={menuOpen}
+                aria-controls="editorial-navigation-drawer"
+              >
+                <span className="text-[11px] font-sans font-bold tracking-wider uppercase hidden xs:inline-block">
+                  {menuOpen ? 'Close' : 'Menu'}
+                </span>
 
-          {/* Right Action Buttons */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Link
-              href="/magazine"
-              className="px-4 py-2 text-xs uppercase tracking-widest font-serif font-bold text-white bg-forest hover:bg-forest-800 rounded-md transition-colors shadow-subtle flex items-center gap-1.5"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-white" />
-              <span>Edition XII</span>
-            </Link>
-
-            <Link
-              href="/admin/login"
-              title="Editorial CMS Login"
-              className="p-2 text-ink-muted hover:text-forest hover:bg-forest-50 rounded-md transition-colors"
-            >
-              <ShieldCheck className="w-4 h-4" />
-            </Link>
-          </div>
-
-          {/* Mobile Hamburger Button */}
-          <div className="flex xl:hidden items-center gap-2">
-            <Link
-              href="/magazine"
-              className="px-3 py-1.5 text-[11px] font-serif uppercase tracking-wider font-semibold text-white bg-forest hover:bg-forest-800 rounded transition-colors"
-            >
-              Edition XII
-            </Link>
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-ink hover:text-forest hover:bg-editorial-border/40 rounded-lg transition-colors focus:outline-none"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+                {/* Animated Three-Line Hamburger Icon */}
+                <div className="relative w-5 h-4 flex flex-col justify-between items-center" aria-hidden="true">
+                  {/* Top Line */}
+                  <span
+                    className={`block h-[2px] w-5 rounded-full transition-all duration-300 origin-center ${
+                      menuOpen
+                        ? 'bg-white translate-y-[7px] rotate-45'
+                        : 'bg-forest group-hover:bg-coral'
+                    }`}
+                  />
+                  {/* Middle Line */}
+                  <span
+                    className={`block h-[2px] w-5 rounded-full transition-all duration-200 ${
+                      menuOpen ? 'opacity-0 scale-x-0' : 'bg-forest group-hover:bg-coral'
+                    }`}
+                  />
+                  {/* Bottom Line */}
+                  <span
+                    className={`block h-[2px] w-5 rounded-full transition-all duration-300 origin-center ${
+                      menuOpen
+                        ? 'bg-white -translate-y-[7px] -rotate-45'
+                        : 'bg-forest group-hover:bg-coral'
+                    }`}
+                  />
+                </div>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="xl:hidden fixed inset-x-0 top-[65px] bottom-0 bg-canvas/98 backdrop-blur-xl border-t border-editorial-border z-50 overflow-y-auto px-6 py-6 flex flex-col justify-between">
-          <div className="space-y-1">
-            <div className="text-[11px] uppercase tracking-ultra text-ink-muted font-serif mb-4 border-b border-editorial-border pb-2">
-              Publication Directory
+      {/* Premium Slide-In Hamburger Navigation Drawer */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" id="editorial-navigation-drawer">
+          {/* Subtle Dimming Backdrop */}
+          <div
+            onClick={() => setMenuOpen(false)}
+            className="fixed inset-0 bg-forest/50 backdrop-blur-sm transition-opacity duration-300 animate-fadeIn"
+            aria-hidden="true"
+          />
+
+          {/* Slide-In Navigation Panel: 400-450px wide on desktop, nearly full-screen on mobile */}
+          <div className="fixed inset-y-0 right-0 w-full sm:max-w-[440px] md:max-w-[450px] bg-[#F7F6F0] border-l border-editorial-border shadow-2xl flex flex-col justify-between overflow-y-auto z-50 animate-slideInRight">
+            {/* Panel Header */}
+            <div className="p-6 sm:p-7 border-b border-editorial-border flex items-start justify-between bg-white/70">
+              <div>
+                <Logo variant="dark" size="sm" showTagline={false} clickable={false} />
+                <p className="font-serif italic text-xs text-muted mt-1.5 tracking-wide">
+                  A Class. A Generation. A Thousand Memories.
+                </p>
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                className="p-2 -mr-2 -mt-1 text-muted hover:text-coral hover:bg-canvas rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-forest"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            {navItems.map((item) => {
-              const isActive =
-                item.href === '/'
-                  ? pathname === '/'
-                  : pathname.startsWith(item.href);
 
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center justify-between px-4 py-3 rounded-lg text-sm tracking-wider font-serif transition-colors ${
-                    isActive
-                      ? 'bg-forest-50 text-forest font-bold border-l-2 border-forest'
-                      : 'text-ink/80 hover:text-forest hover:bg-forest-50/50'
-                  }`}
+            {/* Navigation List with Staggered Entrance */}
+            <nav className="p-6 sm:p-7 flex-1 space-y-1">
+              <div className="text-[10px] uppercase font-mono tracking-widest text-muted mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-forest" />
+                <span>Editorial Directory</span>
+              </div>
+
+              {menuItems.map((item, idx) => {
+                const isActive =
+                  item.href === '/'
+                    ? pathname === '/'
+                    : pathname.startsWith(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`group block py-2.5 px-3 rounded-xl transition-all duration-200 border-b border-editorial-border/60 ${
+                      isActive
+                        ? 'bg-white shadow-editorial border-editorial-border text-forest'
+                        : 'hover:bg-white/70 hover:translate-x-1 text-ink'
+                    }`}
+                    style={{
+                      animationDelay: `${idx * 25}ms`,
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-baseline gap-3">
+                        <span
+                          className={`font-mono text-xs transition-colors ${
+                            isActive
+                              ? 'text-coral font-bold'
+                              : 'text-muted group-hover:text-coral'
+                          }`}
+                        >
+                          {item.index}
+                        </span>
+                        <span
+                          className={`font-serif text-xl sm:text-2xl transition-colors font-bold ${
+                            isActive
+                              ? 'text-forest'
+                              : 'text-ink group-hover:text-forest'
+                          }`}
+                        >
+                          {item.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {item.badge && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-coral text-white font-semibold shadow-sm">
+                            {item.badge}
+                          </span>
+                        )}
+                        {isActive ? (
+                          <span className="w-2 h-2 rounded-full bg-coral animate-pulse" />
+                        ) : (
+                          <ArrowUpRight className="w-4 h-4 text-muted/60 opacity-0 group-hover:opacity-100 group-hover:text-forest group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] font-sans text-muted pl-8 mt-0.5 line-clamp-1 group-hover:text-ink/80 transition-colors">
+                      {item.description}
+                    </p>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Menu Footer */}
+            <div className="p-6 sm:p-7 border-t border-editorial-border bg-white/70 space-y-4">
+              {/* Official Social Links & Channel */}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-mono tracking-wider text-muted font-semibold">
+                  Official Channels
+                </span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://www.youtube.com/@AlifCreations12"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 rounded-lg bg-canvas hover:bg-forest hover:text-white text-forest transition-colors shadow-sm"
+                    title="Alif Creations 12 on YouTube"
+                  >
+                    <Youtube className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://www.instagram.com/_alif_friends_/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 rounded-lg bg-canvas hover:bg-forest hover:text-white text-forest transition-colors shadow-sm"
+                    title="_alif_friends_ on Instagram"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                  <Link
+                    href="/admin/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="p-2 rounded-lg bg-canvas hover:bg-forest hover:text-white text-muted hover:text-white transition-colors shadow-sm"
+                    title="Editorial Directorate Login"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Verified Official Email Addresses */}
+              <div className="text-[11px] font-mono text-muted space-y-1 bg-canvas p-3 rounded-xl border border-editorial-border">
+                <div className="flex items-center gap-2 text-ink font-sans font-semibold text-xs mb-1">
+                  <Mail className="w-3.5 h-3.5 text-coral" />
+                  <span>Directorate Correspondence:</span>
+                </div>
+                <a
+                  href="mailto:aliffreinds12@gmail.com"
+                  className="block hover:text-forest transition-colors truncate"
                 >
-                  <span className="flex items-center gap-3">
-                    {item.name}
-                    {item.badge && (
-                      <span className="text-[10px] bg-coral text-white px-1.5 py-0.5 rounded font-sans font-bold">
-                        {item.badge}
-                      </span>
-                    )}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-forest/40" />
-                </Link>
-              );
-            })}
-          </div>
+                  aliffreinds12@gmail.com
+                </a>
+                <a
+                  href="mailto:aliffriends12@gmail.com"
+                  className="block hover:text-forest transition-colors truncate"
+                >
+                  aliffriends12@gmail.com
+                </a>
+              </div>
 
-          {/* Drawer Footer */}
-          <div className="pt-6 border-t border-editorial-border space-y-4">
-            <div className="flex items-center justify-between text-xs text-ink-muted font-sans">
-              <span>Alif Friends 12 Digital Publication</span>
-              <Link href="/admin/login" className="text-forest hover:text-coral transition-colors flex items-center gap-1 font-mono">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Admin CMS
-              </Link>
-            </div>
-            <div className="flex gap-2">
-              <a
-                href="https://www.youtube.com/@AlifCreations12"
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 py-2.5 text-center text-xs bg-white text-forest rounded border border-editorial-border hover:border-forest transition-colors flex items-center justify-center gap-1.5 font-medium"
-              >
-                <span>YouTube</span>
-                <ExternalLink className="w-3 h-3 text-coral" />
-              </a>
-              <a
-                href="https://www.instagram.com/_alif_friends_/"
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 py-2.5 text-center text-xs bg-white text-forest rounded border border-editorial-border hover:border-forest transition-colors flex items-center justify-center gap-1.5 font-medium"
-              >
-                <span>Instagram</span>
-                <ExternalLink className="w-3 h-3 text-coral" />
-              </a>
+              {/* Copyright Notice */}
+              <div className="pt-2 text-[10px] font-mono text-muted flex items-center justify-between">
+                <span>© 2026 ALIF FRIENDS 12</span>
+                <span className="text-forest font-semibold">All Rights Reserved</span>
+              </div>
             </div>
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 };
