@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="af12-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E4C88E" />
+      <stop offset="50%" stop-color="#C8A96B" />
+      <stop offset="100%" stop-color="#9A7836" />
+    </linearGradient>
+  </defs>
+  <!-- Background Shield/Pinnacle -->
+  <rect width="64" height="64" rx="16" fill="#101827" />
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#af12-gold)" stroke-width="1.5" stroke-opacity="0.6" />
+  <!-- Monogram A and 12 -->
+  <path d="M22 46 L30 18 L34 18 L42 46 L36.5 46 L34.5 38 L29.5 38 L27.5 46 Z M30.8 33.5 L33.2 33.5 L32 25 Z" fill="url(#af12-gold)" />
+  <!-- Roman numeral XII subtle accent -->
+  <circle cx="32" cy="14" r="1.8" fill="#E4C88E" />
+  <circle cx="16" cy="46" r="1.2" fill="#C8A96B" opacity="0.6" />
+  <circle cx="48" cy="46" r="1.2" fill="#C8A96B" opacity="0.6" />
+</svg>

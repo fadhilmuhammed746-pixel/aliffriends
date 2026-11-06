@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-cinzel: 'Cinzel', serif;
+  --font-cormorant: 'Cormorant Garamond', serif;
+  --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  background-color: #101827;
+  color: #F8F6F0;
+  font-family: var(--font-plus-jakarta), sans-serif;
+  overflow-x: hidden;
+  selection-background-color: #C8A96B;
+  selection-color: #101827;
+}
+
+::selection {
+  background: #C8A96B;
+  color: #101827;
+}
+
+/* Editorial typography utilities */
+.prose-editorial p {
+  margin-bottom: 1.25rem;
+  line-height: 1.85;
+}
+
+.prose-editorial h3 {
+  font-family: var(--font-cinzel), serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #F8F6F0;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose-editorial blockquote {
+  border-left: 3px solid #C8A96B;
+  padding-left: 1.25rem;
+  font-style: italic;
+  font-family: var(--font-cormorant), serif;
+  font-size: 1.25rem;
+  color: #F8F6F0;
+  margin: 1.75rem 0;
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

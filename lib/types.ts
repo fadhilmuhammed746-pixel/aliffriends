@@ -1,0 +1,210 @@
+export interface AdminUser {
+  id: string;
+  username: string;
+  passwordHash: string;
+  role: 'superadmin' | 'editor';
+  createdAt: string;
+  lastLogin?: string;
+}
+
+export interface Magazine {
+  id: string;
+  title: string;
+  editionNumber: string;
+  publicationDate: string;
+  description: string;
+  coverImage: string;
+  pdfUrl: string;
+  author: string;
+  editor: string;
+  pageCount?: number;
+  fileSize?: string;
+  isFeatured: boolean;
+  isPublished: boolean;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ArticleCategory =
+  | 'Class News'
+  | 'Events'
+  | 'Achievements'
+  | 'Education'
+  | 'Editorial'
+  | 'Special Reports'
+  | 'Announcements';
+
+export interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle?: string;
+  category: ArticleCategory;
+  headlineStatus: boolean;
+  breakingStatus: boolean;
+  coverImage: string;
+  content: string; // Rich HTML or Markdown
+  author: string;
+  authorRole?: string;
+  publishedAt: string;
+  viewCount: number;
+  isPublished: boolean;
+  galleryImages?: string[];
+  relatedTags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Program {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  location: string;
+  description: string;
+  coverImage: string;
+  photos: string[];
+  youtubeUrl?: string;
+  videoUrl?: string;
+  isFeatured: boolean;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VideoItem {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  videoType: 'youtube' | 'direct';
+  youtubeUrl?: string;
+  videoUrl?: string;
+  thumbnailUrl: string;
+  duration?: string;
+  isFeatured: boolean;
+  isPublished: boolean;
+  collectionName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GalleryPhoto {
+  id: string;
+  url: string;
+  caption?: string;
+  alt?: string;
+  date?: string;
+}
+
+export interface GalleryAlbum {
+  id: string;
+  title: string;
+  category: 'Event' | 'Trip' | 'Celebration' | 'Competition' | 'Special Moment';
+  description: string;
+  coverImage: string;
+  isRestricted: boolean; // public or restricted
+  isPublished: boolean;
+  photos: GalleryPhoto[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClassMember {
+  id: string;
+  name: string;
+  position: string;
+  bio: string;
+  photoUrl: string;
+  quote?: string;
+  orderIndex: number;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  category: 'Award' | 'Competition' | 'Academic' | 'Special Recognition';
+  date: string;
+  description: string;
+  awardedBy?: string;
+  imageUrl: string;
+  badgeTitle?: string;
+  isFeatured: boolean;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  category: 'Notice' | 'Event' | 'Urgent' | 'General';
+  date: string;
+  content: string;
+  priority: 'low' | 'medium' | 'high';
+  isFeatured: boolean;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WebsiteSettings {
+  siteName: string;
+  tagline: string;
+  heroHeading: string;
+  heroSubheading: string;
+  heroBadge: string;
+  heroImage: string;
+  aboutStory: string;
+  aboutMission: string;
+  aboutVision: string;
+  founderQuote: string;
+  officialYoutube: string;
+  officialInstagram: string;
+  emailPrimary: string;
+  emailSecondary: string;
+  membersSectionEnabled: boolean;
+  breakingTickerText: string;
+  showBreakingTicker: boolean;
+  updatedAt: string;
+}
+
+export interface MediaAsset {
+  id: string;
+  filename: string;
+  originalName: string;
+  url: string;
+  mimeType: string;
+  size: number;
+  category: 'image' | 'video' | 'pdf' | 'other';
+  createdAt: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'unread' | 'read' | 'archived';
+  createdAt: string;
+}
+
+export interface DatabaseSchema {
+  adminUsers: AdminUser[];
+  magazines: Magazine[];
+  articles: Article[];
+  programs: Program[];
+  videos: VideoItem[];
+  albums: GalleryAlbum[];
+  members: ClassMember[];
+  achievements: Achievement[];
+  announcements: Announcement[];
+  settings: WebsiteSettings;
+  media: MediaAsset[];
+  messages: ContactMessage[];
+}
