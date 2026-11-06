@@ -17,7 +17,6 @@ import {
   FolderOpen,
   LogOut,
   ExternalLink,
-  Lock,
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -49,21 +48,21 @@ export const AdminSidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-64 bg-navy-950 border-r border-gold/15 flex flex-col justify-between h-screen sticky top-0 text-ivory">
-      <div>
+    <aside className="w-64 bg-forest border-r border-forest-800 flex flex-col justify-between h-screen sticky top-0 text-white flex-shrink-0 z-30">
+      <div className="overflow-y-auto">
         {/* Admin Header / Logo */}
-        <div className="p-6 border-b border-gold/15">
+        <div className="p-6 border-b border-forest-800">
           <Link href="/admin" className="block">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/40 flex items-center justify-center text-gold font-serif font-black text-sm">
-                AF
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-forest-800 border border-forest-700 flex items-center justify-center text-white font-serif font-black text-sm shadow-subtle">
+                <span className="text-coral">A</span>F
               </div>
               <div>
-                <span className="font-serif font-bold text-sm tracking-widest text-ivory block">
-                  AF12 EDITORIAL
+                <span className="font-serif font-bold text-sm tracking-widest text-white block">
+                  AF12 CONTROL
                 </span>
-                <span className="text-[10px] font-mono text-gold uppercase tracking-wider">
-                  CMS Administration
+                <span className="text-[10px] font-mono text-coral-light uppercase tracking-wider font-semibold">
+                  Editorial CMS
                 </span>
               </div>
             </div>
@@ -86,11 +85,11 @@ export const AdminSidebar: React.FC = () => {
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-serif tracking-wider transition-colors ${
                   isActive
-                    ? 'bg-gold text-navy font-bold shadow-gold'
-                    : 'text-ivory/70 hover:text-ivory hover:bg-charcoal/50'
+                    ? 'bg-coral text-white font-bold shadow-coral'
+                    : 'text-white/80 hover:text-white hover:bg-forest-800'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-navy' : 'text-gold'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-coral-light'}`} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -99,22 +98,22 @@ export const AdminSidebar: React.FC = () => {
       </div>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-gold/15 space-y-2">
+      <div className="p-4 border-t border-forest-800 space-y-2">
         <Link
           href="/"
           target="_blank"
-          className="flex items-center justify-between px-3 py-2 text-xs text-ivory/70 hover:text-gold hover:bg-charcoal/40 rounded transition-colors"
+          className="flex items-center justify-between px-3 py-2 text-xs text-white/80 hover:text-white hover:bg-forest-800 rounded transition-colors"
         >
           <span className="flex items-center gap-2">
-            <ExternalLink className="w-3.5 h-3.5 text-gold" />
+            <ExternalLink className="w-3.5 h-3.5 text-coral-light" />
             <span>View Public Site</span>
           </span>
-          <span className="text-[10px] font-mono text-gold/60">Live</span>
+          <span className="text-[10px] font-mono text-coral-light">Live</span>
         </Link>
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-coral-light hover:text-white hover:bg-forest-800 rounded transition-colors"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Secure Sign Out</span>

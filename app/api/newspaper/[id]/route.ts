@@ -50,3 +50,4 @@ export async function DELETE(
   const deleted = db.deleteArticle(id);
   return NextResponse.json({ success: deleted });
 }
+

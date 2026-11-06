@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Announcement } from '@/lib/types';
-import { Bell, Plus, Trash2, Edit, AlertCircle, X } from 'lucide-react';
+import { Bell, Plus, Trash2, Edit, AlertCircle, X, Sparkles } from 'lucide-react';
 
 export default function AdminAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -107,77 +107,96 @@ export default function AdminAnnouncementsPage() {
   };
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full min-h-screen bg-canvas">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto max-h-screen bg-navy text-ivory">
+      <main className="flex-1 overflow-y-auto max-h-screen text-ink">
         <AdminHeader
           title="Announcements & Dispatches"
           subtitle="Publish class notices, event warnings, deadline reminders, and emergency updates."
           action={
             <button
               onClick={handleOpenCreate}
-              className="px-4 py-2 bg-gold hover:bg-gold-light text-navy text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-gold"
+              className="px-4 py-2.5 bg-forest hover:bg-forest-light text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm transition-all hover:shadow-forest/20 flex items-center gap-1.5"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Broadcast Notice</span>
             </button>
           }
         />
 
-        <div className="p-6 sm:p-8 max-w-7xl">
+        <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           {loading ? (
-            <div className="text-center py-12 text-muted-light font-serif">Loading announcements...</div>
+            <div className="text-center py-16 text-muted font-serif italic text-sm">
+              Loading dispatches...
+            </div>
+          ) : announcements.length === 0 ? (
+            <div className="text-center py-16 bg-white border border-editorial-border rounded-xl p-8">
+              <Bell className="w-10 h-10 text-muted mx-auto mb-3" />
+              <p className="font-serif text-lg text-ink font-semibold">No announcements broadcast yet</p>
+              <p className="text-xs text-muted mt-1 mb-4">Click "Broadcast Notice" to issue the first bulletin to classmates.</p>
+              <button
+                onClick={handleOpenCreate}
+                className="px-4 py-2 bg-forest text-white text-xs uppercase font-sans font-semibold tracking-wider rounded-lg"
+              >
+                Broadcast Notice
+              </button>
+            </div>
           ) : (
             <div className="space-y-4">
               {announcements.map((ann) => (
                 <div
                   key={ann.id}
-                  className="bg-charcoal border border-gold/20 rounded-2xl p-5 flex items-start justify-between gap-4 shadow-lg hover:border-gold/40 transition-colors"
+                  className="bg-white border border-editorial-border rounded-xl p-5 flex items-start justify-between gap-4 shadow-editorial hover:shadow-editorial-lg transition-all group"
                 >
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
                     <div
-                      className={`p-2 rounded-lg border mt-0.5 ${
+                      className={`p-2.5 rounded-lg border mt-0.5 flex-shrink-0 ${
                         ann.priority === 'high'
-                          ? 'bg-red-950/60 border-red-500/40 text-red-400'
-                          : 'bg-gold/10 border-gold/30 text-gold'
+                          ? 'bg-coral/10 border-coral/30 text-coral'
+                          : 'bg-forest/10 border-forest/20 text-forest'
                       }`}
                     >
                       <Bell className="w-4 h-4" />
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-navy text-gold border border-gold/20">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-forest/10 text-forest border border-forest/20 font-semibold">
                           {ann.category}
                         </span>
-                        <span className="text-[11px] font-mono text-muted-light">{ann.date}</span>
+                        <span className="text-[11px] font-mono text-muted">{ann.date}</span>
                         {ann.priority === 'high' && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-500/30">
-                            High Priority
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-coral text-white font-bold shadow-sm">
+                            Urgent Priority
                           </span>
                         )}
                         {ann.isFeatured && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gold text-navy font-bold">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-forest text-white font-semibold flex items-center gap-1 shadow-sm">
+                            <Sparkles className="w-3 h-3 text-coral" />
                             Featured
                           </span>
                         )}
                       </div>
 
-                      <h3 className="font-serif font-bold text-base text-ivory mb-1">{ann.title}</h3>
-                      <p className="text-xs text-muted-light leading-relaxed font-sans">{ann.content}</p>
+                      <h3 className="font-serif font-bold text-base sm:text-lg text-ink mb-1 group-hover:text-forest transition-colors">
+                        {ann.title}
+                      </h3>
+                      <p className="text-xs text-muted leading-relaxed font-sans">{ann.content}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
                       onClick={() => handleOpenEdit(ann)}
-                      className="p-1.5 text-ivory/70 hover:text-gold hover:bg-navy rounded"
+                      className="p-1.5 text-muted hover:text-forest hover:bg-forest/5 rounded-lg transition-colors"
+                      title="Edit Notice"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(ann.id)}
-                      className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded"
+                      className="p-1.5 text-muted hover:text-coral hover:bg-coral/10 rounded-lg transition-colors"
+                      title="Delete Notice"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -190,20 +209,23 @@ export default function AdminAnnouncementsPage() {
 
         {/* Modal */}
         {modalOpen && (
-          <div className="fixed inset-0 z-50 bg-navy/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-charcoal border border-gold/30 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gold/15 pb-4 mb-6">
-                <h3 className="font-serif text-lg font-bold text-ivory">
-                  {editingId ? 'Edit Announcement' : 'Publish New Notice'}
-                </h3>
-                <button onClick={() => setModalOpen(false)} className="text-ivory/60 hover:text-gold">
+          <div className="fixed inset-0 z-50 bg-forest/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-editorial-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative text-ink">
+              <div className="flex items-center justify-between border-b border-editorial-border pb-4 mb-6">
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-forest">
+                    {editingId ? 'Edit Announcement' : 'Broadcast New Notice'}
+                  </h3>
+                  <p className="text-xs text-muted mt-0.5">Post official reminders, schedule notices, and urgent bulletins.</p>
+                </div>
+                <button onClick={() => setModalOpen(false)} className="p-1 text-muted hover:text-forest rounded-lg hover:bg-canvas transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                     Notice Title
                   </label>
                   <input
@@ -211,19 +233,20 @@ export default function AdminAnnouncementsPage() {
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory font-serif"
+                    placeholder="e.g. Schedule for Annual Alumni Gathering"
+                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-serif font-bold"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Category
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory font-serif"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                     >
                       <option value="Notice">Notice</option>
                       <option value="Event">Event</option>
@@ -233,7 +256,7 @@ export default function AdminAnnouncementsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Date
                     </label>
                     <input
@@ -241,18 +264,18 @@ export default function AdminAnnouncementsPage() {
                       required
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-mono text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Priority
                     </label>
                     <select
                       value={priority}
                       onChange={(e) => setPriority(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory font-serif"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                     >
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -262,7 +285,7 @@ export default function AdminAnnouncementsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                     Announcement Body
                   </label>
                   <textarea
@@ -270,43 +293,44 @@ export default function AdminAnnouncementsPage() {
                     required
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory"
+                    placeholder="Enter the full announcement text, instructions, and details..."
+                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans leading-relaxed"
                   />
                 </div>
 
                 <div className="flex items-center gap-6 pt-2">
-                  <label className="flex items-center gap-2 text-xs font-serif cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isFeatured}
                       onChange={(e) => setIsFeatured(e.target.checked)}
-                      className="accent-gold w-4 h-4"
+                      className="accent-coral w-4 h-4 rounded"
                     />
                     <span>Featured Notice</span>
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs font-serif cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isPublished}
                       onChange={(e) => setIsPublished(e.target.checked)}
-                      className="accent-gold w-4 h-4"
+                      className="accent-forest w-4 h-4 rounded"
                     />
                     <span>Publish Immediately</span>
                   </label>
                 </div>
 
-                <div className="pt-4 border-t border-gold/15 flex justify-end gap-3">
+                <div className="pt-4 border-t border-editorial-border flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="px-4 py-2 bg-charcoal text-xs text-ivory rounded-lg border border-gold/20"
+                    className="px-4 py-2 bg-canvas hover:bg-canvas-subtle text-xs text-muted hover:text-ink rounded-lg border border-editorial-border transition-colors font-sans"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-gold text-navy font-serif font-bold text-xs uppercase tracking-wider rounded-lg shadow-gold"
+                    className="px-6 py-2.5 bg-forest hover:bg-forest-light text-white font-sans font-semibold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all"
                   >
                     Save Notice
                   </button>

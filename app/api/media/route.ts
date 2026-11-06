@@ -6,3 +6,4 @@ export async function GET() {
   const media = db.getMedia();
   return NextResponse.json({ media });
 }
+

@@ -76,15 +76,15 @@ export default function AdminMediaPage() {
   );
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full min-h-screen bg-canvas">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto max-h-screen bg-navy text-ivory">
+      <main className="flex-1 overflow-y-auto max-h-screen text-ink">
         <AdminHeader
           title="Central Media Library"
           subtitle="Upload, search, preview, and organize digital photography, magazine PDFs, and video reels."
           action={
-            <label className="px-4 py-2 bg-gold hover:bg-gold-light text-navy text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-gold cursor-pointer">
-              <Upload className="w-3.5 h-3.5 text-navy" />
+            <label className="px-4 py-2.5 bg-forest hover:bg-forest-light text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm transition-all hover:shadow-forest/20 flex items-center gap-1.5 cursor-pointer">
+              <Upload className="w-4 h-4 text-white" />
               <span>{uploading ? 'Uploading File...' : 'Upload Asset'}</span>
               <input
                 type="file"
@@ -96,65 +96,69 @@ export default function AdminMediaPage() {
           }
         />
 
-        <div className="p-6 sm:p-8 max-w-7xl space-y-6">
+        <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
           {/* Search bar */}
           <div className="relative max-w-md">
-            <Search className="w-4 h-4 text-gold/60 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search media files by name..."
-              className="w-full pl-10 pr-4 py-2 bg-charcoal border border-gold/20 rounded-xl text-xs text-ivory focus:outline-none focus:border-gold"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-editorial-border rounded-xl text-xs text-ink placeholder-muted focus:outline-none focus:border-forest shadow-sm"
             />
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-muted-light font-serif">Loading media library...</div>
+            <div className="text-center py-16 text-muted font-serif italic text-sm">
+              Loading media repository...
+            </div>
           ) : filteredMedia.length === 0 ? (
-            <div className="text-center py-16 bg-charcoal rounded-2xl border border-gold/15">
-              <FolderOpen className="w-10 h-10 text-gold/40 mx-auto mb-3" />
-              <p className="text-sm font-serif text-ivory">No media files found.</p>
-              <p className="text-xs text-muted-light mt-1">Upload photos, covers, or PDFs using the button above.</p>
+            <div className="text-center py-16 bg-white rounded-2xl border border-editorial-border p-8 shadow-editorial">
+              <FolderOpen className="w-10 h-10 text-muted mx-auto mb-3" />
+              <p className="font-serif text-lg text-ink font-semibold">No media files found</p>
+              <p className="text-xs text-muted mt-1">Upload high-resolution photography, magazine PDFs, or video reels using the button above.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {filteredMedia.map((m) => (
                 <div
                   key={m.id}
-                  className="bg-charcoal border border-gold/20 rounded-xl overflow-hidden shadow group flex flex-col justify-between"
+                  className="bg-white border border-editorial-border rounded-xl overflow-hidden shadow-editorial hover:shadow-editorial-lg transition-all group flex flex-col justify-between"
                 >
-                  <div className="relative aspect-square bg-navy-950 flex items-center justify-center overflow-hidden">
+                  <div className="relative aspect-square bg-canvas-subtle flex items-center justify-center overflow-hidden border-b border-editorial-border">
                     {m.category === 'image' ? (
-                      <img src={m.url} alt={m.filename} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <img src={m.url} alt={m.filename} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
                     ) : m.category === 'pdf' ? (
-                      <FileText className="w-12 h-12 text-gold/70" />
+                      <FileText className="w-12 h-12 text-forest/70" />
                     ) : (
-                      <Video className="w-12 h-12 text-gold/70" />
+                      <Video className="w-12 h-12 text-coral/80" />
                     )}
-                    <span className="absolute bottom-2 left-2 text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-navy/90 text-gold border border-gold/20">
+                    <span className="absolute bottom-2 left-2 text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-forest/90 backdrop-blur text-canvas font-semibold shadow-sm">
                       {m.category}
                     </span>
                   </div>
 
-                  <div className="p-3 text-xs">
-                    <p className="font-mono text-[11px] text-ivory truncate mb-1" title={m.originalName || m.filename}>
-                      {m.originalName || m.filename}
-                    </p>
-                    <p className="text-[10px] text-muted-light font-mono">
-                      {(m.size / (1024 * 1024)).toFixed(2)} MB
-                    </p>
+                  <div className="p-3 text-xs flex flex-col justify-between flex-1">
+                    <div>
+                      <p className="font-mono text-[11px] text-ink truncate mb-1 font-medium" title={m.originalName || m.filename}>
+                        {m.originalName || m.filename}
+                      </p>
+                      <p className="text-[10px] text-muted font-mono">
+                        {(m.size / (1024 * 1024)).toFixed(2)} MB
+                      </p>
+                    </div>
 
-                    <div className="pt-2 border-t border-gold/15 flex items-center justify-between mt-2">
+                    <div className="pt-2 border-t border-editorial-border flex items-center justify-between mt-3">
                       <button
                         onClick={() => handleCopy(m.url, m.id)}
-                        className="text-[10px] text-gold hover:underline flex items-center gap-1 font-mono"
+                        className="text-[10px] text-forest hover:text-coral flex items-center gap-1 font-mono font-semibold transition-colors"
                         title="Copy direct link"
                       >
                         {copiedId === m.id ? (
                           <>
-                            <Check className="w-3 h-3 text-emerald-400" />
-                            <span className="text-emerald-400">Copied!</span>
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span className="text-emerald-700">Copied!</span>
                           </>
                         ) : (
                           <>
@@ -169,14 +173,14 @@ export default function AdminMediaPage() {
                           href={m.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="p-1 text-ivory/60 hover:text-gold"
+                          className="p-1 text-muted hover:text-forest transition-colors"
                           title="Open Asset"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </a>
                         <button
                           onClick={() => handleDelete(m.id)}
-                          className="p-1 text-red-400 hover:text-red-300"
+                          className="p-1 text-muted hover:text-coral transition-colors"
                           title="Delete Asset"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

@@ -16,6 +16,7 @@ import {
   X,
   Flame,
   Star,
+  Sparkles,
 } from 'lucide-react';
 
 const categories: ArticleCategory[] = [
@@ -125,18 +126,25 @@ export default function AdminNewspaperPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const finalSlug = slug.trim()
+      ? slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
     const payload = {
       title,
-      slug: slug || undefined,
+      slug: finalSlug,
       subtitle,
       category,
       headlineStatus,
       breakingStatus,
-      coverImage: coverImage || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1400&q=80',
+      coverImage: coverImage || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80',
       content,
       author,
       authorRole,
       isPublished,
+      publishedAt: new Date().toISOString(),
+      galleryImages: [],
+      relatedArticleIds: [],
     };
 
     try {
@@ -162,7 +170,7 @@ export default function AdminNewspaperPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this news article?')) return;
+    if (!confirm('Are you sure you want to delete this article?')) return;
     try {
       await fetch(`/api/newspaper/${id}`, { method: 'DELETE' });
       fetchArticles();
@@ -172,100 +180,114 @@ export default function AdminNewspaperPage() {
   };
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full min-h-screen bg-canvas">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto max-h-screen bg-navy text-ivory">
+      <main className="flex-1 overflow-y-auto max-h-screen text-ink">
         <AdminHeader
           title="Digital Newspaper & Editorial Desk"
           subtitle="Publish news dispatches, special reports, and investigative features."
           action={
             <button
               onClick={handleOpenCreate}
-              className="px-4 py-2 bg-gold hover:bg-gold-light text-navy text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-gold"
+              className="px-4 py-2.5 bg-forest hover:bg-forest-light text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm transition-all hover:shadow-forest/20 flex items-center gap-1.5"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Draft New Article</span>
             </button>
           }
         />
 
-        <div className="p-6 sm:p-8 max-w-7xl">
+        <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           {loading ? (
-            <div className="text-center py-12 text-muted-light font-serif">Loading news articles...</div>
+            <div className="text-center py-16 text-muted font-serif italic text-sm">
+              Loading news dispatches...
+            </div>
+          ) : articles.length === 0 ? (
+            <div className="text-center py-16 bg-white border border-editorial-border rounded-xl p-8">
+              <Newspaper className="w-10 h-10 text-muted mx-auto mb-3" />
+              <p className="font-serif text-lg text-ink font-semibold">No news dispatches published yet</p>
+              <p className="text-xs text-muted mt-1 mb-4">Click "Draft New Article" to write the latest news bulletin.</p>
+              <button
+                onClick={handleOpenCreate}
+                className="px-4 py-2 bg-forest text-white text-xs uppercase font-sans font-semibold tracking-wider rounded-lg"
+              >
+                Draft Story
+              </button>
+            </div>
           ) : (
             <div className="space-y-4">
               {articles.map((art) => (
                 <div
                   key={art.id}
-                  className="bg-charcoal border border-gold/20 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg hover:border-gold/40 transition-colors"
+                  className="bg-white border border-editorial-border rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-editorial hover:shadow-editorial-lg transition-all group"
                 >
                   <div className="flex items-start gap-4 flex-1 min-w-0">
                     <img
                       src={art.coverImage}
                       alt={art.title}
-                      className="w-20 h-20 object-cover rounded-xl border border-gold/20 flex-shrink-0"
+                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-editorial-border flex-shrink-0 group-hover:scale-[1.02] transition-transform duration-300"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-gold/15 text-gold border border-gold/30">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-forest/10 text-forest border border-forest/20 font-semibold">
                           {art.category}
                         </span>
                         {art.headlineStatus && (
-                          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                            <Star className="w-2.5 h-2.5" />
+                          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 font-semibold">
+                            <Star className="w-3 h-3 text-amber-700 fill-amber-700" />
                             Headline
                           </span>
                         )}
                         {art.breakingStatus && (
-                          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-500/30 flex items-center gap-1">
-                            <Flame className="w-2.5 h-2.5" />
+                          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-coral text-white font-bold flex items-center gap-1 shadow-sm">
+                            <Flame className="w-3 h-3 fill-white" />
                             Breaking
                           </span>
                         )}
                         <span
-                          className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded border ${
+                          className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded border font-semibold ${
                             art.isPublished
-                              ? 'bg-emerald-950 text-emerald-300 border-emerald-500/30'
-                              : 'bg-zinc-900 text-zinc-400 border-zinc-700'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : 'bg-stone-100 text-stone-600 border-stone-300'
                           }`}
                         >
                           {art.isPublished ? 'Published' : 'Draft'}
                         </span>
                       </div>
 
-                      <h3 className="font-serif font-bold text-base text-ivory truncate">
+                      <h3 className="font-serif font-bold text-base sm:text-lg text-ink truncate group-hover:text-forest transition-colors">
                         {art.title}
                       </h3>
                       {art.subtitle && (
-                        <p className="text-xs text-muted-light line-clamp-1 font-sans">
+                        <p className="text-xs text-muted line-clamp-1 font-sans mt-0.5">
                           {art.subtitle}
                         </p>
                       )}
-                      <div className="text-[11px] font-mono text-muted-light mt-1">
-                        By {art.author} • {new Date(art.publishedAt).toLocaleDateString()} • {art.viewCount || 0} reads
+                      <div className="text-[11px] font-mono text-muted mt-2">
+                        By <span className="text-ink font-semibold">{art.author}</span> • {new Date(art.publishedAt).toLocaleDateString()} • {art.viewCount || 0} views
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 flex-shrink-0 self-end md:self-center border-t md:border-t-0 border-gold/15 pt-3 md:pt-0 w-full md:w-auto justify-end">
+                  <div className="flex items-center gap-2.5 flex-shrink-0 self-end md:self-center border-t md:border-t-0 border-editorial-border pt-3 md:pt-0 w-full md:w-auto justify-end">
                     <a
                       href={`/newspaper/${art.slug}`}
                       target="_blank"
-                      className="px-3 py-1.5 bg-navy hover:bg-navy-light text-gold text-xs font-serif rounded-lg border border-gold/20 flex items-center gap-1"
+                      className="px-3 py-1.5 bg-canvas hover:bg-canvas-subtle text-forest text-xs font-sans font-semibold rounded-lg border border-editorial-border flex items-center gap-1.5 transition-colors"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       <span>Preview</span>
                     </a>
                     <button
                       onClick={() => handleOpenEdit(art)}
-                      className="p-2 text-ivory/70 hover:text-gold hover:bg-navy rounded-lg transition-colors"
+                      className="p-2 text-muted hover:text-forest hover:bg-forest/5 rounded-lg transition-colors"
                       title="Edit Story"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(art.id)}
-                      className="p-2 text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded-lg transition-colors"
+                      className="p-2 text-muted hover:text-coral hover:bg-coral/10 rounded-lg transition-colors"
                       title="Delete Story"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -279,15 +301,18 @@ export default function AdminNewspaperPage() {
 
         {/* Modal Editor */}
         {modalOpen && (
-          <div className="fixed inset-0 z-50 bg-navy/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-charcoal border border-gold/30 rounded-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative">
-              <div className="flex items-center justify-between border-b border-gold/15 pb-4 mb-6">
-                <h3 className="font-serif text-lg font-bold text-ivory">
-                  {editingId ? 'Edit Newspaper Article' : 'Draft New Story'}
-                </h3>
+          <div className="fixed inset-0 z-50 bg-forest/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-editorial-border rounded-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative text-ink">
+              <div className="flex items-center justify-between border-b border-editorial-border pb-4 mb-6">
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-forest">
+                    {editingId ? 'Edit Newspaper Article' : 'Draft New Newspaper Story'}
+                  </h3>
+                  <p className="text-xs text-muted mt-0.5">Compose broadsheet stories, editorial columns, and news bulletins.</p>
+                </div>
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="text-ivory/60 hover:text-gold"
+                  className="p-1 text-muted hover:text-forest rounded-lg hover:bg-canvas transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -295,7 +320,7 @@ export default function AdminNewspaperPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                     Article Headline
                   </label>
                   <input
@@ -304,19 +329,19 @@ export default function AdminNewspaperPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter commanding headline..."
-                    className="w-full px-4 py-2.5 bg-navy border border-gold/20 rounded-lg text-base text-ivory focus:outline-none focus:border-gold font-serif font-bold"
+                    className="w-full px-4 py-2.5 bg-canvas border border-editorial-border rounded-lg text-base text-ink focus:outline-none focus:border-forest focus:ring-1 focus:ring-forest font-serif font-bold"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Category
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value as ArticleCategory)}
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory focus:outline-none focus:border-gold font-serif"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                     >
                       {categories.map((c) => (
                         <option key={c} value={c}>
@@ -327,7 +352,7 @@ export default function AdminNewspaperPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       URL Slug (Auto-generated if left blank)
                     </label>
                     <input
@@ -335,13 +360,13 @@ export default function AdminNewspaperPage() {
                       value={slug}
                       onChange={(e) => setSlug(e.target.value)}
                       placeholder="custom-article-slug"
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory focus:outline-none focus:border-gold font-mono text-xs"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-mono text-xs"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                     Subtitle / Deck
                   </label>
                   <input
@@ -349,25 +374,25 @@ export default function AdminNewspaperPage() {
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
                     placeholder="Brief explanatory secondary headline..."
-                    className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory focus:outline-none focus:border-gold font-sans"
+                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Author Name
                     </label>
                     <input
                       type="text"
                       value={author}
                       onChange={(e) => setAuthor(e.target.value)}
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory focus:outline-none focus:border-gold"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Author Desk / Role
                     </label>
                     <input
@@ -375,14 +400,14 @@ export default function AdminNewspaperPage() {
                       value={authorRole}
                       onChange={(e) => setAuthorRole(e.target.value)}
                       placeholder="Investigative Reporter, Class Editor"
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory focus:outline-none focus:border-gold"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                     />
                   </div>
                 </div>
 
                 {/* Cover Image */}
-                <div className="p-4 rounded-xl bg-navy border border-gold/15 space-y-2">
-                  <label className="block text-xs uppercase font-serif tracking-wider text-gold">
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-2">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest">
                     Lead Photograph URL
                   </label>
                   <div className="flex gap-2">
@@ -391,10 +416,10 @@ export default function AdminNewspaperPage() {
                       value={coverImage}
                       onChange={(e) => setCoverImage(e.target.value)}
                       placeholder="https://... or upload file"
-                      className="flex-1 px-3 py-2 bg-charcoal border border-gold/20 rounded-lg text-xs text-ivory font-mono"
+                      className="flex-1 px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
                     />
-                    <label className="flex items-center gap-1.5 px-3 py-2 bg-charcoal hover:bg-charcoal-soft border border-gold/30 rounded-lg text-xs text-ivory/80 cursor-pointer">
-                      <Upload className="w-3.5 h-3.5 text-gold" />
+                    <label className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-forest/5 border border-editorial-border hover:border-forest/40 rounded-lg text-xs text-ink cursor-pointer transition-colors shadow-sm font-sans font-medium">
+                      <Upload className="w-3.5 h-3.5 text-forest" />
                       <span>{uploadingCover ? 'Uploading...' : 'Upload Image'}</span>
                       <input
                         type="file"
@@ -408,7 +433,7 @@ export default function AdminNewspaperPage() {
 
                 {/* Rich Content Editor */}
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1.5">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1.5">
                     Story Content (Rich Formatting)
                   </label>
                   <RichEditor value={content} onChange={setContent} />
@@ -416,48 +441,48 @@ export default function AdminNewspaperPage() {
 
                 {/* Toggles */}
                 <div className="flex flex-wrap items-center gap-6 pt-2">
-                  <label className="flex items-center gap-2 text-xs font-serif cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
                       checked={headlineStatus}
                       onChange={(e) => setHeadlineStatus(e.target.checked)}
-                      className="accent-gold w-4 h-4"
+                      className="accent-coral w-4 h-4 rounded"
                     />
                     <span>Frontpage Lead Headline</span>
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs font-serif cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
                       checked={breakingStatus}
                       onChange={(e) => setBreakingStatus(e.target.checked)}
-                      className="accent-gold w-4 h-4"
+                      className="accent-coral w-4 h-4 rounded"
                     />
                     <span>Mark as Breaking Dispatch</span>
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs font-serif cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isPublished}
                       onChange={(e) => setIsPublished(e.target.checked)}
-                      className="accent-gold w-4 h-4"
+                      className="accent-forest w-4 h-4 rounded"
                     />
                     <span>Publish Immediately</span>
                   </label>
                 </div>
 
-                <div className="pt-4 border-t border-gold/15 flex justify-end gap-3">
+                <div className="pt-4 border-t border-editorial-border flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="px-4 py-2 bg-charcoal hover:bg-charcoal-soft text-xs text-ivory rounded-lg border border-gold/20"
+                    className="px-4 py-2 bg-canvas hover:bg-canvas-subtle text-xs text-muted hover:text-ink rounded-lg border border-editorial-border transition-colors font-sans"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-gold hover:bg-gold-light text-navy font-serif font-bold text-xs uppercase tracking-wider rounded-lg shadow-gold"
+                    className="px-6 py-2.5 bg-forest hover:bg-forest-light text-white font-sans font-semibold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all"
                   >
                     Save & Publish Story
                   </button>

@@ -46,3 +46,4 @@ export async function DELETE(
   const deleted = db.deleteMember(id);
   return NextResponse.json({ success: deleted });
 }
+

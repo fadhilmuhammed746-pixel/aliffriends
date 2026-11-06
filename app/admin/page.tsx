@@ -12,15 +12,11 @@ import {
   Video,
   Image as ImageIcon,
   Users,
-  Trophy,
-  Bell,
   Plus,
   Eye,
   CheckCircle,
-  Clock,
   ArrowUpRight,
   TrendingUp,
-  FolderOpen,
 } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -35,8 +31,6 @@ export default async function AdminDashboardPage() {
   const videos = db.getVideos(false);
   const albums = db.getAlbums(false);
   const members = db.getMembers(false);
-  const achievements = db.getAchievements(false);
-  const announcements = db.getAnnouncements(false);
   const messages = db.getMessages();
 
   const totalPhotos = albums.reduce((acc, alb) => acc + (alb.photos?.length || 0), 0);
@@ -88,16 +82,16 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full min-h-screen bg-canvas text-ink">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto max-h-screen bg-navy text-ivory">
+      <main className="flex-1 overflow-y-auto max-h-screen">
         <AdminHeader
           title="Editorial Control Room"
           subtitle="Real-time administration, content publishing, and media archival management."
           action={
             <Link
               href="/admin/newspaper"
-              className="px-3.5 py-2 bg-gold hover:bg-gold-light text-navy text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-gold"
+              className="px-4 py-2 bg-coral hover:bg-coral-dark text-white text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-coral"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Draft New Story</span>
@@ -114,19 +108,19 @@ export default async function AdminDashboardPage() {
                 <Link
                   key={s.label}
                   href={s.href}
-                  className="bg-charcoal border border-gold/20 hover:border-gold/50 rounded-xl p-4 transition-all duration-300 group hover:-translate-y-0.5 shadow-lg"
+                  className="bg-white border border-editorial-border hover:border-forest/40 rounded-2xl p-5 transition-all duration-300 group hover:-translate-y-1 shadow-card"
                 >
-                  <div className="flex items-center justify-between text-muted-light mb-3">
-                    <span className="text-[11px] font-serif uppercase tracking-wider text-ivory/80">
+                  <div className="flex items-center justify-between text-ink-muted mb-3">
+                    <span className="text-[11px] font-serif uppercase tracking-wider font-semibold text-forest">
                       {s.label}
                     </span>
-                    <Icon className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
+                    <Icon className="w-4 h-4 text-coral group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-2xl font-serif font-bold text-ivory mb-1">
+                  <div className="text-3xl font-serif font-bold text-forest mb-1">
                     {s.count}
                   </div>
-                  <div className="text-[11px] font-mono text-gold/80 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-gold" />
+                  <div className="text-[11px] font-mono text-ink-muted flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-forest" />
                     <span>
                       {s.published} {s.unit || 'published'}
                     </span>
@@ -137,58 +131,58 @@ export default async function AdminDashboardPage() {
           </div>
 
           {/* Quick Actions Bar */}
-          <div className="bg-charcoal border border-gold/25 rounded-2xl p-6">
-            <h2 className="font-serif text-sm uppercase tracking-widest text-gold font-bold mb-4 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-gold" />
+          <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-8 shadow-card">
+            <h2 className="font-serif text-sm uppercase tracking-widest text-forest font-bold mb-4 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-coral" />
               <span>Quick Editorial Actions</span>
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               <Link
                 href="/admin/newspaper"
-                className="p-3 bg-navy hover:bg-navy-light border border-gold/15 hover:border-gold rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
               >
-                <Newspaper className="w-5 h-5 text-gold mx-auto mb-1.5 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-medium text-ivory block">
+                <Newspaper className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-serif font-bold text-forest block">
                   Write Article
                 </span>
               </Link>
 
               <Link
                 href="/admin/magazines"
-                className="p-3 bg-navy hover:bg-navy-light border border-gold/15 hover:border-gold rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
               >
-                <BookOpen className="w-5 h-5 text-gold mx-auto mb-1.5 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-medium text-ivory block">
+                <BookOpen className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-serif font-bold text-forest block">
                   Upload Magazine
                 </span>
               </Link>
 
               <Link
                 href="/admin/programs"
-                className="p-3 bg-navy hover:bg-navy-light border border-gold/15 hover:border-gold rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
               >
-                <Calendar className="w-5 h-5 text-gold mx-auto mb-1.5 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-medium text-ivory block">
+                <Calendar className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-serif font-bold text-forest block">
                   Add Program
                 </span>
               </Link>
 
               <Link
                 href="/admin/videos"
-                className="p-3 bg-navy hover:bg-navy-light border border-gold/15 hover:border-gold rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
               >
-                <Video className="w-5 h-5 text-gold mx-auto mb-1.5 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-medium text-ivory block">
+                <Video className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-serif font-bold text-forest block">
                   Publish Video
                 </span>
               </Link>
 
               <Link
                 href="/admin/gallery"
-                className="p-3 bg-navy hover:bg-navy-light border border-gold/15 hover:border-gold rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
               >
-                <ImageIcon className="w-5 h-5 text-gold mx-auto mb-1.5 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-medium text-ivory block">
+                <ImageIcon className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-serif font-bold text-forest block">
                   Create Album
                 </span>
               </Link>
@@ -198,14 +192,14 @@ export default async function AdminDashboardPage() {
           {/* Two-Column Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Recent Articles */}
-            <div className="bg-charcoal border border-gold/20 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-4 border-b border-gold/15 pb-3">
-                <h3 className="font-serif text-sm uppercase tracking-widest text-gold font-bold">
+            <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-8 shadow-card">
+              <div className="flex items-center justify-between mb-4 border-b border-editorial-border pb-3">
+                <h3 className="font-serif text-sm uppercase tracking-widest text-forest font-bold">
                   Recent Newspaper Publications
                 </h3>
                 <Link
                   href="/admin/newspaper"
-                  className="text-xs text-muted-light hover:text-gold flex items-center gap-1 font-mono"
+                  className="text-xs text-coral hover:underline flex items-center gap-1 font-mono font-bold"
                 >
                   <span>View All</span>
                   <ArrowUpRight className="w-3 h-3" />
@@ -216,23 +210,23 @@ export default async function AdminDashboardPage() {
                 {articles.slice(0, 4).map((art) => (
                   <div
                     key={art.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-navy/60 border border-gold/10 hover:border-gold/30 transition-colors"
+                    className="flex items-center justify-between p-3.5 rounded-xl bg-canvas border border-editorial-border hover:border-forest/30 transition-colors"
                   >
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-gold/10 text-gold border border-gold/20">
+                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-forest-50 text-forest font-bold">
                           {art.category}
                         </span>
                         {art.breakingStatus && (
-                          <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-500/30">
+                          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-coral text-white font-bold">
                             Breaking
                           </span>
                         )}
                       </div>
-                      <h4 className="text-xs font-serif font-semibold text-ivory truncate">
+                      <h4 className="text-xs font-serif font-bold text-forest truncate">
                         {art.title}
                       </h4>
-                      <span className="text-[11px] text-muted-light">
+                      <span className="text-[11px] text-ink-muted">
                         By {art.author} • {art.viewCount || 0} views
                       </span>
                     </div>
@@ -240,10 +234,10 @@ export default async function AdminDashboardPage() {
                     <Link
                       href={`/newspaper/${art.slug}`}
                       target="_blank"
-                      className="p-2 text-ivory/60 hover:text-gold hover:bg-charcoal rounded transition-colors"
+                      className="p-2 text-ink-muted hover:text-forest hover:bg-white rounded transition-colors"
                       title="Preview Article"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-4 h-4 text-coral" />
                     </Link>
                   </div>
                 ))}
@@ -251,18 +245,18 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Inquiries & Messages */}
-            <div className="bg-charcoal border border-gold/20 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-4 border-b border-gold/15 pb-3">
-                <h3 className="font-serif text-sm uppercase tracking-widest text-gold font-bold">
+            <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-8 shadow-card">
+              <div className="flex items-center justify-between mb-4 border-b border-editorial-border pb-3">
+                <h3 className="font-serif text-sm uppercase tracking-widest text-forest font-bold">
                   Editorial Desk Inquiries ({messages.length})
                 </h3>
-                <span className="text-[11px] font-mono text-muted-light">
-                  Direct Messages
+                <span className="text-[11px] font-mono text-ink-muted">
+                  Direct Transmissions
                 </span>
               </div>
 
               {messages.length === 0 ? (
-                <div className="text-center py-8 text-muted-light text-xs font-sans">
+                <div className="text-center py-8 text-ink-muted text-xs font-sans">
                   No pending inquiries. All transmissions up to date.
                 </div>
               ) : (
@@ -270,20 +264,20 @@ export default async function AdminDashboardPage() {
                   {messages.slice(0, 4).map((msg) => (
                     <div
                       key={msg.id}
-                      className="p-3 rounded-xl bg-navy/60 border border-gold/10 space-y-1 text-xs"
+                      className="p-3.5 rounded-xl bg-canvas border border-editorial-border space-y-1 text-xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-serif font-bold text-ivory">
+                        <span className="font-serif font-bold text-forest">
                           {msg.name}
                         </span>
-                        <span className="text-[10px] font-mono text-gold/70">
+                        <span className="text-[10px] font-mono text-coral font-semibold">
                           {new Date(msg.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-gold-light/90 text-xs font-medium">
+                      <p className="text-forest text-xs font-medium">
                         {msg.subject}
                       </p>
-                      <p className="text-muted-light line-clamp-1 text-[11px]">
+                      <p className="text-ink-muted line-clamp-1 text-[11px]">
                         {msg.message}
                       </p>
                     </div>

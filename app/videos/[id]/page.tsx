@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { VideoPlayer } from '@/components/video/VideoPlayer';
-import { ArrowLeft, Clock, Sparkles, ExternalLink, Video } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 
 export const revalidate = 0;
 
@@ -22,14 +22,14 @@ export default async function VideoDetailPage({
   const settings = db.getSettings();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 bg-canvas text-ink">
       {/* Back button */}
       <div>
         <Link
           href="/videos"
-          className="inline-flex items-center gap-2 text-xs font-serif uppercase tracking-wider text-gold hover:text-gold-light transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-serif uppercase tracking-wider text-forest hover:text-coral transition-colors font-bold"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 text-coral" />
           <span>Back to Video Center</span>
         </Link>
       </div>
@@ -47,13 +47,13 @@ export default async function VideoDetailPage({
       </div>
 
       {/* Meta and Description */}
-      <div className="bg-charcoal border border-gold/20 rounded-2xl p-6 sm:p-8 shadow-xl space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gold/15 pb-4">
+      <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-8 shadow-card space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-editorial-border pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs uppercase font-mono px-3 py-1 rounded bg-gold/15 text-gold border border-gold/30">
+            <span className="text-xs uppercase font-mono px-3 py-1 rounded bg-forest-50 text-forest border border-forest-100 font-bold">
               {video.category}
             </span>
-            <span className="text-xs font-mono text-muted-light">
+            <span className="text-xs font-mono text-ink-muted">
               Duration: {video.duration}
             </span>
           </div>
@@ -62,18 +62,18 @@ export default async function VideoDetailPage({
             href={settings.officialYoutube}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-red-400 hover:text-red-300 font-mono flex items-center gap-1.5"
+            className="text-xs text-coral hover:underline font-mono flex items-center gap-1.5 font-bold"
           >
             <span>Alif Creations 12</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
 
-        <h1 className="font-serif text-2xl sm:text-4xl font-bold text-ivory tracking-wide">
+        <h1 className="font-serif text-2xl sm:text-4xl font-bold text-forest tracking-tight">
           {video.title}
         </h1>
 
-        <p className="text-sm text-ivory/80 leading-relaxed font-sans whitespace-pre-line">
+        <p className="text-sm sm:text-base text-ink-light leading-relaxed font-sans whitespace-pre-line">
           {video.description}
         </p>
       </div>

@@ -118,3 +118,4 @@ npm run start
 - ✅ **Administrator Login**: Authenticates at `/admin/login` with `admin` / `alif12`.
 - ✅ **Editorial Publishing**: Creates articles with the rich text editor, uploads PDFs and cover artwork, schedules programs, and manages albums.
 - ✅ **Security Verification**: Changes administrator password securely via `/admin/settings`; verified against bcrypt salted hash.
+

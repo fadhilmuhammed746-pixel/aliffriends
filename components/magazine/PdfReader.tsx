@@ -9,8 +9,6 @@ import {
   ZoomOut,
   RotateCw,
   BookOpen,
-  ChevronLeft,
-  ChevronRight,
   ExternalLink,
 } from 'lucide-react';
 
@@ -32,7 +30,6 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
   const [rotation, setRotation] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fullscreen toggle
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
@@ -59,23 +56,23 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-charcoal-deep border border-gold/20 rounded-xl overflow-hidden shadow-2xl flex flex-col ${
+      className={`relative bg-[#FAF9F5] border border-editorial-border rounded-2xl overflow-hidden shadow-card flex flex-col ${
         isFullscreen ? 'w-screen h-screen rounded-none border-none z-50 fixed inset-0' : 'h-[750px] w-full'
       }`}
     >
       {/* Editorial Reader Toolbar */}
-      <div className="bg-navy px-4 py-3 border-b border-gold/20 flex flex-wrap items-center justify-between gap-3 text-ivory z-20">
+      <div className="bg-forest px-5 py-3.5 border-b border-forest-800 flex flex-wrap items-center justify-between gap-3 text-white z-20">
         <div className="flex items-center gap-3">
-          <span className="p-1.5 bg-gold/10 text-gold rounded border border-gold/30">
-            <BookOpen className="w-4 h-4" />
+          <span className="p-1.5 bg-white/10 text-coral-light rounded-md border border-white/15">
+            <BookOpen className="w-4 h-4 text-white" />
           </span>
           <div>
-            <h3 className="font-serif font-bold text-sm text-ivory tracking-wide truncate max-w-xs md:max-w-md">
+            <h3 className="font-serif font-bold text-sm text-white tracking-wide truncate max-w-xs md:max-w-md">
               {title}
             </h3>
             {editionNumber && (
-              <span className="text-[10px] uppercase font-mono tracking-widest text-gold">
-                {editionNumber} • Online Reading Suite
+              <span className="text-[10px] uppercase font-mono tracking-widest text-coral-light">
+                {editionNumber} • Archival Reading Suite
               </span>
             )}
           </div>
@@ -84,18 +81,18 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           {/* Zoom controls */}
-          <div className="hidden sm:flex items-center bg-charcoal rounded-lg border border-gold/20 px-1 py-0.5">
+          <div className="hidden sm:flex items-center bg-forest-800 rounded-lg border border-forest-700 px-1 py-0.5">
             <button
               onClick={() => setZoom((z) => Math.max(50, z - 15))}
-              className="p-1.5 text-ivory/70 hover:text-gold transition-colors"
+              className="p-1.5 text-white/80 hover:text-coral transition-colors"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[11px] font-mono px-2 text-ivory/90">{zoom}%</span>
+            <span className="text-[11px] font-mono px-2 text-white">{zoom}%</span>
             <button
               onClick={() => setZoom((z) => Math.min(200, z + 15))}
-              className="p-1.5 text-ivory/70 hover:text-gold transition-colors"
+              className="p-1.5 text-white/80 hover:text-coral transition-colors"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
@@ -105,7 +102,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
           {/* Rotate */}
           <button
             onClick={() => setRotation((r) => (r + 90) % 360)}
-            className="p-2 bg-charcoal text-ivory/70 hover:text-gold rounded-lg border border-gold/20 transition-colors hidden md:block"
+            className="p-2 bg-forest-800 text-white/80 hover:text-coral rounded-lg border border-forest-700 transition-colors hidden md:block"
             title="Rotate Page"
           >
             <RotateCw className="w-3.5 h-3.5" />
@@ -115,16 +112,16 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
           <a
             href={pdfUrl}
             download
-            className="px-3 py-1.5 bg-gold hover:bg-gold-light text-navy text-xs font-serif font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-gold"
+            className="px-3.5 py-1.5 bg-coral hover:bg-coral-dark text-white text-xs font-serif font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-coral"
           >
-            <Download className="w-3.5 h-3.5 text-navy" />
+            <Download className="w-3.5 h-3.5 text-white" />
             <span className="hidden sm:inline">Download PDF</span>
           </a>
 
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className="p-2 bg-charcoal text-gold hover:text-ivory rounded-lg border border-gold/30 hover:border-gold transition-colors"
+            className="p-2 bg-forest-800 text-white hover:text-coral rounded-lg border border-forest-700 transition-colors"
             title={isFullscreen ? 'Exit Full Screen' : 'Full Screen Reading Mode'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -133,7 +130,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
       </div>
 
       {/* Reader Viewport */}
-      <div className="flex-1 bg-charcoal relative overflow-auto flex items-center justify-center p-2 sm:p-4">
+      <div className="flex-1 bg-[#EFEFE8] relative overflow-auto flex items-center justify-center p-3 sm:p-6">
         <div
           className="w-full h-full flex items-center justify-center transition-all duration-200"
           style={{
@@ -141,23 +138,23 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
             transformOrigin: 'center center',
           }}
         >
-          {/* Direct PDF Embed via iframe/object with graceful fallback */}
+          {/* Direct PDF Embed */}
           <object
             data={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
             type="application/pdf"
-            className="w-full h-full rounded shadow-xl border border-gold/10"
+            className="w-full h-full rounded-xl shadow-card border border-editorial-border bg-white"
           >
-            {/* Fallback Viewport if browser PDF plugin is disabled */}
-            <div className="flex flex-col items-center justify-center text-center p-8 bg-navy/95 border border-gold/30 rounded-xl max-w-lg">
+            {/* Fallback Viewport */}
+            <div className="flex flex-col items-center justify-center text-center p-8 bg-white border border-editorial-border rounded-xl max-w-lg shadow-card">
               {coverImage && (
                 <img
                   src={coverImage}
                   alt={title}
-                  className="w-44 h-60 object-cover rounded shadow-gold mb-5 border border-gold/40"
+                  className="w-44 h-60 object-cover rounded-lg shadow-subtle mb-5 border border-editorial-border"
                 />
               )}
-              <h4 className="font-serif text-lg font-bold text-ivory mb-2">{title}</h4>
-              <p className="text-xs text-ivory/70 mb-5 leading-relaxed font-sans">
+              <h4 className="font-serif text-lg font-bold text-forest mb-2">{title}</h4>
+              <p className="text-xs text-ink-muted mb-5 leading-relaxed font-sans">
                 You can read this publication directly in full resolution or download the complete high-definition archival edition.
               </p>
               <div className="flex flex-wrap items-center gap-3">
@@ -165,7 +162,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
                   href={pdfUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-gold hover:bg-gold-light text-navy text-xs font-serif font-bold rounded-lg transition-colors flex items-center gap-2 shadow-gold"
+                  className="px-5 py-2.5 bg-forest hover:bg-forest-800 text-white text-xs font-serif font-bold rounded-lg transition-colors flex items-center gap-2 shadow-subtle"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>Open In New Window</span>
@@ -173,9 +170,9 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
                 <a
                   href={pdfUrl}
                   download
-                  className="px-5 py-2.5 bg-charcoal hover:bg-charcoal-soft text-ivory text-xs font-sans rounded-lg transition-colors border border-gold/30 flex items-center gap-2"
+                  className="px-5 py-2.5 bg-white hover:bg-canvas text-forest text-xs font-sans rounded-lg transition-colors border border-editorial-border flex items-center gap-2 font-medium"
                 >
-                  <Download className="w-4 h-4 text-gold" />
+                  <Download className="w-4 h-4 text-coral" />
                   <span>Download Archive</span>
                 </a>
               </div>
@@ -185,13 +182,13 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
       </div>
 
       {/* Reader Bottom Bar */}
-      <div className="bg-navy-950 px-4 py-2 border-t border-gold/15 flex items-center justify-between text-xs text-ivory/60 font-sans">
-        <span className="text-[11px] text-muted-light">
+      <div className="bg-white px-5 py-2.5 border-t border-editorial-border flex items-center justify-between text-xs text-ink-muted font-sans">
+        <span className="text-[11px]">
           Archival Edition • Alif Friends 12 Literary Society
         </span>
         <div className="flex items-center gap-3">
-          <span className="text-[11px] text-gold/70 font-mono">
-            Full-Screen: {isFullscreen ? 'Active (Esc to exit)' : 'Available'}
+          <span className="text-[11px] text-forest font-mono">
+            {isFullscreen ? 'Full Screen Mode (Esc to exit)' : 'Full-Screen Available'}
           </span>
         </div>
       </div>

@@ -2,77 +2,71 @@ import React from 'react';
 import Link from 'next/link';
 
 interface LogoProps {
-  variant?: 'light' | 'dark' | 'gold';
+  variant?: 'light' | 'dark' | 'brand';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showTagline?: boolean;
   clickable?: boolean;
 }
 
 export const Logo: React.FC<LogoProps> = ({
-  variant = 'light',
+  variant = 'dark',
   size = 'md',
   showTagline = true,
   clickable = true,
 }) => {
-  const isLight = variant === 'light'; // Light text for dark backgrounds (Midnight Navy)
-  const isDark = variant === 'dark';   // Dark text for ivory/light backgrounds
-  const isGold = variant === 'gold';
+  const isLight = variant === 'light'; // Light text for forest/dark green backgrounds
+  const isDark = variant === 'dark';   // Dark text for ivory/white backgrounds
 
-  const titleColor = isLight ? 'text-ivory' : isDark ? 'text-navy' : 'text-gold';
-  const subColor = isLight ? 'text-gold-light/90' : isDark ? 'text-charcoal/70' : 'text-gold/80';
-  const taglineColor = isLight ? 'text-muted-light/75' : isDark ? 'text-muted-dark' : 'text-gold/70';
+  const titleColor = isLight ? 'text-[#F7F6F0]' : 'text-forest';
+  const taglineColor = isLight ? 'text-[#F7F6F0]/75' : 'text-ink-muted';
 
   const iconSize =
-    size === 'sm' ? 32 : size === 'md' ? 42 : size === 'lg' ? 56 : 72;
+    size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 52 : 68;
 
   const titleSize =
     size === 'sm'
-      ? 'text-base tracking-wider'
+      ? 'text-sm tracking-wider'
       : size === 'md'
-      ? 'text-xl tracking-widest'
+      ? 'text-lg sm:text-xl tracking-wider'
       : size === 'lg'
-      ? 'text-2xl tracking-widest'
-      : 'text-3xl tracking-ultra';
+      ? 'text-2xl sm:text-3xl tracking-widest'
+      : 'text-3xl sm:text-4xl tracking-ultra';
 
   const content = (
-    <div className="flex items-center gap-3.5 group cursor-pointer transition-transform duration-300">
-      {/* Bespoke AF12 Monogram Seal */}
+    <div className="flex items-center gap-3 group cursor-pointer transition-transform duration-300">
+      {/* Bespoke AF12 Editorial Emblem in Forest Green with Coral Accent */}
       <div
-        className="relative flex-shrink-0 flex items-center justify-center rounded-xl overflow-hidden shadow-gold border border-gold/40 transition-transform duration-500 group-hover:scale-105"
-        style={{ width: iconSize, height: iconSize, backgroundColor: '#101827' }}
+        className="relative flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden border border-editorial-border shadow-subtle transition-transform duration-300 group-hover:scale-105"
+        style={{
+          width: iconSize,
+          height: iconSize,
+          backgroundColor: '#123C32',
+        }}
       >
         <svg
           viewBox="0 0 64 64"
-          className="w-full h-full p-1.5 transition-transform duration-700 group-hover:rotate-3"
+          className="w-full h-full p-1.5 transition-transform duration-500 group-hover:rotate-1"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <defs>
-            <linearGradient id="logo-gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#F5DFAB" />
-              <stop offset="50%" stopColor="#C8A96B" />
-              <stop offset="100%" stopColor="#9A7836" />
-            </linearGradient>
-          </defs>
-          {/* Inner hairline border */}
+          {/* Inner hairline */}
           <rect
-            x="4"
-            y="4"
-            width="56"
-            height="56"
-            rx="10"
-            stroke="url(#logo-gold-grad)"
-            strokeWidth="1.2"
-            strokeDasharray="2 2"
-            opacity="0.8"
+            x="3"
+            y="3"
+            width="58"
+            height="58"
+            rx="6"
+            stroke="#E6E7DF"
+            strokeWidth="0.8"
+            strokeOpacity="0.4"
           />
-          {/* Geometric AF monogram */}
+          {/* Monogram A */}
           <path
-            d="M21 47 L30.5 17 L33.5 17 L43 47 L37.2 47 L35.2 39.5 L28.8 39.5 L26.8 47 Z M30.2 34.5 L33.8 34.5 L32 25.5 Z"
-            fill="url(#logo-gold-grad)"
+            d="M21 47 L30.5 17 L33.5 17 L43 47 L37.2 47 L35.2 39 L28.8 39 L26.8 47 Z M30.5 33.5 L33.5 33.5 L32 24.5 Z"
+            fill="#F7F6F0"
           />
-          {/* 12 Roman accent */}
-          <circle cx="32" cy="11.5" r="2" fill="#F5DFAB" />
+          {/* Accent Coral Point */}
+          <circle cx="32" cy="11.5" r="2.5" fill="#E66B4E" />
         </svg>
       </div>
 
@@ -82,7 +76,7 @@ export const Logo: React.FC<LogoProps> = ({
           <span className={`font-serif font-bold ${titleColor} ${titleSize} leading-none tracking-widest`}>
             ALIF FRIENDS
           </span>
-          <span className="font-serif font-black text-gold text-lg md:text-xl border border-gold/40 px-1.5 py-0.5 rounded leading-none bg-gold/10">
+          <span className="font-serif font-black text-white text-xs sm:text-sm bg-coral px-1.5 py-0.5 rounded leading-none shadow-sm">
             12
           </span>
         </div>
@@ -98,7 +92,7 @@ export const Logo: React.FC<LogoProps> = ({
   if (!clickable) return content;
 
   return (
-    <Link href="/" className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-lg">
+    <Link href="/" className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-coral rounded-md">
       {content}
     </Link>
   );

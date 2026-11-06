@@ -232,3 +232,4 @@ CREATE POLICY "Public can view published announcements" ON public.announcements 
 
 -- Public can insert contact messages (spam-checked via server API)
 CREATE POLICY "Public can submit contact messages" ON public.contact_messages FOR INSERT WITH CHECK (true);
+

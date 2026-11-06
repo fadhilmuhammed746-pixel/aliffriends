@@ -19,7 +19,7 @@ export default function AdminGalleryPage() {
   const [coverImage, setCoverImage] = useState('');
   const [isRestricted, setIsRestricted] = useState(false);
   const [isPublished, setIsPublished] = useState(true);
-  const [photosText, setPhotosText] = useState(''); // JSON or line-separated URLs
+  const [photosText, setPhotosText] = useState('');
 
   const fetchAlbums = async () => {
     try {
@@ -68,7 +68,6 @@ export default function AdminGalleryPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Parse photos from text lines
     const parsedPhotos: GalleryPhoto[] = photosText
       .split('\n')
       .map((line) => line.trim())
@@ -125,87 +124,103 @@ export default function AdminGalleryPage() {
   };
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full min-h-screen bg-canvas">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto max-h-screen bg-navy text-ivory">
+      <main className="flex-1 overflow-y-auto max-h-screen text-ink">
         <AdminHeader
           title="Class Photo Gallery & Heritage Archive"
           subtitle="Organize photo albums, trip memories, celebrations, and restrict private archives."
           action={
             <button
               onClick={handleOpenCreate}
-              className="px-4 py-2 bg-gold hover:bg-gold-light text-navy text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-gold"
+              className="px-4 py-2.5 bg-forest hover:bg-forest-light text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm transition-all hover:shadow-forest/20 flex items-center gap-1.5"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Create New Album</span>
             </button>
           }
         />
 
-        <div className="p-6 sm:p-8 max-w-7xl">
+        <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           {loading ? (
-            <div className="text-center py-12 text-muted-light font-serif">Loading gallery albums...</div>
+            <div className="text-center py-16 text-muted font-serif italic text-sm">
+              Loading photographic albums...
+            </div>
+          ) : albums.length === 0 ? (
+            <div className="text-center py-16 bg-white border border-editorial-border rounded-xl p-8">
+              <ImageIcon className="w-10 h-10 text-muted mx-auto mb-3" />
+              <p className="font-serif text-lg text-ink font-semibold">No photo albums created yet</p>
+              <p className="text-xs text-muted mt-1 mb-4">Click "Create New Album" to curate the inaugural collection.</p>
+              <button
+                onClick={handleOpenCreate}
+                className="px-4 py-2 bg-forest text-white text-xs uppercase font-sans font-semibold tracking-wider rounded-lg"
+              >
+                Create Album
+              </button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {albums.map((alb) => (
                 <div
                   key={alb.id}
-                  className="bg-charcoal border border-gold/20 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between"
+                  className="bg-white border border-editorial-border rounded-xl overflow-hidden shadow-editorial hover:shadow-editorial-lg transition-all flex flex-col justify-between group"
                 >
-                  <div className="relative aspect-video bg-navy-950">
+                  <div className="relative aspect-video bg-canvas-subtle border-b border-editorial-border overflow-hidden">
                     <img
                       src={alb.coverImage}
                       alt={alb.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
                     />
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-navy/90 text-gold border border-gold/30">
+                      <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-forest/90 backdrop-blur text-canvas font-semibold shadow-sm">
                         {alb.category}
                       </span>
                       {alb.isRestricted ? (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-500/30 flex items-center gap-1">
-                          <Lock className="w-2.5 h-2.5" />
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 font-semibold">
+                          <Lock className="w-3 h-3 text-amber-700" />
                           Restricted
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                          <Globe className="w-2.5 h-2.5" />
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1 font-semibold">
+                          <Globe className="w-3 h-3 text-emerald-700" />
                           Public
                         </span>
                       )}
                     </div>
-                    <span className="absolute bottom-2 right-2 text-[10px] font-mono bg-navy/90 text-ivory px-2 py-0.5 rounded border border-gold/20">
+                    <span className="absolute bottom-2.5 right-2.5 text-[10px] font-mono bg-forest/90 text-canvas px-2 py-0.5 rounded shadow-sm">
                       {alb.photos?.length || 0} Photos
                     </span>
                   </div>
 
                   <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 className="font-serif font-bold text-base text-ivory mb-1">
+                      <h3 className="font-serif font-bold text-lg text-ink mb-1 group-hover:text-forest transition-colors">
                         {alb.title}
                       </h3>
-                      <p className="text-xs text-muted-light line-clamp-2">{alb.description}</p>
+                      <p className="text-xs text-muted line-clamp-2 leading-relaxed">{alb.description}</p>
                     </div>
 
-                    <div className="pt-3 border-t border-gold/15 flex items-center justify-between mt-4">
+                    <div className="pt-3 border-t border-editorial-border flex items-center justify-between mt-4">
                       <a
                         href={`/gallery/${alb.id}`}
                         target="_blank"
-                        className="text-xs text-gold hover:underline flex items-center gap-1 font-serif"
+                        className="text-xs text-forest hover:text-coral flex items-center gap-1.5 font-sans font-semibold transition-colors"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View Album</span>
                       </a>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(alb)}
-                          className="p-1.5 text-ivory/70 hover:text-gold hover:bg-navy rounded"
+                          className="p-1.5 text-muted hover:text-forest hover:bg-forest/5 rounded-lg transition-colors"
+                          title="Edit Album"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(alb.id)}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/20 rounded"
+                          className="p-1.5 text-muted hover:text-coral hover:bg-coral/10 rounded-lg transition-colors"
+                          title="Delete Album"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -220,20 +235,23 @@ export default function AdminGalleryPage() {
 
         {/* Modal */}
         {modalOpen && (
-          <div className="fixed inset-0 z-50 bg-navy/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-charcoal border border-gold/30 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gold/15 pb-4 mb-6">
-                <h3 className="font-serif text-lg font-bold text-ivory">
-                  {editingId ? 'Edit Photo Album' : 'Create Photo Album'}
-                </h3>
-                <button onClick={() => setModalOpen(false)} className="text-ivory/60 hover:text-gold">
+          <div className="fixed inset-0 z-50 bg-forest/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-editorial-border rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative text-ink">
+              <div className="flex items-center justify-between border-b border-editorial-border pb-4 mb-6">
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-forest">
+                    {editingId ? 'Edit Photo Album' : 'Create New Photo Album'}
+                  </h3>
+                  <p className="text-xs text-muted mt-0.5">Organize event photography, member archives, and private reels.</p>
+                </div>
+                <button onClick={() => setModalOpen(false)} className="p-1 text-muted hover:text-forest rounded-lg hover:bg-canvas transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                     Album Title
                   </label>
                   <input
@@ -241,19 +259,20 @@ export default function AdminGalleryPage() {
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory font-serif"
+                    placeholder="e.g. Annual Class Convocation 2024"
+                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-serif font-bold"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Category
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory font-serif"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                     >
                       <option value="Special Moment">Special Moment</option>
                       <option value="Event">Event</option>
@@ -264,7 +283,7 @@ export default function AdminGalleryPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                       Cover Image URL
                     </label>
                     <input
@@ -272,25 +291,26 @@ export default function AdminGalleryPage() {
                       value={coverImage}
                       onChange={(e) => setCoverImage(e.target.value)}
                       placeholder="https://..."
-                      className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-xs text-ivory font-mono"
+                      className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                     Album Description
                   </label>
                   <textarea
                     rows={2}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-sm text-ivory"
+                    placeholder="Brief background on the photographed occasion..."
+                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans leading-relaxed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase font-serif tracking-wider text-ivory/80 mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
                     Photos List (One per line: URL | Caption)
                   </label>
                   <textarea
@@ -298,46 +318,46 @@ export default function AdminGalleryPage() {
                     value={photosText}
                     onChange={(e) => setPhotosText(e.target.value)}
                     placeholder="https://images.unsplash.com/... | Graduation ceremony portrait&#10;https://images.unsplash.com/... | Campfire memories at summit"
-                    className="w-full px-3 py-2 bg-navy border border-gold/20 rounded-lg text-xs text-ivory font-mono"
+                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest leading-relaxed"
                   />
-                  <p className="text-[11px] text-muted-light mt-1">
+                  <p className="text-[11px] text-muted mt-1 font-sans">
                     Paste image URLs one per line, optionally separated by a vertical bar &quot;|&quot; and a caption.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-6 pt-2">
-                  <label className="flex items-center gap-2 text-xs font-serif cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isRestricted}
                       onChange={(e) => setIsRestricted(e.target.checked)}
-                      className="accent-gold w-4 h-4"
+                      className="accent-coral w-4 h-4 rounded"
                     />
                     <span>Restricted Album (Class Members Only)</span>
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs font-serif cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isPublished}
                       onChange={(e) => setIsPublished(e.target.checked)}
-                      className="accent-gold w-4 h-4"
+                      className="accent-forest w-4 h-4 rounded"
                     />
                     <span>Publish Album</span>
                   </label>
                 </div>
 
-                <div className="pt-4 border-t border-gold/15 flex justify-end gap-3">
+                <div className="pt-4 border-t border-editorial-border flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="px-4 py-2 bg-charcoal text-xs text-ivory rounded-lg border border-gold/20"
+                    className="px-4 py-2 bg-canvas hover:bg-canvas-subtle text-xs text-muted hover:text-ink rounded-lg border border-editorial-border transition-colors font-sans"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-gold text-navy font-serif font-bold text-xs uppercase tracking-wider rounded-lg shadow-gold"
+                    className="px-6 py-2.5 bg-forest hover:bg-forest-light text-white font-sans font-semibold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all"
                   >
                     Save Album
                   </button>

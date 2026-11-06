@@ -5,12 +5,7 @@ import { db } from '@/lib/db';
 import {
   ArrowLeft,
   Calendar,
-  User,
   Eye,
-  Share2,
-  Clock,
-  Tag,
-  ArrowRight,
   Flame,
 } from 'lucide-react';
 
@@ -38,50 +33,50 @@ export default async function ArticleDetailPage({
     .slice(0, 3);
 
   return (
-    <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+    <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 bg-canvas text-ink">
       {/* Back button */}
       <div>
         <Link
           href="/newspaper"
-          className="inline-flex items-center gap-2 text-xs font-serif uppercase tracking-wider text-gold hover:text-gold-light transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-serif uppercase tracking-wider text-forest hover:text-coral transition-colors font-bold"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 text-coral" />
           <span>Back to Newsroom</span>
         </Link>
       </div>
 
       {/* Header Deck */}
-      <div className="space-y-4 border-b border-gold/20 pb-8">
+      <div className="space-y-4 border-b border-editorial-border pb-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs uppercase font-mono px-3 py-1 rounded bg-gold/15 text-gold border border-gold/30">
+          <span className="text-xs uppercase font-mono px-3 py-1 rounded bg-forest-50 text-forest border border-forest-100 font-bold">
             {article.category}
           </span>
           {article.breakingStatus && (
-            <span className="text-xs uppercase font-mono px-3 py-1 rounded bg-red-950 text-red-300 border border-red-500/40 flex items-center gap-1">
-              <Flame className="w-3.5 h-3.5 text-red-400" />
+            <span className="text-xs uppercase font-mono px-3 py-1 rounded bg-coral text-white font-bold flex items-center gap-1">
+              <Flame className="w-3.5 h-3.5" />
               Breaking Dispatch
             </span>
           )}
         </div>
 
-        <h1 className="font-serif text-3xl sm:text-5xl font-bold text-ivory tracking-wide leading-tight">
+        <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold text-forest tracking-tight leading-tight">
           {article.title}
         </h1>
 
         {article.subtitle && (
-          <p className="font-serif italic text-lg sm:text-xl text-gold-light/90 leading-relaxed">
+          <p className="font-editorial italic text-lg sm:text-2xl text-ink-light leading-relaxed">
             {article.subtitle}
           </p>
         )}
 
         {/* Byline and metadata */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gold/15 text-xs text-muted-light font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-editorial-border text-xs text-ink-muted font-mono">
           <div className="flex items-center gap-3">
-            <span className="text-ivory font-bold">{article.author}</span>
+            <span className="text-forest font-bold">{article.author}</span>
             {article.authorRole && (
               <>
                 <span>•</span>
-                <span className="text-gold/80">{article.authorRole}</span>
+                <span className="text-coral font-medium">{article.authorRole}</span>
               </>
             )}
             <span>•</span>
@@ -94,15 +89,15 @@ export default async function ArticleDetailPage({
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-gold">
-            <Eye className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 text-forest font-semibold">
+            <Eye className="w-3.5 h-3.5 text-coral" />
             <span>{(article.viewCount || 0) + 1} Reads</span>
           </div>
         </div>
       </div>
 
       {/* Lead Cover Image */}
-      <div className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-gold/20">
+      <div className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-card border border-editorial-border bg-white">
         <img
           src={article.coverImage}
           alt={article.title}
@@ -110,22 +105,22 @@ export default async function ArticleDetailPage({
         />
       </div>
 
-      {/* Article Body Content */}
-      <div className="bg-charcoal border border-gold/20 rounded-2xl p-6 sm:p-12 shadow-xl">
+      {/* Article Body Content with Editorial Drop Cap */}
+      <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-12 shadow-card">
         <div
-          className="prose prose-invert max-w-none text-ivory/90 font-sans text-base leading-relaxed space-y-4"
+          className="editorial-dropcap prose-editorial max-w-none text-ink-light font-sans text-base sm:text-lg leading-relaxed space-y-5"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
 
-        {/* Gallery inside article (if any) */}
+        {/* Gallery inside article */}
         {article.galleryImages && article.galleryImages.length > 0 && (
-          <div className="mt-12 pt-8 border-t border-gold/15 space-y-4">
-            <h4 className="font-serif text-sm uppercase tracking-widest text-gold font-bold">
+          <div className="mt-12 pt-8 border-t border-editorial-border space-y-4">
+            <h4 className="font-serif text-sm uppercase tracking-widest text-forest font-bold">
               Dispatch Photographic Gallery
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {article.galleryImages.map((img, idx) => (
-                <div key={idx} className="relative aspect-video rounded-xl overflow-hidden border border-gold/20">
+                <div key={idx} className="relative aspect-video rounded-xl overflow-hidden border border-editorial-border shadow-subtle">
                   <img src={img} alt="Story photo" className="w-full h-full object-cover" />
                 </div>
               ))}
@@ -135,12 +130,12 @@ export default async function ArticleDetailPage({
 
         {/* Tags */}
         {article.relatedTags && article.relatedTags.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-gold/15 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-gold font-mono uppercase">Filed under:</span>
+          <div className="mt-8 pt-6 border-t border-editorial-border flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-forest font-mono uppercase font-semibold">Filed under:</span>
             {article.relatedTags.map((tag) => (
               <span
                 key={tag}
-                className="px-2.5 py-1 rounded bg-navy text-ivory/80 border border-gold/20 font-mono text-[11px]"
+                className="px-2.5 py-1 rounded bg-canvas text-forest border border-editorial-border font-mono text-[11px]"
               >
                 #{tag}
               </span>
@@ -151,8 +146,8 @@ export default async function ArticleDetailPage({
 
       {/* Related Stories */}
       {related.length > 0 && (
-        <div className="pt-10 border-t border-gold/20 space-y-6">
-          <h3 className="font-serif text-xl font-bold text-ivory">
+        <div className="pt-10 border-t border-editorial-border space-y-6">
+          <h3 className="font-serif text-2xl font-bold text-forest">
             Related Dispatches & News
           </h3>
 
@@ -161,17 +156,17 @@ export default async function ArticleDetailPage({
               <Link
                 key={rel.id}
                 href={`/newspaper/${rel.slug}`}
-                className="bg-charcoal border border-gold/15 hover:border-gold/40 rounded-xl overflow-hidden p-4 block group transition-all"
+                className="bg-white border border-editorial-border hover:border-forest/40 rounded-xl overflow-hidden p-4 block group transition-all shadow-subtle"
               >
                 <img
                   src={rel.coverImage}
                   alt={rel.title}
-                  className="w-full aspect-video object-cover rounded-lg border border-gold/20 mb-3"
+                  className="w-full aspect-video object-cover rounded-lg border border-editorial-border mb-3"
                 />
-                <span className="text-[10px] uppercase font-mono text-gold block mb-1">
+                <span className="text-[10px] uppercase font-mono text-coral font-bold block mb-1">
                   {rel.category}
                 </span>
-                <h4 className="font-serif text-sm font-bold text-ivory group-hover:text-gold transition-colors line-clamp-2">
+                <h4 className="font-serif text-sm font-bold text-forest group-hover:text-coral transition-colors line-clamp-2">
                   {rel.title}
                 </h4>
               </Link>

@@ -15,3 +15,4 @@ export async function DELETE(
   const deleted = db.deleteMedia(id);
   return NextResponse.json({ success: deleted });
 }
+

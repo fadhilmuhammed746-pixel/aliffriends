@@ -34,3 +34,4 @@ export async function DELETE(
   const deleted = db.deleteAnnouncement(id);
   return NextResponse.json({ success: deleted });
 }
+

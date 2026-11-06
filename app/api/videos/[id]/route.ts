@@ -46,3 +46,4 @@ export async function DELETE(
   const deleted = db.deleteVideo(id);
   return NextResponse.json({ success: deleted });
 }
+

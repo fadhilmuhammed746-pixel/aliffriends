@@ -22,7 +22,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState(autoPlay);
 
-  // Extract YouTube ID safely
   const getYouTubeId = (url?: string) => {
     if (!url) return null;
     const match = url.match(
@@ -34,7 +33,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const youtubeId = getYouTubeId(youtubeUrl);
 
   return (
-    <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-navy-950 border border-gold/30 shadow-2xl group">
+    <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-forest-950 border border-editorial-border shadow-card group">
       {!isPlaying ? (
         <div className="relative w-full h-full cursor-pointer" onClick={() => setIsPlaying(true)}>
           <img
@@ -42,25 +41,25 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             alt={title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          {/* Cinematic Dark Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/40 to-transparent" />
+          {/* Subtle Dark Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/30 to-transparent" />
 
-          {/* Central Play Button */}
+          {/* Central Play Button with Coral Glow */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative flex items-center justify-center">
-              <div className="absolute w-20 h-20 bg-gold/20 rounded-full animate-ping" />
-              <div className="relative w-16 h-16 rounded-full bg-gold hover:bg-gold-light text-navy flex items-center justify-center shadow-gold transition-transform duration-300 group-hover:scale-110">
-                <Play className="w-7 h-7 text-navy fill-navy ml-1" />
+              <div className="absolute w-20 h-20 bg-coral/25 rounded-full animate-ping" />
+              <div className="relative w-16 h-16 rounded-full bg-coral hover:bg-coral-dark text-white flex items-center justify-center shadow-coral transition-transform duration-300 group-hover:scale-110">
+                <Play className="w-7 h-7 text-white fill-white ml-1" />
               </div>
             </div>
           </div>
 
           {/* Title bar at bottom */}
-          <div className="absolute bottom-4 left-4 right-4 text-ivory">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-gold bg-navy/80 px-2 py-0.5 rounded border border-gold/30">
+          <div className="absolute bottom-4 left-4 right-4 text-white">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-coral-light bg-forest/80 px-2 py-0.5 rounded border border-forest-600">
               Cinematic Reel
             </span>
-            <h4 className="font-serif text-lg font-bold text-ivory mt-1 line-clamp-1 drop-shadow">
+            <h4 className="font-serif text-lg font-bold text-white mt-1 line-clamp-1 drop-shadow">
               {title}
             </h4>
           </div>
@@ -85,7 +84,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               Your browser does not support the video tag.
             </video>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-ivory/60 font-serif">
+            <div className="w-full h-full flex items-center justify-center text-white/60 font-serif">
               Video source unavailable
             </div>
           )}

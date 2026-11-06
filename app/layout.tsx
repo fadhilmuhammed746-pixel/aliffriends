@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from 'next';
-import { Cormorant_Garamond, Cinzel, Plus_Jakarta_Sans } from 'next/font/google';
+import { Playfair_Display, Cormorant_Garamond, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/navigation/Navbar';
 import { Footer } from '@/components/navigation/Footer';
 import { BreakingTicker } from '@/components/navigation/BreakingTicker';
 import { db } from '@/lib/db';
 
-const cinzel = Cinzel({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-cinzel',
+  variable: '--font-playfair',
   display: 'swap',
-  weight: ['400', '600', '700', '900'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
 });
 
 const cormorant = Cormorant_Garamond({
@@ -18,32 +19,33 @@ const cormorant = Cormorant_Garamond({
   variable: '--font-cormorant',
   display: 'swap',
   weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
 });
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-plus-jakarta',
   display: 'swap',
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: 'ALIF FRIENDS 12 | Digital Publication & Media Platform',
+    default: 'ALIF FRIENDS 12 | The International Digital Publication',
     template: '%s | ALIF FRIENDS 12',
   },
   description:
-    'A Class. A Generation. A Thousand Memories. The official digital publication, magazine archive, newspaper, and cinematic media platform of Alif Friends 12.',
+    'A Class. A Generation. A Thousand Memories. The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
   keywords: [
     'Alif Friends 12',
     'AF12',
-    'Class Publication',
+    'Editorial Publication',
     'Digital Magazine',
-    'Class Newspaper',
-    'Alif Creations 12',
+    'International Newsroom',
     'Class Heritage',
+    'Alif Creations 12',
   ],
-  authors: [{ name: 'Alif Friends 12 Editorial Board' }],
+  authors: [{ name: 'Alif Friends 12 Editorial Directorate' }],
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -51,7 +53,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
     description:
-      'The premier digital publication, magazine archive, and cinematic media center of Alif Friends 12.',
+      'The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
     siteName: 'ALIF FRIENDS 12',
     images: [
       {
@@ -65,7 +67,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#101827',
+  themeColor: '#123C32',
   width: 'device-width',
   initialScale: 1,
 };
@@ -80,9 +82,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cinzel.variable} ${cormorant.variable} ${plusJakarta.variable}`}
+      className={`${playfair.variable} ${cormorant.variable} ${plusJakarta.variable}`}
     >
-      <body className="bg-navy text-ivory antialiased min-h-screen flex flex-col justify-between selection:bg-gold selection:text-navy">
+      <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
         <div>
           <BreakingTicker
             text={settings.breakingTickerText}

@@ -208,3 +208,4 @@ export interface DatabaseSchema {
   media: MediaAsset[];
   messages: ContactMessage[];
 }
+
