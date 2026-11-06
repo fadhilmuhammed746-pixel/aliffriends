@@ -33,7 +33,12 @@ export async function POST(req: NextRequest) {
       coverImage,
       isRestricted: Boolean(body.isRestricted),
       isPublished: body.isPublished !== undefined ? Boolean(body.isPublished) : true,
+      isFeatured: Boolean(body.isFeatured),
+      eventDate: body.eventDate || undefined,
       photos: photos || [],
+      videos: body.videos || [],
+      pdfUrl: body.pdfUrl || undefined,
+      pdfTitle: body.pdfTitle || undefined,
     });
 
     return NextResponse.json({ success: true, album: newAlbum });

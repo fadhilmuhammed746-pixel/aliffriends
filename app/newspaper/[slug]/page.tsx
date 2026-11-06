@@ -7,6 +7,9 @@ import {
   Calendar,
   Eye,
   Flame,
+  Video,
+  FileText,
+  Download,
 } from 'lucide-react';
 
 export const revalidate = 0;
@@ -124,6 +127,58 @@ export default async function ArticleDetailPage({
                   <img src={img} alt="Story photo" className="w-full h-full object-cover" />
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Video Attachment */}
+        {article.videoUrl && (
+          <div className="mt-8 pt-8 border-t border-editorial-border space-y-3">
+            <h4 className="font-serif text-sm uppercase tracking-widest text-forest font-bold flex items-center gap-2">
+              <Video className="w-4 h-4 text-coral" />
+              <span>Video & Broadcast Attachment</span>
+            </h4>
+            <div className="aspect-video rounded-xl overflow-hidden bg-black border border-editorial-border">
+              {article.videoUrl.includes('youtube') || article.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  src={article.videoUrl.replace('watch?v=', 'embed/')}
+                  title="Article Video"
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                />
+              ) : (
+                <video src={article.videoUrl} controls className="w-full h-full object-contain" />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* PDF Document Attachment */}
+        {article.pdfUrl && (
+          <div className="mt-8 pt-8 border-t border-editorial-border space-y-3">
+            <h4 className="font-serif text-sm uppercase tracking-widest text-forest font-bold flex items-center gap-2">
+              <FileText className="w-4 h-4 text-red-500" />
+              <span>Official Circular & Documentation</span>
+            </h4>
+            <div className="p-4 rounded-xl bg-canvas border border-editorial-border flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FileText className="w-8 h-8 text-red-600" />
+                <div>
+                  <p className="font-serif font-bold text-sm text-forest">
+                    {article.pdfTitle || 'Official Document Dispatch.pdf'}
+                  </p>
+                  <p className="font-mono text-[10px] text-ink-muted">PDF Document Attachment</p>
+                </div>
+              </div>
+              <a
+                href={article.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-forest text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-forest-light transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Document</span>
+              </a>
             </div>
           </div>
         )}

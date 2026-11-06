@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
       photos: body.photos || [],
       youtubeUrl: body.youtubeUrl || '',
       videoUrl: body.videoUrl || '',
+      pdfUrl: body.pdfUrl || undefined,
+      pdfTitle: body.pdfTitle || undefined,
       isFeatured: Boolean(body.isFeatured),
       isPublished: body.isPublished !== undefined ? Boolean(body.isPublished) : true,
     });

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { Program } from '@/lib/types';
 import { Calendar, Plus, Trash2, Edit, Eye, MapPin, Youtube, Upload, X, Sparkles } from 'lucide-react';
 
@@ -20,6 +21,10 @@ export default function AdminProgramsPage() {
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfTitle, setPdfTitle] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPublished, setIsPublished] = useState(true);
 
@@ -45,6 +50,10 @@ export default function AdminProgramsPage() {
     setDescription('');
     setCoverImage('');
     setYoutubeUrl('https://www.youtube.com/@AlifCreations12');
+    setPhotos([]);
+    setVideoUrl('');
+    setPdfUrl('');
+    setPdfTitle('');
     setIsFeatured(false);
     setIsPublished(true);
     setEditingId(null);
@@ -64,6 +73,10 @@ export default function AdminProgramsPage() {
     setDescription(p.description);
     setCoverImage(p.coverImage);
     setYoutubeUrl(p.youtubeUrl || '');
+    setPhotos(p.photos || []);
+    setVideoUrl(p.videoUrl || '');
+    setPdfUrl(p.pdfUrl || '');
+    setPdfTitle(p.pdfTitle || '');
     setIsFeatured(p.isFeatured);
     setIsPublished(p.isPublished);
     setModalOpen(true);
@@ -79,6 +92,10 @@ export default function AdminProgramsPage() {
       description,
       coverImage: coverImage || 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80',
       youtubeUrl,
+      photos,
+      videoUrl: videoUrl || undefined,
+      pdfUrl: pdfUrl || undefined,
+      pdfTitle: pdfTitle || undefined,
       isFeatured,
       isPublished,
     };
@@ -305,30 +322,79 @@ export default function AdminProgramsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    Cover Image URL
-                  </label>
-                  <input
-                    type="text"
+                {/* Program Cover Image */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Program Cover Artwork"
+                    description="Upload a high-resolution banner for this event (JPG, PNG, WEBP)."
+                    type="image"
+                    section="program"
                     value={coverImage}
-                    onChange={(e) => setCoverImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                    onChange={(url) => setCoverImage(url)}
+                    required={true}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    YouTube Video URL / Live Broadcast
-                  </label>
-                  <input
-                    type="text"
-                    value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/@AlifCreations12"
-                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                {/* Event Photo Gallery */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Event Photo Gallery (Bulk Upload)"
+                    description="Upload multiple archival photos from this program."
+                    type="image"
+                    multiple={true}
+                    section="program"
+                    value={photos}
+                    onChange={(urls) => setPhotos(urls)}
                   />
+                </div>
+
+                {/* Video & PDF Documents */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-4">
+                  <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-forest border-b border-editorial-border pb-2">
+                    Event Broadcast & Schedule Documentation
+                  </h4>
+
+                  <div>
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
+                      YouTube Video URL / Live Broadcast
+                    </label>
+                    <input
+                      type="text"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      placeholder="https://www.youtube.com/@AlifCreations12"
+                      className="w-full px-3.5 py-2.5 bg-white border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                    />
+                  </div>
+
+                  <MediaUpload
+                    label="Direct Program Video (MP4 / WEBM)"
+                    description="Upload a direct highlight reel or documentary file."
+                    type="video"
+                    section="program"
+                    value={videoUrl}
+                    onChange={(url) => setVideoUrl(url)}
+                  />
+
+                  <div>
+                    <MediaUpload
+                      label="Program Itinerary / Guide (PDF)"
+                      description="Attach an official brochure or event schedule."
+                      type="pdf"
+                      section="program"
+                      value={pdfUrl}
+                      onChange={(url) => setPdfUrl(url)}
+                    />
+                    {pdfUrl && (
+                      <input
+                        type="text"
+                        placeholder="Document display title (e.g. Conclave Program Schedule.pdf)"
+                        value={pdfTitle}
+                        onChange={(e) => setPdfTitle(e.target.value)}
+                        className="mt-2 w-full px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink font-sans focus:outline-none focus:border-forest"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div>

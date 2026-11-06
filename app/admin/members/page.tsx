@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { ClassMember } from '@/lib/types';
-import { Users, Plus, Trash2, Edit, CheckCircle, X, ShieldCheck } from 'lucide-react';
+import { Users, Plus, Trash2, Edit, CheckCircle, X, ShieldCheck, Shield, Lock } from 'lucide-react';
 
 export default function AdminMembersPage() {
   const [members, setMembers] = useState<ClassMember[]>([]);
@@ -271,18 +272,25 @@ export default function AdminMembersPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    Profile Photograph URL
-                  </label>
-                  <input
-                    type="text"
-                    required
+                {/* Profile Photo Upload */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Class Member Portrait Photo"
+                    description="Upload an official yearbook or profile portrait (JPG, PNG, WEBP)."
+                    type="image"
+                    section="member"
                     value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                    onChange={(url) => setPhotoUrl(url)}
+                    required={true}
                   />
+                </div>
+
+                {/* Privacy Assurance Notice */}
+                <div className="p-3.5 rounded-xl bg-forest-50 border border-forest-100 flex items-start gap-2.5 text-xs text-forest">
+                  <ShieldCheck className="w-4 h-4 text-forest flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] leading-relaxed">
+                    <span className="font-bold">Student Privacy Protection:</span> Private contact details, phone numbers, and addresses are strictly omitted from public view. Only published profiles will appear on the public Members roster.
+                  </p>
                 </div>
 
                 <div>

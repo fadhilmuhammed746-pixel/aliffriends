@@ -1136,6 +1136,122 @@ export const db = {
 
   // Media
   getMedia: () => getDatabase().media,
+  getMediaById: (id: string) => {
+    return getDatabase().media.find((m) => m.id === id);
+  },
+  getMediaUsage: (urlOrFilename: string): { isUsed: boolean; references: Array<{ section: string; title: string; id: string }> } => {
+    const data = getDatabase();
+    const references: Array<{ section: string; title: string; id: string }> = [];
+    if (!urlOrFilename) return { isUsed: false, references };
+
+    const target = urlOrFilename.trim();
+    const targetFile = target.split('/').pop() || target;
+
+    const matches = (value?: string | null) => {
+      if (!value) return false;
+      return value === target || value.includes(targetFile);
+    };
+
+    // Magazines
+    data.magazines?.forEach((m) => {
+      if (matches(m.coverImage) || matches(m.pdfUrl)) {
+        references.push({ section: 'Magazine', title: m.title, id: m.id });
+      }
+    });
+
+    // Newspaper Articles
+    data.articles?.forEach((a) => {
+      if (
+        matches(a.coverImage) ||
+        matches(a.pdfUrl) ||
+        matches(a.videoUrl) ||
+        a.galleryImages?.some(matches) ||
+        (a.content && a.content.includes(targetFile))
+      ) {
+        references.push({ section: 'Newspaper', title: a.title, id: a.id });
+      }
+    });
+
+    // Programs
+    data.programs?.forEach((p) => {
+      if (
+        matches(p.coverImage) ||
+        matches(p.videoUrl) ||
+        matches(p.pdfUrl) ||
+        p.photos?.some(matches)
+      ) {
+        references.push({ section: 'Program', title: p.title, id: p.id });
+      }
+    });
+
+    // Videos
+    data.videos?.forEach((v) => {
+      if (matches(v.thumbnailUrl) || matches(v.videoUrl)) {
+        references.push({ section: 'Video', title: v.title, id: v.id });
+      }
+    });
+
+    // Gallery Albums
+    data.albums?.forEach((g) => {
+      if (
+        matches(g.coverImage) ||
+        matches(g.pdfUrl) ||
+        g.photos?.some((ph) => matches(typeof ph === 'string' ? ph : ph.url)) ||
+        g.videos?.some(matches)
+      ) {
+        references.push({ section: 'Gallery Album', title: g.title, id: g.id });
+      }
+    });
+
+    // Class Members
+    data.members?.forEach((mem) => {
+      if (matches(mem.photoUrl)) {
+        references.push({ section: 'Class Member', title: mem.name, id: mem.id });
+      }
+    });
+
+    // Achievements
+    data.achievements?.forEach((ach) => {
+      if (
+        matches(ach.imageUrl) ||
+        matches(ach.pdfUrl) ||
+        matches(ach.videoUrl) ||
+        ach.photos?.some(matches)
+      ) {
+        references.push({ section: 'Achievement', title: ach.title, id: ach.id });
+      }
+    });
+
+    // Announcements
+    data.announcements?.forEach((ann) => {
+      if (
+        matches(ann.coverImage) ||
+        matches(ann.pdfUrl) ||
+        matches(ann.videoUrl) ||
+        ann.photos?.some(matches) ||
+        (ann.content && ann.content.includes(targetFile))
+      ) {
+        references.push({ section: 'Announcement', title: ann.title, id: ann.id });
+      }
+    });
+
+    // Settings
+    if (matches(data.settings?.heroImage)) {
+      references.push({ section: 'Website Settings', title: 'Hero Background Image', id: 'settings' });
+    }
+
+    // Finance Receipts
+    data.finance?.transactions?.forEach((tx) => {
+      if (matches(tx.receiptUrl)) {
+        references.push({ section: 'Finance Ledger', title: `${tx.description} (${tx.id})`, id: tx.id });
+      }
+    });
+
+    return {
+      isUsed: references.length > 0,
+      references,
+    };
+  },
   createMedia: (media: Omit<MediaAsset, 'id' | 'createdAt'>) => {
     const data = getDatabase();
     const newMed: MediaAsset = {

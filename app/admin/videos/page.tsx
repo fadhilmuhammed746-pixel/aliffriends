@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { VideoItem } from '@/lib/types';
 import { Video, Plus, Trash2, Edit, Eye, Play, X, Sparkles } from 'lucide-react';
 
@@ -294,30 +295,69 @@ export default function AdminVideosPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    YouTube URL (Embeddable)
-                  </label>
-                  <input
-                    type="text"
-                    value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
-                  />
+                {/* Video Source Type */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-4">
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-xs font-sans font-bold text-forest cursor-pointer">
+                      <input
+                        type="radio"
+                        name="videoType"
+                        value="youtube"
+                        checked={videoType === 'youtube'}
+                        onChange={() => setVideoType('youtube')}
+                        className="accent-coral"
+                      />
+                      <span>YouTube Embed Link</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-sans font-bold text-forest cursor-pointer">
+                      <input
+                        type="radio"
+                        name="videoType"
+                        value="direct"
+                        checked={videoType === 'direct'}
+                        onChange={() => setVideoType('direct')}
+                        className="accent-forest"
+                      />
+                      <span>Direct Video Upload (MP4 / WEBM)</span>
+                    </label>
+                  </div>
+
+                  {videoType === 'youtube' ? (
+                    <div>
+                      <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
+                        YouTube URL (Watch link or embed)
+                      </label>
+                      <input
+                        type="text"
+                        value={youtubeUrl}
+                        onChange={(e) => setYoutubeUrl(e.target.value)}
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        className="w-full px-3.5 py-2.5 bg-white border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                      />
+                    </div>
+                  ) : (
+                    <MediaUpload
+                      label="Upload Video File"
+                      description="Upload native MP4, WEBM, or MOV video file (up to 100MB)."
+                      type="video"
+                      section="video"
+                      value={videoUrl}
+                      onChange={(url) => setVideoUrl(url)}
+                      required={true}
+                    />
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    Custom Thumbnail URL
-                  </label>
-                  <input
-                    type="text"
-                    required
+                {/* Custom Thumbnail */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Custom Video Thumbnail Poster"
+                    description="Upload custom poster artwork for the player preview (JPG, PNG, WEBP)."
+                    type="image"
+                    section="video"
                     value={thumbnailUrl}
-                    onChange={(e) => setThumbnailUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                    onChange={(url) => setThumbnailUrl(url)}
+                    required={true}
                   />
                 </div>
 

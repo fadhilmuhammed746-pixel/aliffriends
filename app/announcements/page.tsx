@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { Bell, Calendar, Flame, Sparkles } from 'lucide-react';
+import { Bell, Calendar, Flame, Sparkles, FileText, Video, Download } from 'lucide-react';
 
 export const revalidate = 0;
 
@@ -75,6 +75,54 @@ export default function AnnouncementsPage() {
             <p className="text-sm text-ink-light leading-relaxed font-sans whitespace-pre-line">
               {ann.content}
             </p>
+
+            {/* Banner or Photos */}
+            {ann.coverImage && (
+              <div className="mt-4 rounded-xl overflow-hidden border border-editorial-border max-h-72">
+                <img src={ann.coverImage} alt={ann.title} className="w-full h-full object-cover" />
+              </div>
+            )}
+
+            {ann.photos && ann.photos.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {ann.photos.map((ph, pIdx) => (
+                  <div key={pIdx} className="aspect-video rounded-lg overflow-hidden border border-editorial-border">
+                    <img src={ph} alt={`Notice Attachment ${pIdx + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Video Attachment */}
+            {ann.videoUrl && (
+              <div className="mt-4 rounded-xl overflow-hidden bg-black border border-editorial-border aspect-video max-h-80">
+                <video src={ann.videoUrl} controls className="w-full h-full object-contain" />
+              </div>
+            )}
+
+            {/* PDF Circular Download */}
+            {ann.pdfUrl && (
+              <div className="mt-4 p-4 rounded-xl bg-canvas border border-editorial-border flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-6 h-6 text-red-600" />
+                  <div>
+                    <p className="font-serif font-bold text-xs text-forest">
+                      {ann.pdfTitle || 'Official Circular Document.pdf'}
+                    </p>
+                    <p className="font-mono text-[10px] text-ink-muted">PDF Bulletin Attachment</p>
+                  </div>
+                </div>
+                <a
+                  href={ann.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-forest hover:bg-forest-light text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download PDF</span>
+                </a>
+              </div>
+            )}
 
             <div className="mt-6 pt-4 border-t border-editorial-border flex items-center justify-between text-[11px] font-mono text-ink-muted">
               <span>Alif Friends 12 Secretariat</span>

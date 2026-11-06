@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { Magazine } from '@/lib/types';
 import {
   BookOpen,
@@ -38,10 +39,6 @@ export default function AdminMagazinesPage() {
   const [fileSize, setFileSize] = useState('12.5 MB');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPublished, setIsPublished] = useState(true);
-
-  // Uploading state
-  const [uploadingPdf, setUploadingPdf] = useState(false);
-  const [uploadingCover, setUploadingCover] = useState(false);
 
   const fetchMagazines = async () => {
     try {
@@ -93,43 +90,6 @@ export default function AdminMagazinesPage() {
     setIsFeatured(mag.isFeatured);
     setIsPublished(mag.isPublished);
     setModalOpen(true);
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'pdf' | 'cover') => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const isPdf = type === 'pdf';
-    if (isPdf) setUploadingPdf(true);
-    else setUploadingCover(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', isPdf ? 'pdf' : 'image');
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.url) {
-        if (isPdf) {
-          setPdfUrl(data.url);
-          setFileSize(`${(file.size / (1024 * 1024)).toFixed(1)} MB`);
-          if (data.pageCount) {
-            setPageCount(data.pageCount);
-          }
-        } else {
-          setCoverImage(data.url);
-        }
-      }
-    } catch (err) {
-      alert('Upload failed: ' + err);
-    } finally {
-      if (isPdf) setUploadingPdf(false);
-      else setUploadingCover(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -431,53 +391,29 @@ export default function AdminMagazinesPage() {
                   />
                 </div>
 
-                {/* Upload Cover & PDF */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-canvas border border-editorial-border">
-                  <div>
-                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
-                      Cover Artwork URL
-                    </label>
-                    <input
-                      type="text"
-                      value={coverImage}
-                      onChange={(e) => setCoverImage(e.target.value)}
-                      placeholder="https://... or upload below"
-                      className="w-full px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink mb-2 focus:outline-none focus:border-forest"
-                    />
-                    <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-forest/5 border border-editorial-border hover:border-forest/40 rounded-lg text-xs text-ink cursor-pointer transition-colors shadow-sm font-sans font-medium">
-                      <Upload className="w-3.5 h-3.5 text-forest" />
-                      <span>{uploadingCover ? 'Uploading...' : 'Upload Cover File'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e, 'cover')}
-                      />
-                    </label>
-                  </div>
+                {/* Upload Cover & PDF via Universal MediaUpload */}
+                <div className="space-y-4 p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Magazine Cover Artwork"
+                    description="Upload the official cover image for this magazine edition (JPG, PNG, WEBP)."
+                    type="image"
+                    section="magazine"
+                    value={coverImage}
+                    onChange={(url) => setCoverImage(url)}
+                    required={true}
+                  />
 
-                  <div>
-                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
-                      PDF Document URL
-                    </label>
-                    <input
-                      type="text"
-                      value={pdfUrl}
-                      onChange={(e) => setPdfUrl(e.target.value)}
-                      placeholder="/uploads/... or upload below"
-                      className="w-full px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink mb-2 focus:outline-none focus:border-forest"
-                    />
-                    <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-forest/5 border border-editorial-border hover:border-forest/40 rounded-lg text-xs text-ink cursor-pointer transition-colors shadow-sm font-sans font-medium">
-                      <FileText className="w-3.5 h-3.5 text-forest" />
-                      <span>{uploadingPdf ? 'Uploading PDF...' : 'Upload PDF Document'}</span>
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e, 'pdf')}
-                      />
-                    </label>
-                  </div>
+                  <MediaUpload
+                    label="Main Publication PDF Document"
+                    description="Upload the high-resolution publication PDF. It will be wired directly into the 3D interactive flipbook."
+                    type="pdf"
+                    section="magazine"
+                    value={pdfUrl}
+                    onChange={(url) => {
+                      setPdfUrl(url);
+                    }}
+                    required={true}
+                  />
                 </div>
 
                 {/* Toggles */}

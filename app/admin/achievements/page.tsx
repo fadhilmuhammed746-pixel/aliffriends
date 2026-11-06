@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { Achievement } from '@/lib/types';
 import { Trophy, Plus, Trash2, Edit, Award, Star, X, Sparkles } from 'lucide-react';
 
@@ -20,6 +21,10 @@ export default function AdminAchievementsPage() {
   const [awardedBy, setAwardedBy] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [badgeTitle, setBadgeTitle] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfTitle, setPdfTitle] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPublished, setIsPublished] = useState(true);
 
@@ -45,6 +50,10 @@ export default function AdminAchievementsPage() {
     setAwardedBy('');
     setImageUrl('https://images.unsplash.com/photo-1578269174936-2709b6aeb913?auto=format&fit=crop&w=1000&q=80');
     setBadgeTitle('First Place Honors');
+    setPhotos([]);
+    setVideoUrl('');
+    setPdfUrl('');
+    setPdfTitle('');
     setIsFeatured(false);
     setIsPublished(true);
     setEditingId(null);
@@ -64,6 +73,10 @@ export default function AdminAchievementsPage() {
     setAwardedBy(a.awardedBy || '');
     setImageUrl(a.imageUrl);
     setBadgeTitle(a.badgeTitle || '');
+    setPhotos(a.photos || []);
+    setVideoUrl(a.videoUrl || '');
+    setPdfUrl(a.pdfUrl || '');
+    setPdfTitle(a.pdfTitle || '');
     setIsFeatured(a.isFeatured);
     setIsPublished(a.isPublished);
     setModalOpen(true);
@@ -79,6 +92,10 @@ export default function AdminAchievementsPage() {
       awardedBy,
       imageUrl,
       badgeTitle,
+      photos,
+      videoUrl: videoUrl || undefined,
+      pdfUrl: pdfUrl || undefined,
+      pdfTitle: pdfTitle || undefined,
       isFeatured,
       isPublished,
     };
@@ -305,18 +322,63 @@ export default function AdminAchievementsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    Photograph URL
-                  </label>
-                  <input
-                    type="text"
-                    required
+                {/* Main Photograph */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Primary Achievement Photograph"
+                    description="Upload trophy ceremony photo or stage portrait (JPG, PNG, WEBP)."
+                    type="image"
+                    section="achievement"
                     value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                    onChange={(url) => setImageUrl(url)}
+                    required={true}
                   />
+                </div>
+
+                {/* Additional Media: Supporting Photos, Video & PDF Certificate */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-4">
+                  <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-forest border-b border-editorial-border pb-2">
+                    Supporting Photographs, Video & PDF Certificate
+                  </h4>
+
+                  <MediaUpload
+                    label="Supporting Photographs (Ceremony Gallery)"
+                    description="Upload multiple supporting photos from the ceremony or event."
+                    type="image"
+                    multiple={true}
+                    section="achievement"
+                    value={photos}
+                    onChange={(urls) => setPhotos(urls)}
+                  />
+
+                  <MediaUpload
+                    label="Related Video Reel (MP4 / WEBM)"
+                    description="Upload an award presentation clip or interview."
+                    type="video"
+                    section="achievement"
+                    value={videoUrl}
+                    onChange={(url) => setVideoUrl(url)}
+                  />
+
+                  <div>
+                    <MediaUpload
+                      label="PDF Certificate / Citation Document"
+                      description="Upload the official digital certificate or citation (PDF)."
+                      type="pdf"
+                      section="achievement"
+                      value={pdfUrl}
+                      onChange={(url) => setPdfUrl(url)}
+                    />
+                    {pdfUrl && (
+                      <input
+                        type="text"
+                        placeholder="Certificate display title (e.g. State Debate First Place Citation.pdf)"
+                        value={pdfTitle}
+                        onChange={(e) => setPdfTitle(e.target.value)}
+                        className="mt-2 w-full px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink font-sans focus:outline-none focus:border-forest"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div>

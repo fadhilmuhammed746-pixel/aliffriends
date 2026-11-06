@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import {
   Lock,
   Save,
@@ -302,15 +303,14 @@ export default function AdminSettingsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs uppercase tracking-wider font-serif text-forest font-bold mb-1.5">
-                    Hero Cinematic Background Image URL
-                  </label>
-                  <input
-                    type="text"
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Hero Cinematic Background Image"
+                    description="Upload the signature cinematic class photograph displayed at the top of the homepage (JPG, PNG, WEBP)."
+                    type="image"
+                    section="settings"
                     value={settings.heroImage}
-                    onChange={(e) => setSettings({ ...settings, heroImage: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-mono"
+                    onChange={(url) => setSettings({ ...settings, heroImage: url })}
                   />
                 </div>
               </div>

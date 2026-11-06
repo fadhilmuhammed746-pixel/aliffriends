@@ -51,6 +51,9 @@ export interface Article {
   viewCount: number;
   isPublished: boolean;
   galleryImages?: string[];
+  videoUrl?: string;
+  pdfUrl?: string;
+  pdfTitle?: string;
   relatedTags?: string[];
   createdAt: string;
   updatedAt: string;
@@ -67,6 +70,8 @@ export interface Program {
   photos: string[];
   youtubeUrl?: string;
   videoUrl?: string;
+  pdfUrl?: string;
+  pdfTitle?: string;
   isFeatured: boolean;
   isPublished: boolean;
   createdAt: string;
@@ -101,12 +106,17 @@ export interface GalleryPhoto {
 export interface GalleryAlbum {
   id: string;
   title: string;
-  category: 'Event' | 'Trip' | 'Celebration' | 'Competition' | 'Special Moment';
+  category: 'Event' | 'Trip' | 'Celebration' | 'Competition' | 'Special Moment' | 'Special Moments' | 'Events' | 'Trips' | 'Celebrations' | 'Competitions' | 'Other';
   description: string;
   coverImage: string;
   isRestricted: boolean; // public or restricted
   isPublished: boolean;
+  isFeatured?: boolean;
+  eventDate?: string;
   photos: GalleryPhoto[];
+  videos?: string[];
+  pdfUrl?: string;
+  pdfTitle?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -119,6 +129,8 @@ export interface ClassMember {
   photoUrl: string;
   quote?: string;
   orderIndex: number;
+  category?: string;
+  responsibility?: string;
   isPublished: boolean;
   createdAt: string;
   updatedAt: string;
@@ -132,6 +144,10 @@ export interface Achievement {
   description: string;
   awardedBy?: string;
   imageUrl: string;
+  photos?: string[];
+  videoUrl?: string;
+  pdfUrl?: string;
+  pdfTitle?: string;
   badgeTitle?: string;
   isFeatured: boolean;
   isPublished: boolean;
@@ -145,6 +161,11 @@ export interface Announcement {
   category: 'Notice' | 'Event' | 'Urgent' | 'General';
   date: string;
   content: string;
+  coverImage?: string;
+  photos?: string[];
+  videoUrl?: string;
+  pdfUrl?: string;
+  pdfTitle?: string;
   priority: 'low' | 'medium' | 'high';
   isFeatured: boolean;
   isPublished: boolean;
@@ -181,6 +202,10 @@ export interface MediaAsset {
   mimeType: string;
   size: number;
   category: 'image' | 'video' | 'pdf' | 'other';
+  section?: string;
+  contentId?: string;
+  uploadedBy?: string;
+  storageLocation?: 'local' | 'supabase';
   createdAt: string;
 }
 

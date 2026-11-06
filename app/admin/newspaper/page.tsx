@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { RichEditor } from '@/components/admin/RichEditor';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { Article, ArticleCategory } from '@/lib/types';
 import {
   Newspaper,
@@ -47,7 +48,10 @@ export default function AdminNewspaperPage() {
   const [author, setAuthor] = useState('Editorial Desk');
   const [authorRole, setAuthorRole] = useState('Class Correspondent');
   const [isPublished, setIsPublished] = useState(true);
-  const [uploadingCover, setUploadingCover] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfTitle, setPdfTitle] = useState('');
 
   const fetchArticles = async () => {
     try {
@@ -74,6 +78,10 @@ export default function AdminNewspaperPage() {
     setContent('<p class="lead">Write lead paragraph here...</p>\n<p>Main story body...</p>');
     setAuthor('Editorial Desk');
     setAuthorRole('Class Correspondent');
+    setGalleryImages([]);
+    setVideoUrl('');
+    setPdfUrl('');
+    setPdfTitle('');
     setIsPublished(true);
     setEditingId(null);
   };
@@ -95,33 +103,12 @@ export default function AdminNewspaperPage() {
     setContent(art.content);
     setAuthor(art.author);
     setAuthorRole(art.authorRole || '');
+    setGalleryImages(art.galleryImages || []);
+    setVideoUrl(art.videoUrl || '');
+    setPdfUrl(art.pdfUrl || '');
+    setPdfTitle(art.pdfTitle || '');
     setIsPublished(art.isPublished);
     setModalOpen(true);
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingCover(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', 'image');
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.url) {
-        setCoverImage(data.url);
-      }
-    } catch (err) {
-      alert('Upload failed: ' + err);
-    } finally {
-      setUploadingCover(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,7 +130,10 @@ export default function AdminNewspaperPage() {
       authorRole,
       isPublished,
       publishedAt: new Date().toISOString(),
-      galleryImages: [],
+      galleryImages,
+      videoUrl: videoUrl || undefined,
+      pdfUrl: pdfUrl || undefined,
+      pdfTitle: pdfTitle || undefined,
       relatedArticleIds: [],
     };
 
@@ -405,29 +395,65 @@ export default function AdminNewspaperPage() {
                   </div>
                 </div>
 
-                {/* Cover Image */}
-                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-2">
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest">
-                    Lead Photograph URL
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={coverImage}
-                      onChange={(e) => setCoverImage(e.target.value)}
-                      placeholder="https://... or upload file"
-                      className="flex-1 px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
+                {/* Lead Photograph */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Lead Article Photograph"
+                    description="Upload the featured broadsheet headline image (JPG, PNG, WEBP)."
+                    type="image"
+                    section="newspaper"
+                    value={coverImage}
+                    onChange={(url) => setCoverImage(url)}
+                    required={true}
+                  />
+                </div>
+
+                {/* Additional Media Attachments */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-4">
+                  <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-forest border-b border-editorial-border pb-2">
+                    Multimedia Attachments (Gallery, Video & PDF)
+                  </h4>
+
+                  {/* Multiple Photographs */}
+                  <MediaUpload
+                    label="Story Photographic Gallery"
+                    description="Upload multiple supporting photographs to display at the bottom of the article."
+                    type="image"
+                    multiple={true}
+                    section="newspaper"
+                    value={galleryImages}
+                    onChange={(urls) => setGalleryImages(urls)}
+                  />
+
+                  {/* Video Attachment */}
+                  <MediaUpload
+                    label="Optional Video / Broadcast Attachment"
+                    description="Upload a video reel or attach YouTube broadcast (MP4, WEBM)."
+                    type="video"
+                    section="newspaper"
+                    value={videoUrl}
+                    onChange={(url) => setVideoUrl(url)}
+                  />
+
+                  {/* PDF Document Attachment */}
+                  <div>
+                    <MediaUpload
+                      label="Optional PDF Document / Press Release"
+                      description="Attach an official document, circular, or press release for readers to download."
+                      type="pdf"
+                      section="newspaper"
+                      value={pdfUrl}
+                      onChange={(url) => setPdfUrl(url)}
                     />
-                    <label className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-forest/5 border border-editorial-border hover:border-forest/40 rounded-lg text-xs text-ink cursor-pointer transition-colors shadow-sm font-sans font-medium">
-                      <Upload className="w-3.5 h-3.5 text-forest" />
-                      <span>{uploadingCover ? 'Uploading...' : 'Upload Image'}</span>
+                    {pdfUrl && (
                       <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileUpload}
+                        type="text"
+                        placeholder="Document display title (e.g. Official Statement 2026.pdf)"
+                        value={pdfTitle}
+                        onChange={(e) => setPdfTitle(e.target.value)}
+                        className="mt-2 w-full px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink font-sans focus:outline-none focus:border-forest"
                       />
-                    </label>
+                    )}
                   </div>
                 </div>
 

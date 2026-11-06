@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { Announcement } from '@/lib/types';
 import { Bell, Plus, Trash2, Edit, AlertCircle, X, Sparkles } from 'lucide-react';
 
@@ -18,6 +19,11 @@ export default function AdminAnnouncementsPage() {
   const [date, setDate] = useState('');
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [coverImage, setCoverImage] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfTitle, setPdfTitle] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPublished, setIsPublished] = useState(true);
 
@@ -41,6 +47,11 @@ export default function AdminAnnouncementsPage() {
     setDate(new Date().toISOString().split('T')[0]);
     setContent('');
     setPriority('medium');
+    setCoverImage('');
+    setPhotos([]);
+    setVideoUrl('');
+    setPdfUrl('');
+    setPdfTitle('');
     setIsFeatured(false);
     setIsPublished(true);
     setEditingId(null);
@@ -58,6 +69,11 @@ export default function AdminAnnouncementsPage() {
     setDate(a.date);
     setContent(a.content);
     setPriority(a.priority);
+    setCoverImage(a.coverImage || '');
+    setPhotos(a.photos || []);
+    setVideoUrl(a.videoUrl || '');
+    setPdfUrl(a.pdfUrl || '');
+    setPdfTitle(a.pdfTitle || '');
     setIsFeatured(a.isFeatured);
     setIsPublished(a.isPublished);
     setModalOpen(true);
@@ -70,6 +86,11 @@ export default function AdminAnnouncementsPage() {
       category,
       date,
       content,
+      coverImage: coverImage || undefined,
+      photos,
+      videoUrl: videoUrl || undefined,
+      pdfUrl: pdfUrl || undefined,
+      pdfTitle: pdfTitle || undefined,
       priority,
       isFeatured,
       isPublished,
@@ -296,6 +317,61 @@ export default function AdminAnnouncementsPage() {
                     placeholder="Enter the full announcement text, instructions, and details..."
                     className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans leading-relaxed"
                   />
+                </div>
+
+                {/* Media Attachments for Announcements */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-4">
+                  <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-forest border-b border-editorial-border pb-2">
+                    Notice Media & Documentation Attachments
+                  </h4>
+
+                  <MediaUpload
+                    label="Optional Bulletin Banner / Cover"
+                    description="Upload a lead banner or circular header image."
+                    type="image"
+                    section="announcement"
+                    value={coverImage}
+                    onChange={(url) => setCoverImage(url)}
+                  />
+
+                  <MediaUpload
+                    label="Supporting Notice Photographs"
+                    description="Upload supporting circular screenshots or event flyers."
+                    type="image"
+                    multiple={true}
+                    section="announcement"
+                    value={photos}
+                    onChange={(urls) => setPhotos(urls)}
+                  />
+
+                  <MediaUpload
+                    label="Optional Video Announcement (MP4 / WEBM)"
+                    description="Attach a briefing video or video reminder."
+                    type="video"
+                    section="announcement"
+                    value={videoUrl}
+                    onChange={(url) => setVideoUrl(url)}
+                  />
+
+                  <div>
+                    <MediaUpload
+                      label="Official PDF Circular / Notice Document"
+                      description="Attach an official downloadable PDF bulletin."
+                      type="pdf"
+                      section="announcement"
+                      value={pdfUrl}
+                      onChange={(url) => setPdfUrl(url)}
+                    />
+                    {pdfUrl && (
+                      <input
+                        type="text"
+                        placeholder="Document display title (e.g. Circular No. 12-2026.pdf)"
+                        value={pdfTitle}
+                        onChange={(e) => setPdfTitle(e.target.value)}
+                        className="mt-2 w-full px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink font-sans focus:outline-none focus:border-forest"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-6 pt-2">

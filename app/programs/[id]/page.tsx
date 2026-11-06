@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { VideoPlayer } from '@/components/video/VideoPlayer';
-import { ArrowLeft, Calendar, MapPin, Sparkles, Image as ImageIcon, Video } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Sparkles, Image as ImageIcon, Video, FileText, Download } from 'lucide-react';
 
 export const revalidate = 0;
 
@@ -119,6 +119,32 @@ export default async function ProgramDetailPage({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Event Brochure / Schedule PDF */}
+      {program.pdfUrl && (
+        <div className="p-6 rounded-2xl bg-white border border-editorial-border flex items-center justify-between shadow-card">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-serif font-bold text-base text-forest">
+                {program.pdfTitle || `${program.title} - Official Schedule & Brochure.pdf`}
+              </h3>
+              <p className="font-mono text-xs text-ink-muted">Event Itinerary & Guide Document</p>
+            </div>
+          </div>
+          <a
+            href={program.pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-5 py-2.5 bg-forest hover:bg-forest-light text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-subtle"
+          >
+            <Download className="w-4 h-4 text-coral-light" />
+            <span>Download Schedule (PDF)</span>
+          </a>
         </div>
       )}
     </div>

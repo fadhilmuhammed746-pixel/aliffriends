@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { Trophy } from 'lucide-react';
+import { Trophy, FileText, Video, Download } from 'lucide-react';
 
 export const revalidate = 0;
 
@@ -66,6 +66,34 @@ export default function AchievementsPage() {
                 <p className="text-xs text-ink-muted leading-relaxed font-sans">
                   {ach.description}
                 </p>
+
+                {/* Attached Video & Certificate Links */}
+                {(ach.pdfUrl || ach.videoUrl) && (
+                  <div className="pt-3 flex flex-wrap items-center gap-2">
+                    {ach.pdfUrl && (
+                      <a
+                        href={ach.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[11px] font-mono transition-colors"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>View Certificate (PDF)</span>
+                      </a>
+                    )}
+                    {ach.videoUrl && (
+                      <a
+                        href={ach.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-forest-50 hover:bg-forest-100 text-forest border border-forest-200 text-[11px] font-mono transition-colors"
+                      >
+                        <Video className="w-3.5 h-3.5 text-coral" />
+                        <span>Watch Presentation</span>
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 border-t border-editorial-border mt-4 flex items-center justify-between text-[11px] font-mono text-ink-muted">

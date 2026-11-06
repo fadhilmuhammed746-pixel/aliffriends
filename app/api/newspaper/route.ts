@@ -67,6 +67,9 @@ export async function POST(req: NextRequest) {
       publishedAt: body.publishedAt || new Date().toISOString(),
       isPublished: body.isPublished !== undefined ? Boolean(body.isPublished) : true,
       galleryImages: body.galleryImages || [],
+      videoUrl: body.videoUrl || undefined,
+      pdfUrl: body.pdfUrl || undefined,
+      pdfTitle: body.pdfTitle || undefined,
       relatedTags: body.relatedTags || [],
     });
 

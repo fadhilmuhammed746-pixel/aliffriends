@@ -1,10 +1,35 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MediaUpload } from '@/components/admin/MediaUpload';
 import { GalleryAlbum, GalleryPhoto } from '@/lib/types';
-import { Image as ImageIcon, Plus, Trash2, Edit, Eye, Lock, Globe, Upload, X } from 'lucide-react';
+import {
+  Image as ImageIcon,
+  Plus,
+  Trash2,
+  Edit,
+  Eye,
+  Lock,
+  Globe,
+  Upload,
+  X,
+  Sparkles,
+  Calendar,
+  Video,
+  FileText,
+} from 'lucide-react';
+
+const CATEGORIES = [
+  'Special Moments',
+  'Events',
+  'Trips',
+  'Celebrations',
+  'Competitions',
+  'Other',
+];
 
 export default function AdminGalleryPage() {
   const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
@@ -12,17 +37,23 @@ export default function AdminGalleryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form
+  // Form State
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<'Event' | 'Trip' | 'Celebration' | 'Competition' | 'Special Moment'>('Special Moment');
+  const [category, setCategory] = useState<any>('Special Moments');
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
+  const [eventDate, setEventDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isFeatured, setIsFeatured] = useState(false);
   const [isRestricted, setIsRestricted] = useState(false);
   const [isPublished, setIsPublished] = useState(true);
-  const [photosText, setPhotosText] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfTitle, setPdfTitle] = useState('');
 
   const fetchAlbums = async () => {
     try {
+      setLoading(true);
       const res = await fetch('/api/gallery?all=true');
       const data = await res.json();
       if (data.albums) setAlbums(data.albums);
@@ -37,12 +68,17 @@ export default function AdminGalleryPage() {
 
   const resetForm = () => {
     setTitle('');
-    setCategory('Special Moment');
+    setCategory('Special Moments');
     setDescription('');
     setCoverImage('');
+    setEventDate(new Date().toISOString().split('T')[0]);
+    setIsFeatured(false);
     setIsRestricted(false);
     setIsPublished(true);
-    setPhotosText('');
+    setPhotos([]);
+    setVideos([]);
+    setPdfUrl('');
+    setPdfTitle('');
     setEditingId(null);
   };
 
@@ -57,39 +93,40 @@ export default function AdminGalleryPage() {
     setCategory(a.category);
     setDescription(a.description);
     setCoverImage(a.coverImage);
+    setEventDate(a.eventDate || a.createdAt.split('T')[0]);
+    setIsFeatured(Boolean(a.isFeatured));
     setIsRestricted(a.isRestricted);
     setIsPublished(a.isPublished);
-    setPhotosText(
-      a.photos.map((p) => `${p.url} | ${p.caption || ''}`).join('\n')
-    );
+    setPhotos(a.photos ? a.photos.map((p) => (typeof p === 'string' ? p : p.url)) : []);
+    setVideos(a.videos || []);
+    setPdfUrl(a.pdfUrl || '');
+    setPdfTitle(a.pdfTitle || '');
     setModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const parsedPhotos: GalleryPhoto[] = photosText
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line, idx) => {
-        const [url, caption] = line.split('|').map((s) => s.trim());
-        return {
-          id: `ph_${Date.now()}_${idx}`,
-          url,
-          caption: caption || '',
-          alt: caption || title,
-        };
-      });
+    const formattedPhotos: GalleryPhoto[] = photos.map((url, idx) => ({
+      id: `ph_${Date.now()}_${idx}`,
+      url,
+      caption: '',
+      alt: title,
+    }));
 
     const payload = {
       title,
       category,
       description,
-      coverImage: coverImage || (parsedPhotos[0]?.url ?? 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80'),
+      coverImage: coverImage || formattedPhotos[0]?.url || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80',
+      eventDate,
+      isFeatured,
       isRestricted,
       isPublished,
-      photos: parsedPhotos,
+      photos: formattedPhotos,
+      videos,
+      pdfUrl: pdfUrl || undefined,
+      pdfTitle: pdfTitle || undefined,
     };
 
     try {
@@ -114,7 +151,7 @@ export default function AdminGalleryPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this photo album?')) return;
+    if (!confirm('Are you sure you want to remove this photo album?')) return;
     try {
       await fetch(`/api/gallery/${id}`, { method: 'DELETE' });
       fetchAlbums();
@@ -128,12 +165,12 @@ export default function AdminGalleryPage() {
       <AdminSidebar />
       <main className="flex-1 overflow-y-auto max-h-screen text-ink">
         <AdminHeader
-          title="Class Photo Gallery & Heritage Archive"
-          subtitle="Organize photo albums, trip memories, celebrations, and restrict private archives."
+          title="Photographic Heritage & Gallery"
+          subtitle="Curate thematic class albums, bulk upload memories with drag-and-drop, attach videos, and organize photo collections."
           action={
             <button
               onClick={handleOpenCreate}
-              className="px-4 py-2.5 bg-forest hover:bg-forest-light text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm transition-all hover:shadow-forest/20 flex items-center gap-1.5"
+              className="px-4 py-2.5 bg-forest hover:bg-forest-light text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm transition-all flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               <span>Create New Album</span>
@@ -143,14 +180,14 @@ export default function AdminGalleryPage() {
 
         <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           {loading ? (
-            <div className="text-center py-16 text-muted font-serif italic text-sm">
-              Loading photographic albums...
+            <div className="text-center py-16 text-ink-muted font-serif italic text-sm">
+              Loading photographic archives...
             </div>
           ) : albums.length === 0 ? (
-            <div className="text-center py-16 bg-white border border-editorial-border rounded-xl p-8">
-              <ImageIcon className="w-10 h-10 text-muted mx-auto mb-3" />
-              <p className="font-serif text-lg text-ink font-semibold">No photo albums created yet</p>
-              <p className="text-xs text-muted mt-1 mb-4">Click "Create New Album" to curate the inaugural collection.</p>
+            <div className="text-center py-16 bg-white border border-editorial-border rounded-xl p-8 shadow-subtle">
+              <ImageIcon className="w-10 h-10 text-ink-muted mx-auto mb-3" />
+              <p className="font-serif text-lg text-ink font-semibold">No photographic albums created yet</p>
+              <p className="text-xs text-ink-muted mt-1 mb-4">Click &quot;Create New Album&quot; to curate the first memory collection.</p>
               <button
                 onClick={handleOpenCreate}
                 className="px-4 py-2 bg-forest text-white text-xs uppercase font-sans font-semibold tracking-wider rounded-lg"
@@ -163,32 +200,38 @@ export default function AdminGalleryPage() {
               {albums.map((alb) => (
                 <div
                   key={alb.id}
-                  className="bg-white border border-editorial-border rounded-xl overflow-hidden shadow-editorial hover:shadow-editorial-lg transition-all flex flex-col justify-between group"
+                  className="bg-white border border-editorial-border rounded-xl overflow-hidden shadow-subtle hover:shadow-card transition-all flex flex-col justify-between group"
                 >
-                  <div className="relative aspect-video bg-canvas-subtle border-b border-editorial-border overflow-hidden">
+                  <div className="relative aspect-[4/3] bg-canvas border-b border-editorial-border overflow-hidden">
                     <img
                       src={alb.coverImage}
                       alt={alb.title}
                       className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
                     />
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-forest/90 backdrop-blur text-canvas font-semibold shadow-sm">
+                    <div className="absolute top-3 left-3 flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded bg-forest/90 backdrop-blur text-white font-semibold shadow-xs">
                         {alb.category}
                       </span>
-                      {alb.isRestricted ? (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 font-semibold">
-                          <Lock className="w-3 h-3 text-amber-700" />
-                          Restricted
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1 font-semibold">
-                          <Globe className="w-3 h-3 text-emerald-700" />
-                          Public
+                      {alb.isFeatured && (
+                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-coral text-white font-bold shadow-xs flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          Featured
                         </span>
                       )}
                     </div>
-                    <span className="absolute bottom-2.5 right-2.5 text-[10px] font-mono bg-forest/90 text-canvas px-2 py-0.5 rounded shadow-sm">
-                      {alb.photos?.length || 0} Photos
+                    <div className="absolute top-3 right-3 flex items-center gap-1">
+                      {alb.isRestricted ? (
+                        <span className="p-1.5 rounded-full bg-forest/90 text-coral-light shadow-xs" title="Restricted Album">
+                          <Lock className="w-3.5 h-3.5" />
+                        </span>
+                      ) : (
+                        <span className="p-1.5 rounded-full bg-forest/90 text-white/90 shadow-xs" title="Public Album">
+                          <Globe className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </div>
+                    <span className="absolute bottom-2.5 right-2.5 text-[10px] font-mono bg-forest/90 text-white px-2 py-0.5 rounded shadow-xs">
+                      {alb.photos?.length || 0} Photographs
                     </span>
                   </div>
 
@@ -197,7 +240,7 @@ export default function AdminGalleryPage() {
                       <h3 className="font-serif font-bold text-lg text-ink mb-1 group-hover:text-forest transition-colors">
                         {alb.title}
                       </h3>
-                      <p className="text-xs text-muted line-clamp-2 leading-relaxed">{alb.description}</p>
+                      <p className="text-xs text-ink-muted line-clamp-2 leading-relaxed">{alb.description}</p>
                     </div>
 
                     <div className="pt-3 border-t border-editorial-border flex items-center justify-between mt-4">
@@ -212,14 +255,14 @@ export default function AdminGalleryPage() {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(alb)}
-                          className="p-1.5 text-muted hover:text-forest hover:bg-forest/5 rounded-lg transition-colors"
+                          className="p-1.5 text-ink-muted hover:text-forest hover:bg-forest/5 rounded-lg transition-colors"
                           title="Edit Album"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(alb.id)}
-                          className="p-1.5 text-muted hover:text-coral hover:bg-coral/10 rounded-lg transition-colors"
+                          className="p-1.5 text-ink-muted hover:text-coral hover:bg-coral/10 rounded-lg transition-colors"
                           title="Delete Album"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -233,26 +276,31 @@ export default function AdminGalleryPage() {
           )}
         </div>
 
-        {/* Modal */}
+        {/* Create / Edit Modal */}
         {modalOpen && (
           <div className="fixed inset-0 z-50 bg-forest/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white border border-editorial-border rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative text-ink">
+            <div className="bg-white border border-editorial-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative text-ink">
               <div className="flex items-center justify-between border-b border-editorial-border pb-4 mb-6">
                 <div>
                   <h3 className="font-serif text-xl font-bold text-forest">
-                    {editingId ? 'Edit Photo Album' : 'Create New Photo Album'}
+                    {editingId ? 'Edit Photographic Album' : 'Create New Photo Album'}
                   </h3>
-                  <p className="text-xs text-muted mt-0.5">Organize event photography, member archives, and private reels.</p>
+                  <p className="text-xs text-ink-muted mt-0.5">
+                    Organize class photography, batch uploads, video reels, and commemorative brochures.
+                  </p>
                 </div>
-                <button onClick={() => setModalOpen(false)} className="p-1 text-muted hover:text-forest rounded-lg hover:bg-canvas transition-colors">
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="p-1 text-ink-muted hover:text-forest rounded-lg hover:bg-canvas transition-colors"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    Album Title
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
+                    Album Title *
                   </label>
                   <input
                     type="text"
@@ -266,66 +314,123 @@ export default function AdminGalleryPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                      Category
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
+                      Category *
                     </label>
                     <select
                       value={category}
-                      onChange={(e) => setCategory(e.target.value as any)}
+                      onChange={(e) => setCategory(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans"
                     >
-                      <option value="Special Moment">Special Moment</option>
-                      <option value="Event">Event</option>
-                      <option value="Trip">Trip</option>
-                      <option value="Celebration">Celebration</option>
-                      <option value="Competition">Competition</option>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                      Cover Image URL
+                    <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
+                      Event Date
                     </label>
                     <input
-                      type="text"
-                      value={coverImage}
-                      onChange={(e) => setCoverImage(e.target.value)}
-                      placeholder="https://..."
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
+                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-forest mb-1">
                     Album Description
                   </label>
                   <textarea
                     rows={2}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Brief background on the photographed occasion..."
+                    placeholder="Brief background on the occasion, participants, and memories captured..."
                     className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-sans leading-relaxed"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[11px] uppercase font-sans font-bold tracking-wider text-muted mb-1">
-                    Photos List (One per line: URL | Caption)
-                  </label>
-                  <textarea
-                    rows={6}
-                    value={photosText}
-                    onChange={(e) => setPhotosText(e.target.value)}
-                    placeholder="https://images.unsplash.com/... | Graduation ceremony portrait&#10;https://images.unsplash.com/... | Campfire memories at summit"
-                    className="w-full px-3.5 py-2.5 bg-canvas border border-editorial-border rounded-lg text-xs text-ink font-mono focus:outline-none focus:border-forest leading-relaxed"
+                {/* Album Cover Upload */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border">
+                  <MediaUpload
+                    label="Album Cover Artwork"
+                    description="Upload a high-resolution cover image for this album (JPG, PNG, WEBP)."
+                    type="image"
+                    section="gallery"
+                    value={coverImage}
+                    onChange={(url) => setCoverImage(url)}
+                    required={true}
                   />
-                  <p className="text-[11px] text-muted mt-1 font-sans">
-                    Paste image URLs one per line, optionally separated by a vertical bar &quot;|&quot; and a caption.
-                  </p>
                 </div>
 
-                <div className="flex items-center gap-6 pt-2">
+                {/* Bulk Photo Upload */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-3">
+                  <MediaUpload
+                    label="Album Photographs (Drag & Drop Bulk Upload)"
+                    description="Upload multiple photographs at once. Use arrow buttons to reorder how they appear in the gallery."
+                    type="image"
+                    multiple={true}
+                    section="gallery"
+                    value={photos}
+                    onChange={(urls) => setPhotos(urls)}
+                  />
+                </div>
+
+                {/* Video & PDF Attachments */}
+                <div className="p-4 rounded-xl bg-canvas border border-editorial-border space-y-4">
+                  <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-forest border-b border-editorial-border pb-2">
+                    Optional Album Video & PDF Attachments
+                  </h4>
+
+                  <MediaUpload
+                    label="Album Video Reels (MP4 / WEBM)"
+                    description="Upload supporting video highlights for this album."
+                    type="video"
+                    multiple={true}
+                    section="gallery"
+                    value={videos}
+                    onChange={(urls) => setVideos(urls)}
+                  />
+
+                  <div>
+                    <MediaUpload
+                      label="Event Brochure / Souvenir PDF"
+                      description="Attach an itinerary or commemorative booklet in PDF format."
+                      type="pdf"
+                      section="gallery"
+                      value={pdfUrl}
+                      onChange={(url) => setPdfUrl(url)}
+                    />
+                    {pdfUrl && (
+                      <input
+                        type="text"
+                        placeholder="Document display title (e.g. Convocation Itinerary.pdf)"
+                        value={pdfTitle}
+                        onChange={(e) => setPdfTitle(e.target.value)}
+                        className="mt-2 w-full px-3 py-2 bg-white border border-editorial-border rounded-lg text-xs text-ink font-sans focus:outline-none focus:border-forest"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Toggles */}
+                <div className="flex flex-wrap items-center gap-6 pt-2">
+                  <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isFeatured}
+                      onChange={(e) => setIsFeatured(e.target.checked)}
+                      className="accent-coral w-4 h-4 rounded"
+                    />
+                    <span>Set as Featured Album</span>
+                  </label>
+
                   <label className="flex items-center gap-2 text-xs font-sans font-medium text-ink cursor-pointer">
                     <input
                       type="checkbox"
@@ -343,7 +448,7 @@ export default function AdminGalleryPage() {
                       onChange={(e) => setIsPublished(e.target.checked)}
                       className="accent-forest w-4 h-4 rounded"
                     />
-                    <span>Publish Album</span>
+                    <span>Publish Album Immediately</span>
                   </label>
                 </div>
 
@@ -351,15 +456,15 @@ export default function AdminGalleryPage() {
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="px-4 py-2 bg-canvas hover:bg-canvas-subtle text-xs text-muted hover:text-ink rounded-lg border border-editorial-border transition-colors font-sans"
+                    className="px-4 py-2 border border-editorial-border rounded-lg text-xs font-sans font-semibold text-ink-muted hover:bg-canvas transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-forest hover:bg-forest-light text-white font-sans font-semibold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all"
+                    className="px-5 py-2 bg-forest hover:bg-forest-light text-white rounded-lg text-xs font-sans font-semibold uppercase tracking-wider transition-colors shadow-sm"
                   >
-                    Save Album
+                    {editingId ? 'Save Album Changes' : 'Publish Album'}
                   </button>
                 </div>
               </form>
