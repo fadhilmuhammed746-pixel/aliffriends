@@ -128,7 +128,7 @@ export default function AdminSettingsPage() {
                   <span>Change Administrator Password</span>
                 </h2>
                 <p className="text-xs text-ink-muted mt-1">
-                  Update your server-side hashed credentials. Initial credentials configured: <span className="font-mono text-forest font-bold">admin</span> / <span className="font-mono text-coral font-bold">alif12</span>.
+                  Update your server-side hashed administrative password securely.
                 </p>
               </div>
               <span className="text-[10px] uppercase font-mono px-2.5 py-1 rounded bg-forest-50 text-forest border border-forest-100 font-bold">
@@ -160,7 +160,7 @@ export default function AdminSettingsPage() {
                   required
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password (default: alif12)"
+                  placeholder="Enter current password"
                   className="w-full px-4 py-2.5 bg-canvas border border-editorial-border rounded-lg text-sm text-ink focus:outline-none focus:border-forest font-mono"
                 />
               </div>
