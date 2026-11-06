@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Flame, ChevronRight } from 'lucide-react';
 
 interface BreakingTickerProps {
@@ -13,6 +14,11 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({
   text = 'ALIF FRIENDS 12: Grand Reunion & Annual Magazine Edition XII is now officially live • Watch the new documentary on YouTube @AlifCreations12',
   show = true,
 }) => {
+  const pathname = usePathname();
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
+
   if (!show || !text) return null;
 
   return (

@@ -194,6 +194,81 @@ export interface ContactMessage {
   createdAt: string;
 }
 
+// -----------------------------------------------------------------------------
+// Class Finance System Types (Strictly Private & Admin Protected)
+// -----------------------------------------------------------------------------
+
+export type TransactionType = 'income' | 'expense';
+
+export type IncomeCategory =
+  | 'Member Contributions'
+  | 'Donations'
+  | 'Event Collections'
+  | 'Magazine Sales'
+  | 'Other Income';
+
+export type ExpenseCategory =
+  | 'Program Expenses'
+  | 'Printing'
+  | 'Magazine Production'
+  | 'Travel'
+  | 'Food'
+  | 'Decorations'
+  | 'Equipment'
+  | 'Other Expenses';
+
+export type FinanceCategory = IncomeCategory | ExpenseCategory;
+
+export interface FinanceTransaction {
+  id: string; // e.g. TXN-001
+  type: TransactionType;
+  category: FinanceCategory;
+  amount: number;
+  date: string; // YYYY-MM-DD
+  counterparty: string; // 'Received from' or 'Paid to'
+  description: string;
+  notes?: string;
+  receiptUrl?: string;
+  balanceAfter: number;
+  addedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinanceAuditLog {
+  id: string;
+  action: 'create' | 'update' | 'delete' | 'setup';
+  transactionId?: string;
+  details: string;
+  performedBy: string;
+  timestamp: string;
+}
+
+export interface FinanceSummary {
+  currency: string;
+  currencySymbol: string;
+  openingBalance: number;
+  currentBalance: number;
+  totalIncome: number;
+  totalExpenses: number;
+  transactionCount: number;
+  setupDate: string;
+  lastUpdated: string;
+}
+
+export interface FinanceData {
+  openingBalance: number;
+  currency: string;
+  currencySymbol: string;
+  currentBalance: number;
+  totalIncome: number;
+  totalExpenses: number;
+  setupDate: string;
+  lastUpdated: string;
+  transactions: FinanceTransaction[];
+  auditLogs: FinanceAuditLog[];
+}
+
 export interface DatabaseSchema {
   adminUsers: AdminUser[];
   magazines: Magazine[];
@@ -207,5 +282,7 @@ export interface DatabaseSchema {
   settings: WebsiteSettings;
   media: MediaAsset[];
   messages: ContactMessage[];
+  finance: FinanceData;
 }
+
 

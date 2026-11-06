@@ -15,6 +15,10 @@ import {
   WebsiteSettings,
   MediaAsset,
   ContactMessage,
+  FinanceTransaction,
+  FinanceSummary,
+  FinanceAuditLog,
+  TransactionType,
 } from './types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -666,7 +670,64 @@ function getInitialSeedData(): DatabaseSchema {
       },
     ],
     messages: [],
+    finance: {
+      openingBalance: 1100,
+      currency: 'INR',
+      currencySymbol: '₹',
+      currentBalance: 1100,
+      totalIncome: 0,
+      totalExpenses: 0,
+      setupDate: '2026-03-01T00:00:00Z',
+      lastUpdated: '2026-03-01T00:00:00Z',
+      transactions: [],
+      auditLogs: [
+        {
+          id: 'log_init',
+          action: 'setup',
+          details: 'Class treasury established with initial opening balance of ₹1,100',
+          performedBy: 'admin',
+          timestamp: '2026-03-01T00:00:00Z',
+        },
+      ],
+    },
   };
+}
+
+// Recalculates running balance for all transactions based on opening balance
+function recalculateFinanceBalances(data: DatabaseSchema): void {
+  if (!data.finance) return;
+  const sorted = [...data.finance.transactions].sort((a, b) => {
+    const dateCmp = a.date.localeCompare(b.date);
+    if (dateCmp !== 0) return dateCmp;
+    return a.createdAt.localeCompare(b.createdAt);
+  });
+
+  let running = data.finance.openingBalance;
+  let totalInc = 0;
+  let totalExp = 0;
+
+  for (const t of sorted) {
+    if (t.type === 'income') {
+      running += t.amount;
+      totalInc += t.amount;
+    } else {
+      running -= t.amount;
+      totalExp += t.amount;
+    }
+    t.balanceAfter = running;
+  }
+
+  for (const t of data.finance.transactions) {
+    const found = sorted.find((s) => s.id === t.id);
+    if (found) {
+      t.balanceAfter = found.balanceAfter;
+    }
+  }
+
+  data.finance.currentBalance = running;
+  data.finance.totalIncome = totalInc;
+  data.finance.totalExpenses = totalExp;
+  data.finance.lastUpdated = new Date().toISOString();
 }
 
 // Thread-safe read/write operations
@@ -687,6 +748,29 @@ export function getDatabase(): DatabaseSchema {
   try {
     const content = fs.readFileSync(DB_FILE, 'utf-8');
     const data: DatabaseSchema = JSON.parse(content);
+    if (!data.finance) {
+      data.finance = {
+        openingBalance: 1100,
+        currency: 'INR',
+        currencySymbol: '₹',
+        currentBalance: 1100,
+        totalIncome: 0,
+        totalExpenses: 0,
+        setupDate: '2026-03-01T00:00:00Z',
+        lastUpdated: '2026-03-01T00:00:00Z',
+        transactions: [],
+        auditLogs: [
+          {
+            id: 'log_init',
+            action: 'setup',
+            details: 'Class treasury established with initial opening balance of ₹1,100',
+            performedBy: 'admin',
+            timestamp: '2026-03-01T00:00:00Z',
+          },
+        ],
+      };
+      saveDatabase(data);
+    }
     memoryCache = data;
     return data;
   } catch (err) {
@@ -1089,6 +1173,171 @@ export const db = {
     data.messages = data.messages.filter((m) => m.id !== id);
     saveDatabase(data);
     return true;
+  },
+
+  // Class Finance System (Private & Administrator Controlled)
+  getFinanceSummary: (): FinanceSummary => {
+    const data = getDatabase();
+    return {
+      currency: data.finance.currency,
+      currencySymbol: data.finance.currencySymbol,
+      openingBalance: data.finance.openingBalance,
+      currentBalance: data.finance.currentBalance,
+      totalIncome: data.finance.totalIncome,
+      totalExpenses: data.finance.totalExpenses,
+      transactionCount: data.finance.transactions.length,
+      setupDate: data.finance.setupDate,
+      lastUpdated: data.finance.lastUpdated,
+    };
+  },
+
+  getFinanceTransactions: (filters?: {
+    type?: TransactionType;
+    category?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): FinanceTransaction[] => {
+    const data = getDatabase();
+    let txs = [...data.finance.transactions];
+
+    if (filters?.type) {
+      txs = txs.filter((t) => t.type === filters.type);
+    }
+    if (filters?.category && filters.category !== 'all') {
+      txs = txs.filter((t) => t.category === filters.category);
+    }
+    if (filters?.startDate) {
+      txs = txs.filter((t) => t.date >= filters.startDate!);
+    }
+    if (filters?.endDate) {
+      txs = txs.filter((t) => t.date <= filters.endDate!);
+    }
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      txs = txs.filter(
+        (t) =>
+          t.description.toLowerCase().includes(q) ||
+          t.counterparty.toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q) ||
+          t.id.toLowerCase().includes(q)
+      );
+    }
+
+    return txs;
+  },
+
+  getFinanceTransactionById: (id: string): FinanceTransaction | null => {
+    const data = getDatabase();
+    return data.finance.transactions.find((t) => t.id === id) || null;
+  },
+
+  createFinanceTransaction: (
+    tx: Omit<FinanceTransaction, 'id' | 'balanceAfter' | 'createdAt' | 'updatedAt'>
+  ): { transaction: FinanceTransaction; summary: FinanceSummary } => {
+    const data = getDatabase();
+    const count = data.finance.transactions.length + 1;
+    const txId = `TXN-${String(count).padStart(3, '0')}`;
+    const now = new Date().toISOString();
+
+    const newTx: FinanceTransaction = {
+      ...tx,
+      id: txId,
+      amount: Number(tx.amount),
+      balanceAfter: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    data.finance.transactions.unshift(newTx);
+
+    data.finance.auditLogs.unshift({
+      id: `audit_${Date.now()}`,
+      action: 'create',
+      transactionId: txId,
+      details: `Recorded ${tx.type.toUpperCase()}: ₹${Number(tx.amount).toLocaleString('en-IN')} (${tx.category}) - ${tx.description}`,
+      performedBy: tx.addedBy || 'admin',
+      timestamp: now,
+    });
+
+    recalculateFinanceBalances(data);
+    saveDatabase(data);
+
+    const savedTx = data.finance.transactions.find((t) => t.id === txId)!;
+    return {
+      transaction: savedTx,
+      summary: db.getFinanceSummary(),
+    };
+  },
+
+  updateFinanceTransaction: (
+    id: string,
+    partial: Partial<Omit<FinanceTransaction, 'id' | 'balanceAfter' | 'createdAt' | 'updatedAt'>>,
+    performedBy = 'admin'
+  ): { transaction: FinanceTransaction | null; summary: FinanceSummary } => {
+    const data = getDatabase();
+    const index = data.finance.transactions.findIndex((t) => t.id === id);
+    if (index === -1) return { transaction: null, summary: db.getFinanceSummary() };
+
+    const oldTx = data.finance.transactions[index];
+    const now = new Date().toISOString();
+
+    data.finance.transactions[index] = {
+      ...oldTx,
+      ...partial,
+      amount: partial.amount !== undefined ? Number(partial.amount) : oldTx.amount,
+      updatedAt: now,
+    };
+
+    data.finance.auditLogs.unshift({
+      id: `audit_${Date.now()}`,
+      action: 'update',
+      transactionId: id,
+      details: `Updated ${id}: amount ₹${data.finance.transactions[index].amount.toLocaleString('en-IN')}, category ${data.finance.transactions[index].category}`,
+      performedBy,
+      timestamp: now,
+    });
+
+    recalculateFinanceBalances(data);
+    saveDatabase(data);
+
+    return {
+      transaction: data.finance.transactions.find((t) => t.id === id) || null,
+      summary: db.getFinanceSummary(),
+    };
+  },
+
+  deleteFinanceTransaction: (
+    id: string,
+    performedBy = 'admin'
+  ): { success: boolean; summary: FinanceSummary } => {
+    const data = getDatabase();
+    const tx = data.finance.transactions.find((t) => t.id === id);
+    if (!tx) return { success: false, summary: db.getFinanceSummary() };
+
+    data.finance.transactions = data.finance.transactions.filter((t) => t.id !== id);
+
+    data.finance.auditLogs.unshift({
+      id: `audit_${Date.now()}`,
+      action: 'delete',
+      transactionId: id,
+      details: `Deleted transaction ${id} (was ${tx.type} of ₹${tx.amount.toLocaleString('en-IN')})`,
+      performedBy,
+      timestamp: new Date().toISOString(),
+    });
+
+    recalculateFinanceBalances(data);
+    saveDatabase(data);
+
+    return {
+      success: true,
+      summary: db.getFinanceSummary(),
+    };
+  },
+
+  getFinanceAuditLogs: (): FinanceAuditLog[] => {
+    const data = getDatabase();
+    return data.finance.auditLogs || [];
   },
 };
 

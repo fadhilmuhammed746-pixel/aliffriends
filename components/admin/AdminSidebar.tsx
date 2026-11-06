@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
+  IndianRupee,
   BookOpen,
   Newspaper,
   Calendar,
@@ -21,6 +22,7 @@ import {
 
 const sidebarLinks = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Class Finance', href: '/admin/finance', icon: IndianRupee, badge: '₹1,100' },
   { name: 'Magazines', href: '/admin/magazines', icon: BookOpen },
   { name: 'Newspaper', href: '/admin/newspaper', icon: Newspaper },
   { name: 'Programs & Events', href: '/admin/programs', icon: Calendar },
@@ -83,14 +85,23 @@ export const AdminSidebar: React.FC = () => {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-serif tracking-wider transition-colors ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-serif tracking-wider transition-colors ${
                   isActive
                     ? 'bg-coral text-white font-bold shadow-coral'
                     : 'text-white/80 hover:text-white hover:bg-forest-800'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-coral-light'}`} />
-                <span>{item.name}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-coral-light'}`} />
+                  <span>{item.name}</span>
+                </div>
+                {item.badge && (
+                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-forest-800 text-coral-light border border-forest-700'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}

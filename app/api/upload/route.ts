@@ -47,6 +47,23 @@ export async function POST(req: NextRequest) {
 
     const fileUrl = `/uploads/${uniqueFileName}`;
 
+    // Extract page count if PDF
+    let detectedPageCount: number | undefined = undefined;
+    if (file.type.includes('pdf') || ext.toLowerCase() === '.pdf') {
+      try {
+        const raw = buffer.toString('binary');
+        const countMatch = raw.match(/\/Count\s+(\d+)/);
+        if (countMatch) {
+          detectedPageCount = parseInt(countMatch[1], 10);
+        } else {
+          const pageMatches = raw.match(/\/Type\s*\/Page\b/g);
+          detectedPageCount = pageMatches ? pageMatches.length : 1;
+        }
+      } catch (e) {
+        console.warn('Page count extraction note:', e);
+      }
+    }
+
     // Record in media table
     const mediaRecord = db.createMedia({
       filename: uniqueFileName,
@@ -64,6 +81,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       url: fileUrl,
+      pageCount: detectedPageCount,
       media: mediaRecord,
     });
   } catch (error) {

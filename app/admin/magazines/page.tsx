@@ -117,6 +117,9 @@ export default function AdminMagazinesPage() {
         if (isPdf) {
           setPdfUrl(data.url);
           setFileSize(`${(file.size / (1024 * 1024)).toFixed(1)} MB`);
+          if (data.pageCount) {
+            setPageCount(data.pageCount);
+          }
         } else {
           setCoverImage(data.url);
         }
