@@ -168,10 +168,7 @@ export const Navbar: React.FC = () => {
             {/* Panel Header */}
             <div className="p-6 sm:p-7 border-b border-editorial-border flex items-start justify-between bg-white/70">
               <div>
-                <Logo variant="dark" size="sm" showTagline={false} clickable={false} />
-                <p className="font-serif italic text-xs text-muted mt-1.5 tracking-wide">
-                  A Class. A Generation. A Thousand Memories.
-                </p>
+                <Logo variant="dark" size="sm" showTagline={true} taglineText="12TH BATCH, DARUL FALAH ISLAMIC ACADEMY" clickable={false} />
               </div>
 
               {/* Close Button */}

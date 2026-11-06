@@ -47,8 +47,12 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Alif Friends 12 Editorial Directorate' }],
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
   openGraph: {
     title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',

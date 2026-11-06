@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -56,8 +57,14 @@ export const AdminSidebar: React.FC = () => {
         <div className="p-6 border-b border-forest-800">
           <Link href="/admin" className="block">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-forest-800 border border-forest-700 flex items-center justify-center text-white font-serif font-black text-sm shadow-subtle">
-                <span className="text-coral">A</span>F
+              <div className="w-10 h-10 rounded-lg bg-forest-800 border border-forest-700 flex items-center justify-center p-1 shadow-subtle flex-shrink-0">
+                <Image
+                  src="/logo-emblem.png"
+                  alt="Alif Friends 12 Emblem"
+                  width={28}
+                  height={36}
+                  className="object-contain"
+                />
               </div>
               <div>
                 <span className="font-serif font-bold text-sm tracking-widest text-white block">
