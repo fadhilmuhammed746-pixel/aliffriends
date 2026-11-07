@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { GalleryAlbum } from '@/lib/types';
 import { Lightbox } from './Lightbox';
 import { Play, Maximize2, Video, FileText, Download } from 'lucide-react';
+import { Card, Button } from '@/components/ui';
 
 export const AlbumViewer: React.FC<{ album: GalleryAlbum }> = ({ album }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -17,36 +18,38 @@ export const AlbumViewer: React.FC<{ album: GalleryAlbum }> = ({ album }) => {
   return (
     <div className="space-y-8">
       {/* Quick Launch Bar */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-editorial-border shadow-subtle">
+      <Card className="p-4 flex items-center justify-between">
         <span className="text-xs font-mono text-ink-muted">
           {album.photos.length} Archival Photographs
         </span>
-        <button
+        <Button
           onClick={() => openLightboxAt(0)}
-          className="px-4 py-2 bg-coral hover:bg-coral-dark text-white text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-2 shadow-coral"
+          variant="coral"
+          size="sm"
+          icon={<Play className="w-3.5 h-3.5" />}
+          iconPosition="left"
         >
-          <Play className="w-3.5 h-3.5" />
-          <span>Start Fullscreen Slideshow</span>
-        </button>
-      </div>
+          Start Fullscreen Slideshow
+        </Button>
+      </Card>
 
-      {/* Responsive Photo Masonry / Grid */}
+      {/* Masonry / Grid of Photographs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {album.photos.map((photo, idx) => (
           <div
             key={photo.id || idx}
             onClick={() => openLightboxAt(idx)}
-            className="group relative aspect-[4/3] rounded-2xl overflow-hidden border border-editorial-border hover:border-forest/50 cursor-pointer shadow-subtle transition-all duration-300 hover:-translate-y-1 bg-white"
+            className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-editorial-border hover:border-forest/50 cursor-pointer shadow-card transition-all duration-300 hover:-translate-y-1 bg-white"
           >
             <img
               src={photo.url}
               alt={photo.caption || album.title}
               loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-[1.03]"
             />
-            {/* Hover overlay with caption & expand icon */}
-            <div className="absolute inset-0 bg-gradient-to-t from-forest via-forest/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between">
-              <div className="self-end p-2 rounded-full bg-forest/80 text-white border border-forest-600">
+            {/* Minimal Dark Overlay with Caption */}
+            <div className="absolute inset-0 bg-gradient-to-t from-forest-950/90 via-forest-950/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between">
+              <div className="self-end p-2 rounded-full bg-forest-950/80 text-white border border-forest-800">
                 <Maximize2 className="w-4 h-4 text-coral-light" />
               </div>
               <div>
@@ -75,7 +78,7 @@ export const AlbumViewer: React.FC<{ album: GalleryAlbum }> = ({ album }) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {album.videos.map((vidUrl, vIdx) => (
-              <div key={vIdx} className="rounded-xl overflow-hidden bg-black border border-editorial-border aspect-video">
+              <div key={vIdx} className="rounded-xl overflow-hidden bg-forest-950 border border-forest-800 aspect-video">
                 <video src={vidUrl} controls className="w-full h-full object-contain" />
               </div>
             ))}
@@ -85,9 +88,9 @@ export const AlbumViewer: React.FC<{ album: GalleryAlbum }> = ({ album }) => {
 
       {/* Album PDF Document */}
       {album.pdfUrl && (
-        <div className="p-5 rounded-2xl bg-white border border-editorial-border flex items-center justify-between shadow-subtle">
+        <div className="p-5 rounded-xl bg-white border border-editorial-border flex items-center justify-between shadow-card">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600">
+            <div className="w-10 h-10 rounded-xl bg-coral/10 border border-coral/20 flex items-center justify-center text-coral">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -101,15 +104,15 @@ export const AlbumViewer: React.FC<{ album: GalleryAlbum }> = ({ album }) => {
             href={album.pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 bg-forest hover:bg-forest-light text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 bg-forest text-white rounded-xl text-xs font-serif font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-forest-800 transition-colors shadow-subtle"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-coral-light" />
             <span>Download PDF</span>
           </a>
         </div>
       )}
 
-      {/* Lightbox Modal */}
+      {/* Fullscreen Lightbox */}
       <Lightbox
         photos={album.photos}
         initialIndex={photoIndex}

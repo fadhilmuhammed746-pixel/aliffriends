@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
   TrendingUp,
 } from 'lucide-react';
+import { Badge, Card, Button } from '@/components/ui';
 
 export default async function AdminDashboardPage() {
   const session = await getAdminSession();
@@ -89,13 +90,15 @@ export default async function AdminDashboardPage() {
           title="Editorial Control Room"
           subtitle="Real-time administration, content publishing, and media archival management."
           action={
-            <Link
+            <Button
               href="/admin/newspaper"
-              className="px-4 py-2 bg-coral hover:bg-coral-dark text-white text-xs font-serif font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5 shadow-coral"
+              variant="coral"
+              size="sm"
+              icon={<Plus className="w-3.5 h-3.5" />}
+              iconPosition="left"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Draft New Story</span>
-            </Link>
+              Draft New Story
+            </Button>
           }
         />
 
@@ -108,15 +111,15 @@ export default async function AdminDashboardPage() {
                 <Link
                   key={s.label}
                   href={s.href}
-                  className="bg-white border border-editorial-border hover:border-forest/40 rounded-2xl p-5 transition-all duration-300 group hover:-translate-y-1 shadow-card"
+                  className="bg-white border border-editorial-border hover:border-forest/40 rounded-xl p-5 transition-all duration-300 group hover:-translate-y-1 shadow-card"
                 >
                   <div className="flex items-center justify-between text-ink-muted mb-3">
-                    <span className="text-[11px] font-serif uppercase tracking-wider font-semibold text-forest">
+                    <span className="text-[11px] font-serif uppercase tracking-tag font-bold text-forest">
                       {s.label}
                     </span>
                     <Icon className="w-4 h-4 text-coral group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-3xl font-serif font-bold text-forest mb-1">
+                  <div className="text-3xl font-serif font-black text-forest mb-1 leading-none">
                     {s.count}
                   </div>
                   <div className="text-[11px] font-mono text-ink-muted flex items-center gap-1">
@@ -131,70 +134,70 @@ export default async function AdminDashboardPage() {
           </div>
 
           {/* Quick Actions Bar */}
-          <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-8 shadow-card">
-            <h2 className="font-serif text-sm uppercase tracking-widest text-forest font-bold mb-4 flex items-center gap-2">
+          <Card className="p-6 sm:p-8 shadow-card">
+            <h2 className="font-serif text-xs uppercase tracking-tag text-forest font-bold mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-coral" />
               <span>Quick Editorial Actions</span>
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               <Link
                 href="/admin/newspaper"
-                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas-warm hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group shadow-subtle"
               >
                 <Newspaper className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-bold text-forest block">
+                <span className="text-xs font-serif font-bold text-forest block uppercase tracking-wider">
                   Write Article
                 </span>
               </Link>
 
               <Link
                 href="/admin/magazines"
-                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas-warm hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group shadow-subtle"
               >
                 <BookOpen className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-bold text-forest block">
+                <span className="text-xs font-serif font-bold text-forest block uppercase tracking-wider">
                   Upload Magazine
                 </span>
               </Link>
 
               <Link
                 href="/admin/programs"
-                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas-warm hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group shadow-subtle"
               >
                 <Calendar className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-bold text-forest block">
+                <span className="text-xs font-serif font-bold text-forest block uppercase tracking-wider">
                   Add Program
                 </span>
               </Link>
 
               <Link
                 href="/admin/videos"
-                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas-warm hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group shadow-subtle"
               >
                 <Video className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-bold text-forest block">
+                <span className="text-xs font-serif font-bold text-forest block uppercase tracking-wider">
                   Publish Video
                 </span>
               </Link>
 
               <Link
                 href="/admin/gallery"
-                className="p-4 bg-canvas hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group"
+                className="p-4 bg-canvas-warm hover:bg-forest-50 border border-editorial-border hover:border-forest/40 rounded-xl text-center transition-all group shadow-subtle"
               >
                 <ImageIcon className="w-5 h-5 text-forest mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-serif font-bold text-forest block">
+                <span className="text-xs font-serif font-bold text-forest block uppercase tracking-wider">
                   Create Album
                 </span>
               </Link>
             </div>
-          </div>
+          </Card>
 
           {/* Two-Column Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Recent Articles */}
-            <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-8 shadow-card">
+            <Card className="p-6 sm:p-8 shadow-card">
               <div className="flex items-center justify-between mb-4 border-b border-editorial-border pb-3">
-                <h3 className="font-serif text-sm uppercase tracking-widest text-forest font-bold">
+                <h3 className="font-serif text-xs uppercase tracking-tag text-forest font-bold">
                   Recent Newspaper Publications
                 </h3>
                 <Link
@@ -210,23 +213,24 @@ export default async function AdminDashboardPage() {
                 {articles.slice(0, 4).map((art) => (
                   <div
                     key={art.id}
-                    className="flex items-center justify-between p-3.5 rounded-xl bg-canvas border border-editorial-border hover:border-forest/30 transition-colors"
+                    className="flex items-center justify-between p-3.5 rounded-xl bg-canvas-warm border border-editorial-border hover:border-forest/30 transition-colors"
                   >
                     <div className="flex-1 min-w-0 pr-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-forest-50 text-forest font-bold">
-                          {art.category}
-                        </span>
+                        <Badge variant="forest" size="sm">{art.category}</Badge>
+                        <Badge variant={art.isPublished ? 'success' : 'draft'} size="sm">
+                          {art.isPublished ? 'Published' : 'Draft'}
+                        </Badge>
                         {art.breakingStatus && (
-                          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-coral text-white font-bold">
+                          <Badge variant="urgent" size="sm">
                             Breaking
-                          </span>
+                          </Badge>
                         )}
                       </div>
                       <h4 className="text-xs font-serif font-bold text-forest truncate">
                         {art.title}
                       </h4>
-                      <span className="text-[11px] text-ink-muted">
+                      <span className="text-[11px] text-ink-muted font-mono">
                         By {art.author} • {art.viewCount || 0} views
                       </span>
                     </div>
@@ -242,12 +246,12 @@ export default async function AdminDashboardPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
 
             {/* Inquiries & Messages */}
-            <div className="bg-white border border-editorial-border rounded-2xl p-6 sm:p-8 shadow-card">
+            <Card className="p-6 sm:p-8 shadow-card">
               <div className="flex items-center justify-between mb-4 border-b border-editorial-border pb-3">
-                <h3 className="font-serif text-sm uppercase tracking-widest text-forest font-bold">
+                <h3 className="font-serif text-xs uppercase tracking-tag text-forest font-bold">
                   Editorial Desk Inquiries ({messages.length})
                 </h3>
                 <span className="text-[11px] font-mono text-ink-muted">
@@ -264,7 +268,7 @@ export default async function AdminDashboardPage() {
                   {messages.slice(0, 4).map((msg) => (
                     <div
                       key={msg.id}
-                      className="p-3.5 rounded-xl bg-canvas border border-editorial-border space-y-1 text-xs"
+                      className="p-3.5 rounded-xl bg-canvas-warm border border-editorial-border space-y-1 text-xs"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-serif font-bold text-forest">
@@ -277,14 +281,14 @@ export default async function AdminDashboardPage() {
                       <p className="text-forest text-xs font-medium">
                         {msg.subject}
                       </p>
-                      <p className="text-ink-muted line-clamp-1 text-[11px]">
+                      <p className="text-ink-muted line-clamp-1 text-[11px] font-sans">
                         {msg.message}
                       </p>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         </div>
       </main>

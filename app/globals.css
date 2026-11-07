@@ -3,21 +3,33 @@
 @tailwind utilities;
 
 :root {
-  --font-playfair: 'Playfair Display', serif;
-  --font-cormorant: 'Cormorant Garamond', serif;
-  --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
+  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+  --font-plus-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* Color System */
   --canvas: #F7F6F0;
+  --canvas-warm: #FAF9F5;
+  --canvas-muted: #EFEFE8;
   --forest: #123C32;
+  --forest-deep: #0A231D;
   --forest-secondary: #245C49;
+  --forest-tint: #E2ECE7;
   --coral: #E66B4E;
+  --coral-light: #F0876E;
+  --coral-dark: #C95034;
+  --coral-soft: #FBE9E4;
   --ink: #18231F;
   --ink-muted: #758078;
+  --ink-subtle: #9DA7A0;
+  --card: #FFFFFF;
   --editorial-border: #E6E7DF;
 }
 
 html {
   background-color: #F7F6F0;
   color: #18231F;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -34,46 +46,60 @@ body {
   color: #FFFFFF;
 }
 
-/* Editorial Drop Caps & Typography */
+/* Accessible Coral Focus Ring */
+:focus-visible {
+  outline: 2px solid #E66B4E !important;
+  outline-offset: 2px !important;
+}
+
+/* Editorial Drop Caps & Article Typography */
 .editorial-dropcap::first-letter {
   font-family: var(--font-playfair), serif;
-  font-size: 3.75rem;
+  font-size: 3.85rem;
   line-height: 0.85;
   float: left;
-  margin-right: 0.65rem;
+  margin-right: 0.75rem;
   margin-top: 0.25rem;
   color: #123C32;
   font-weight: 700;
 }
 
-.prose-editorial p {
-  margin-bottom: 1.35rem;
-  line-height: 1.85;
+.prose-editorial {
+  max-width: 68ch;
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.75;
   color: #2B3A34;
 }
 
-.prose-editorial h3 {
-  font-family: var(--font-playfair), serif;
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: #123C32;
-  margin-top: 2.25rem;
-  margin-bottom: 1rem;
-  letter-spacing: -0.01em;
+.prose-editorial p {
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75;
 }
 
-.prose-editorial blockquote {
+.prose-editorial h2,
+.prose-editorial h3 {
+  font-family: var(--font-playfair), serif;
+  color: #123C32;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.prose-editorial blockquote,
+.pull-quote {
   border-left: 2px solid #E66B4E;
   padding-left: 1.5rem;
   font-style: italic;
   font-family: var(--font-cormorant), serif;
-  font-size: 1.35rem;
-  line-height: 1.6;
+  font-size: 1.5rem;
+  line-height: 1.55;
   color: #123C32;
-  margin: 2rem 0;
+  margin: 2.25rem 0;
 }
 
-/* Custom fine scrollbar */
+/* Custom Editorial Scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -87,6 +113,17 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #245C49;
+}
+
+/* Magazine 3:4 Cover Shadow & Tilt Utility */
+.magazine-cover-3-4 {
+  aspect-ratio: 3 / 4;
+  box-shadow: 0 16px 36px -10px rgba(18, 60, 50, 0.18), 0 4px 12px -2px rgba(18, 60, 50, 0.08);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.magazine-cover-3-4:hover {
+  transform: translateY(-4px) rotate(-0.5deg) scale(1.015);
+  box-shadow: 0 24px 48px -12px rgba(18, 60, 50, 0.24), 0 8px 16px -4px rgba(18, 60, 50, 0.12);
 }
 
 /* Reduced motion accessibility */

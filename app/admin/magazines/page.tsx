@@ -204,8 +204,8 @@ export default function AdminMagazinesPage() {
                       <span
                         className={`text-[10px] uppercase font-mono px-2.5 py-1 rounded border font-semibold ${
                           mag.isPublished
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                            : 'bg-stone-100 text-stone-600 border-stone-300'
+                            ? 'bg-forest-50 text-forest border-forest-100'
+                            : 'bg-canvas-muted text-ink-muted border-editorial-border'
                         }`}
                       >
                         {mag.isPublished ? 'Published' : 'Draft'}

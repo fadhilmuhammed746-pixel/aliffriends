@@ -9,49 +9,59 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // New Modern Editorial Luxury Color System
+        // Modern Editorial Luxury Color Tokens
         canvas: {
-          DEFAULT: "#F7F6F0", // Primary Background
-          warm: "#FAF9F5",
-          muted: "#EFEFE8",
+          DEFAULT: "#F7F6F0", // Primary Page Background
+          warm: "#FAF9F5",    // Warm canvas tint
+          muted: "#EFEFE8",   // Muted canvas tint
           dark: "#E8E7DF",
         },
         forest: {
-          950: "#0A231D",
-          DEFAULT: "#123C32", // Primary Brand
+          950: "#0A231D",     // Immersive Cinematic Background (Video Center, Lightbox, Hero Overlay)
+          deep: "#0A231D",    // Deep brand tone
+          DEFAULT: "#123C32", // Primary Brand Forest Green
           800: "#18453A",
-          700: "#245C49", // Secondary Green
+          700: "#245C49",     // Secondary Green
+          secondary: "#245C49",
           600: "#2E6F59",
           500: "#3D856D",
-          100: "#E2ECE7",
-          50: "#EFF5F2",
+          100: "#E2ECE7",     // Light tint
+          50: "#EFF5F2",      // Softest tint
         },
         coral: {
-          DEFAULT: "#E66B4E", // Accent Coral
-          light: "#F0876E",
-          dark: "#C95034",
-          soft: "#FBE9E4",
+          DEFAULT: "#E66B4E", // Accent, CTAs, breaking tags, highlights
+          light: "#F0876E",   // Light coral
+          dark: "#C95034",    // Dark coral
+          soft: "#FBE9E4",    // Soft coral tint
           50: "#FDF4F1",
         },
         ink: {
-          DEFAULT: "#18231F", // Main Text
+          DEFAULT: "#18231F", // Main text
           light: "#2B3A34",
-          muted: "#758078", // Secondary Text
-          subtle: "#9DA7A0",
+          muted: "#758078",   // Secondary text
+          subtle: "#9DA7A0",  // Subtle tertiary text
           wash: "#F0F2EF",
         },
+        card: {
+          DEFAULT: "#FFFFFF", // Card background
+        },
         editorial: {
-          card: "#FFFFFF", // Card Background
-          border: "#E6E7DF", // Borders
+          card: "#FFFFFF",
+          border: "#E6E7DF", // Hairline dividers & borders
           "border-dark": "#D5D7CC",
         },
       },
       fontFamily: {
-        serif: ["var(--font-playfair)", "Playfair Display", "Cormorant Garamond", "Georgia", "serif"],
+        serif: ["var(--font-playfair)", "Playfair Display", "Georgia", "serif"],
+        cormorant: ["var(--font-cormorant)", "Cormorant Garamond", "Georgia", "serif"],
         editorial: ["var(--font-cormorant)", "Cormorant Garamond", "Playfair Display", "Georgia", "serif"],
-        sans: ["var(--font-plus-jakarta)", "Plus Jakarta Sans", "Manrope", "system-ui", "sans-serif"],
+        sans: ["var(--font-plus-jakarta)", "Plus Jakarta Sans", "system-ui", "sans-serif"],
+      },
+      maxWidth: {
+        prose: "68ch",
       },
       letterSpacing: {
+        tag: ".18em",
         widest: ".18em",
         ultra: ".28em",
       },
@@ -60,7 +70,11 @@ const config: Config = {
         editorial: "0 12px 32px -8px rgba(18, 60, 50, 0.08)",
         card: "0 2px 8px -2px rgba(18, 60, 50, 0.04), 0 8px 24px -4px rgba(18, 60, 50, 0.06)",
         lift: "0 20px 40px -12px rgba(18, 60, 50, 0.12)",
+        magazine: "0 16px 36px -10px rgba(18, 60, 50, 0.18), 0 4px 12px -2px rgba(18, 60, 50, 0.08)",
         coral: "0 8px 24px -6px rgba(230, 107, 78, 0.28)",
+      },
+      transitionTimingFunction: {
+        editorial: "cubic-bezier(0.16, 1, 0.3, 1)",
       },
       animation: {
         "fade-in": "fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",

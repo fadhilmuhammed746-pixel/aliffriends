@@ -77,9 +77,9 @@ export const Lightbox: React.FC<LightboxProps> = ({
   const currentPhoto = photos[currentIndex];
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0A231D]/98 backdrop-blur-2xl flex flex-col justify-between select-none text-white">
+    <div className="fixed inset-0 z-50 bg-forest-950/98 backdrop-blur-2xl flex flex-col justify-between select-none text-white">
       {/* Top Bar */}
-      <div className="px-6 py-4 flex items-center justify-between border-b border-forest-800 bg-forest/80 z-20">
+      <div className="px-6 py-4 flex items-center justify-between border-b border-forest-800 bg-forest-950/80 z-20">
         <div className="flex items-center gap-3">
           <span className="text-coral-light font-serif font-bold text-sm tracking-widest uppercase">
             {albumTitle || 'Class Photo Archive'}

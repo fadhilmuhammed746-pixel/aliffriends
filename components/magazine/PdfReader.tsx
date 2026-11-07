@@ -56,7 +56,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-[#FAF9F5] border border-editorial-border rounded-2xl overflow-hidden shadow-card flex flex-col ${
+      className={`relative bg-canvas-warm border border-editorial-border rounded-2xl overflow-hidden shadow-card flex flex-col ${
         isFullscreen ? 'w-screen h-screen rounded-none border-none z-50 fixed inset-0' : 'h-[750px] w-full'
       }`}
     >
@@ -130,7 +130,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
       </div>
 
       {/* Reader Viewport */}
-      <div className="flex-1 bg-[#EFEFE8] relative overflow-auto flex items-center justify-center p-3 sm:p-6">
+      <div className="flex-1 bg-canvas-muted relative overflow-auto flex items-center justify-center p-3 sm:p-6">
         <div
           className="w-full h-full flex items-center justify-center transition-all duration-200"
           style={{

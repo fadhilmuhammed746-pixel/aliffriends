@@ -315,14 +315,14 @@ export default function AdminFinancePage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleOpenAddIncome}
-                  className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+                  className="px-3.5 py-2 bg-forest hover:bg-forest-800 text-white text-xs font-serif font-bold uppercase tracking-wider rounded-xl shadow-subtle flex items-center gap-1.5 transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Income</span>
                 </button>
                 <button
                   onClick={handleOpenAddExpense}
-                  className="px-3.5 py-2 bg-coral hover:bg-coral-dark text-white text-xs font-sans font-semibold uppercase tracking-wider rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+                  className="px-3.5 py-2 bg-coral hover:bg-coral-dark text-white text-xs font-serif font-bold uppercase tracking-wider rounded-xl shadow-subtle flex items-center gap-1.5 transition-all"
                 >
                   <Minus className="w-3.5 h-3.5" />
                   <span>Add Expense</span>

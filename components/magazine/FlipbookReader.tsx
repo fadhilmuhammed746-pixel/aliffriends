@@ -281,14 +281,14 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-[#F4F2EB] border border-editorial-border rounded-2xl overflow-hidden shadow-2xl flex flex-col select-none ${
+      className={`relative bg-canvas-warm border border-editorial-border rounded-2xl overflow-hidden shadow-2xl flex flex-col select-none ${
         isFullscreen
           ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none'
           : 'h-[820px] w-full'
       }`}
     >
       {/* Top Editorial Toolbar */}
-      <div className="bg-[#123C32] px-4 sm:px-6 py-3 border-b border-forest-800 flex items-center justify-between text-white z-20">
+      <div className="bg-forest px-4 sm:px-6 py-3 border-b border-forest-800 flex items-center justify-between text-white z-20">
         <div className="flex items-center gap-3">
           <span className="p-1.5 rounded-lg bg-white/10 text-coral">
             <BookOpen className="w-4 h-4" />
@@ -356,7 +356,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
       </div>
 
       {/* Main Flipbook Stage */}
-      <div className="flex-1 relative flex items-center justify-center p-3 sm:p-6 overflow-hidden bg-gradient-to-b from-[#EFEFE8] via-[#F7F6F0] to-[#E9E8DE]">
+      <div className="flex-1 relative flex items-center justify-center p-3 sm:p-6 overflow-hidden bg-gradient-to-b from-canvas-muted via-canvas to-canvas-dark">
         {loading ? (
           <div className="flex flex-col items-center justify-center text-center p-8 max-w-sm">
             <div className="w-12 h-12 rounded-2xl bg-forest/10 border border-forest/20 flex items-center justify-center mb-4 text-forest animate-pulse">
@@ -452,7 +452,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
       </div>
 
       {/* Bottom Reader Navigation & Spread Controls */}
-      <div className="bg-[#FAF9F5] px-4 sm:px-6 py-3 border-t border-editorial-border flex flex-wrap items-center justify-between gap-3 z-20">
+      <div className="bg-canvas-warm px-4 sm:px-6 py-3 border-t border-editorial-border flex flex-wrap items-center justify-between gap-3 z-20">
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrevPage}

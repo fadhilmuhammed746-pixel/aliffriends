@@ -20,8 +20,8 @@ export const Logo: React.FC<LogoProps> = ({
   useFullGraphic = false,
 }) => {
   const isLight = variant === 'light'; // Light text for forest/dark backgrounds
-  const titleColor = isLight ? 'text-[#F7F6F0]' : 'text-forest';
-  const taglineColor = isLight ? 'text-[#F7F6F0]/75' : 'text-ink-muted';
+  const titleColor = isLight ? 'text-canvas' : 'text-forest';
+  const taglineColor = isLight ? 'text-canvas/75' : 'text-ink-muted';
 
   // Sizing definitions
   const emblemHeight =
