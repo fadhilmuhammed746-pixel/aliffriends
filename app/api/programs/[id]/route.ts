@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const program = db.getProgramById(id);
+  const program = await db.getProgramById(id);
   if (!program) {
     return NextResponse.json({ error: 'Program not found.' }, { status: 404 });
   }
@@ -25,7 +25,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const updated = db.updateProgram(id, body);
+  const updated = await db.updateProgram(id, body);
   if (!updated) {
     return NextResponse.json({ error: 'Program not found or update failed.' }, { status: 404 });
   }
@@ -43,7 +43,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = db.deleteProgram(id);
+  const deleted = await db.deleteProgram(id);
   return NextResponse.json({ success: deleted });
 }
 

@@ -13,8 +13,8 @@ import {
 
 export const revalidate = 0;
 
-export default function ProgramsArchivePage() {
-  const programs = db.getPrograms(true);
+export default async function ProgramsArchivePage() {
+  const programs = await db.getPrograms(true);
 
   return (
     <div className="py-16 sm:py-20 space-y-12 bg-canvas text-ink">

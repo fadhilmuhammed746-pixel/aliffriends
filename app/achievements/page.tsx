@@ -12,8 +12,8 @@ import {
 
 export const revalidate = 0;
 
-export default function AchievementsPage() {
-  const achievements = db.getAchievements(true);
+export default async function AchievementsPage() {
+  const achievements = await db.getAchievements(true);
 
   return (
     <div className="py-16 sm:py-20 space-y-12 bg-canvas text-ink">

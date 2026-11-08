@@ -26,13 +26,23 @@ export default async function AdminDashboardPage() {
     redirect('/admin/login');
   }
 
-  const magazines = db.getMagazines(false);
-  const articles = db.getArticles(false);
-  const programs = db.getPrograms(false);
-  const videos = db.getVideos(false);
-  const albums = db.getAlbums(false);
-  const members = db.getMembers(false);
-  const messages = db.getMessages();
+  const [
+    magazines,
+    articles,
+    programs,
+    videos,
+    albums,
+    members,
+    messages,
+  ] = await Promise.all([
+    db.getMagazines(false),
+    db.getArticles(false),
+    db.getPrograms(false),
+    db.getVideos(false),
+    db.getAlbums(false),
+    db.getMembers(false),
+    db.getMessages(),
+  ]);
 
   const totalPhotos = albums.reduce((acc, alb) => acc + (alb.photos?.length || 0), 0);
 

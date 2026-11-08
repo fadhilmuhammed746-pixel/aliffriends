@@ -7,13 +7,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const article = db.getArticleBySlugOrId(id);
+  const article = await db.getArticleBySlugOrId(id);
   if (!article) {
     return NextResponse.json({ error: 'Article not found.' }, { status: 404 });
   }
 
   // Increment view count
-  db.incrementArticleView(article.id);
+  await db.incrementArticleView(article.id);
 
   return NextResponse.json({ article });
 }
@@ -29,7 +29,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const updated = db.updateArticle(id, body);
+  const updated = await db.updateArticle(id, body);
   if (!updated) {
     return NextResponse.json({ error: 'Article not found or update failed.' }, { status: 404 });
   }
@@ -47,7 +47,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = db.deleteArticle(id);
+  const deleted = await db.deleteArticle(id);
   return NextResponse.json({ success: deleted });
 }
 

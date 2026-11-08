@@ -12,8 +12,8 @@ import {
 
 export const revalidate = 0;
 
-export default function AboutPage() {
-  const settings = db.getSettings();
+export default async function AboutPage() {
+  const settings = await db.getSettings();
 
   return (
     <div className="py-16 sm:py-20 space-y-16 bg-canvas text-ink">

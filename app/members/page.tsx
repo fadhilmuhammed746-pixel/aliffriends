@@ -13,9 +13,11 @@ import {
 
 export const revalidate = 0;
 
-export default function ClassMembersPage() {
-  const settings = db.getSettings();
-  const members = db.getMembers(true);
+export default async function ClassMembersPage() {
+  const [settings, members] = await Promise.all([
+    db.getSettings(),
+    db.getMembers(true),
+  ]);
 
   if (!settings.membersSectionEnabled) {
     return (

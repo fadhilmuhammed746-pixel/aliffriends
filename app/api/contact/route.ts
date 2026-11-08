@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const saved = db.createMessage({
+    const saved = await db.createMessage({
       name: name.trim(),
       email: email.trim().toLowerCase(),
       subject: subject.trim(),

@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const all = searchParams.get('all') === 'true';
-  const achievements = db.getAchievements(!all);
+  const achievements = await db.getAchievements(!all);
   return NextResponse.json({ achievements });
 }
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newAch = db.createAchievement({
+    const newAch = await db.createAchievement({
       title,
       category,
       date,

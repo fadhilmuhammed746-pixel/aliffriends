@@ -20,15 +20,17 @@ export async function GET(req: NextRequest) {
     const startDate = searchParams.get('startDate') || undefined;
     const endDate = searchParams.get('endDate') || undefined;
 
-    const summary = db.getFinanceSummary();
-    const transactions = db.getFinanceTransactions({
-      type,
-      category,
-      search,
-      startDate,
-      endDate,
-    });
-    const auditLogs = db.getFinanceAuditLogs();
+    const [summary, transactions, auditLogs] = await Promise.all([
+      db.getFinanceSummary(),
+      db.getFinanceTransactions({
+        type,
+        category,
+        search,
+        startDate,
+        endDate,
+      }),
+      db.getFinanceAuditLogs(),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -95,7 +97,7 @@ export async function POST(req: NextRequest) {
       ? date
       : new Date().toISOString().split('T')[0];
 
-    const result = db.createFinanceTransaction({
+    const result = await db.createFinanceTransaction({
       type,
       category: category.trim() as any,
       amount: numAmount,

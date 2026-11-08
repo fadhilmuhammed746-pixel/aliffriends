@@ -26,17 +26,17 @@ export default async function ArticleDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = db.getArticleBySlugOrId(slug);
+  const article = await db.getArticleBySlugOrId(slug);
 
   if (!article || !article.isPublished) {
     notFound();
   }
 
   // Increment view
-  db.incrementArticleView(article.id);
+  await db.incrementArticleView(article.id);
 
   // Related articles
-  const allArticles = db.getArticles(true);
+  const allArticles = await db.getArticles(true);
   const related = allArticles
     .filter((a) => a.id !== article.id && (a.category === article.category || true))
     .slice(0, 3);

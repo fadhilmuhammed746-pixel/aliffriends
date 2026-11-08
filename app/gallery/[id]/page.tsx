@@ -14,7 +14,7 @@ export default async function AlbumDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const album = db.getAlbumById(id);
+  const album = await db.getAlbumById(id);
 
   if (!album || !album.isPublished) {
     notFound();

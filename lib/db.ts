@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import { getSupabaseAdminClient, isSupabaseConfigured } from './supabase';
 import {
   DatabaseSchema,
   AdminUser,
@@ -21,18 +22,16 @@ import {
   TransactionType,
 } from './types';
 
+// Filesystem paths for local fallback only.
+// In production or on Vercel, filesystem operations must never attempt to create or write /var/task/data.
+const isServerless = Boolean(process.env.VERCEL || process.env.NODE_ENV === 'production');
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'af12_database.json');
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
+// Memory cache for fallback
+let memoryCache: DatabaseSchema | null = null;
 
-// Generate seeded database structure
 function getInitialSeedData(): DatabaseSchema {
-  // Pre-hashed bcrypt for 'alif12'
-  // $2a$10$76GjHw5n86V2X8eXjK8Mxeo03W6xRzN1w7.6o3cI98C6m8V.o7W/q or compute synchronously
   const salt = bcrypt.genSaltSync(10);
   const adminPasswordHash = bcrypt.hashSync('alif12', salt);
 
@@ -43,7 +42,7 @@ function getInitialSeedData(): DatabaseSchema {
         username: 'admin',
         passwordHash: adminPasswordHash,
         role: 'superadmin',
-        createdAt: new Date().toISOString(),
+        createdAt: '2026-03-01T00:00:00Z',
       },
     ],
     settings: {
@@ -56,7 +55,7 @@ function getInitialSeedData(): DatabaseSchema {
       heroImage:
         'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2000&q=80',
       aboutStory:
-        'Alif Friends 12 represents more than an academic cohort; it is a collective bond forged through shared ambition, creative curiosity, and lasting brotherhood. From our earliest classroom debates to grand state-level accolades, our journey reflects a generation devoted to honor, intellect, and brotherhood.',
+        'Alif Friends 12 represents more than an academic cohort; it is a collective bond forged through shared ambition, creative curiosity, and lasting brotherhood.',
       aboutMission:
         'To document, celebrate, and perpetuate the creative, intellectual, and personal milestones of our class through world-class editorial journalism and cinematic archives.',
       aboutVision:
@@ -71,604 +70,17 @@ function getInitialSeedData(): DatabaseSchema {
       breakingTickerText:
         'ALIF FRIENDS 12: Grand Reunion & Annual Magazine Edition XII is now officially live • Watch the new documentary on YouTube @AlifCreations12',
       showBreakingTicker: true,
-      updatedAt: new Date().toISOString(),
+      updatedAt: '2026-03-01T00:00:00Z',
     },
-    magazines: [
-      {
-        id: 'mag_12',
-        title: 'The Golden Epoch: Edition XII',
-        editionNumber: 'Edition XII',
-        publicationDate: '2026-03-15',
-        description:
-          'Our flagship 68-page annual publication featuring exclusive retrospective memoirs, teacher tributes, poetic anthologies, investigative student journalism, and a cinematic retrospective of the 2025–2026 academic calendar.',
-        coverImage:
-          'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
-        pdfUrl: '/uploads/sample-magazine-af12.pdf',
-        author: 'Editorial Directorate',
-        editor: 'Zayd M. & Farhan Ali',
-        pageCount: 68,
-        fileSize: '14.2 MB',
-        isFeatured: true,
-        isPublished: true,
-        tags: ['Annual', 'Special Edition', 'Memoirs', 'Creative Arts'],
-        createdAt: '2026-03-15T08:00:00Z',
-        updatedAt: '2026-03-15T08:00:00Z',
-      },
-      {
-        id: 'mag_11',
-        title: 'Chronicles of Grit & Grace: Edition XI',
-        editionNumber: 'Edition XI',
-        publicationDate: '2025-09-10',
-        description:
-          'A rich literary and photographic exploration chronicling our transition into senior leadership, scientific innovations, sports championships, and reflections on character.',
-        coverImage:
-          'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80',
-        pdfUrl: '/uploads/sample-magazine-af12.pdf',
-        author: 'Literary Society AF12',
-        editor: 'Tariq Rahman',
-        pageCount: 52,
-        fileSize: '11.8 MB',
-        isFeatured: false,
-        isPublished: true,
-        tags: ['Literary', 'Autumn Issue', 'Leadership'],
-        createdAt: '2025-09-10T08:00:00Z',
-        updatedAt: '2025-09-10T08:00:00Z',
-      },
-      {
-        id: 'mag_10',
-        title: 'Inception: The Class of Visionaries: Edition X',
-        editionNumber: 'Edition X',
-        publicationDate: '2025-02-01',
-        description:
-          'The commemorative maiden issue that laid down the founding philosophy of Alif Friends 12, featuring original artwork, introductory essays, and historic inaugural group photographs.',
-        coverImage:
-          'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80',
-        pdfUrl: '/uploads/sample-magazine-af12.pdf',
-        author: 'Founding Committee',
-        editor: 'Editorial Board',
-        pageCount: 44,
-        fileSize: '9.4 MB',
-        isFeatured: false,
-        isPublished: true,
-        tags: ['Foundational', 'Inaugural', 'Class History'],
-        createdAt: '2025-02-01T08:00:00Z',
-        updatedAt: '2025-02-01T08:00:00Z',
-      },
-    ],
-    articles: [
-      {
-        id: 'art_001',
-        slug: 'alif-friends-12-triumphs-in-inter-collegiate-literary-conclave',
-        title: 'Alif Friends 12 Triumphs in Inter-Collegiate Literary & Cultural Conclave',
-        subtitle: 'Securing top honours in parliamentary debate, creative writing, and dramatic monologue.',
-        category: 'Class News',
-        headlineStatus: true,
-        breakingStatus: false,
-        coverImage:
-          'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1400&q=80',
-        content: `
-          <p class="lead">In an unprecedented demonstration of intellectual rigor and oratorical prowess, the student delegation of Alif Friends 12 clinched the coveted Championship Trophy at the 2026 Inter-Collegiate Literary Conclave.</p>
-          <p>Held over three demanding days of parliamentary debating, extempore analysis, and theatrical monologue, the event witnessed participation from over thirty top regional institutions. The AF12 delegation stood out for its commanding articulation, depth of research, and exemplary sportsmanship.</p>
-          <h3>A Defining Victory for the Class</h3>
-          <p>"This triumph is not merely an institutional accolade; it is the culmination of months of rigorous preparation, late-night mock sessions in the media lab, and the unbreakable trust between our team members," remarked our head delegate during the post-valedictory press briefing.</p>
-          <p>The judges unanimously praised the AF12 presentation on <em>'The Ethical Dimensions of Algorithmic Governance'</em>, emphasizing the depth of historical context and ethical clarity brought to the floor.</p>
-          <blockquote>"True leadership is not the volume of your speech, but the clarity of your conviction and the dignity with which you respect opposing arguments."</blockquote>
-          <p>As the trophy returns to our campus exhibition hall, the class celebrates not only the victory but the collective pride that unites every member of Alif Friends 12.</p>
-        `,
-        author: 'Zayd M.',
-        authorRole: 'Editorial Secretary',
-        publishedAt: '2026-03-20T10:00:00Z',
-        viewCount: 1420,
-        isPublished: true,
-        galleryImages: [
-          'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=80',
-          'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1000&q=80',
-        ],
-        relatedTags: ['Conclave', 'Debate', 'Championship', 'Academics'],
-        createdAt: '2026-03-20T10:00:00Z',
-        updatedAt: '2026-03-20T10:00:00Z',
-      },
-      {
-        id: 'art_002',
-        slug: 'a-decade-of-fellowship-the-story-behind-our-class-digital-archive',
-        title: 'A Decade of Fellowship: The Story Behind Our Class Digital Archive',
-        subtitle: 'How an ambitious student initiative transformed classroom memories into an international-grade publication platform.',
-        category: 'Editorial',
-        headlineStatus: false,
-        breakingStatus: true,
-        coverImage:
-          'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1400&q=80',
-        content: `
-          <p class="lead">Every classroom experiences laughter, ambition, moments of pressure before examinations, and quiet breakthroughs that reshape lives. Yet, all too often, these invaluable human moments dissolve into faded photographs and forgotten text threads.</p>
-          <p>When the Alif Friends 12 digital initiative was conceptualized, our guiding mandate was uncompromising: create a digital monument that honors our time together with the aesthetic reverence of a global publication.</p>
-          <h3>Elevating Student Journalism</h3>
-          <p>Rather than relying on generic social feeds, we designed a comprehensive ecosystem incorporating digital magazine reading, rich investigative reports, full-resolution photographic archives, and high-definition video archives.</p>
-          <p>The result is what you see today: a living, breathing testament to what a class can achieve when creative discipline meets unwavering loyalty.</p>
-        `,
-        author: 'Farhan Ali',
-        authorRole: 'Editor-in-Chief',
-        publishedAt: '2026-03-18T14:30:00Z',
-        viewCount: 980,
-        isPublished: true,
-        relatedTags: ['Editorial', 'Archive', 'Digital Media', 'Legacy'],
-        createdAt: '2026-03-18T14:30:00Z',
-        updatedAt: '2026-03-18T14:30:00Z',
-      },
-      {
-        id: 'art_003',
-        slug: 'special-report-the-creative-revolution-in-student-led-journalism',
-        title: 'Special Report: The Creative Revolution in Student-Led Journalism',
-        subtitle: 'Exploring how modern typography, documentary media, and editorial ethics define the new standard.',
-        category: 'Special Reports',
-        headlineStatus: false,
-        breakingStatus: false,
-        coverImage:
-          'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1400&q=80',
-        content: `
-          <p class="lead">The landscape of institutional publications is undergoing a profound paradigm shift. No longer content with mimeographed newsletters or static PDF flyers, student editorial teams are operating with the sophistication of modern newsrooms.</p>
-          <p>At Alif Friends 12, our editorial room operates on strict journalistic principles: factual precision, peer review, refined visual curation, and accessible storytelling.</p>
-          <p>Through our YouTube productions under Alif Creations 12 and our quarterly print-to-digital journals, we provide each student contributor a premier platform to express their voice.</p>
-        `,
-        author: 'Media Board',
-        authorRole: 'Investigative Desk',
-        publishedAt: '2026-03-12T09:15:00Z',
-        viewCount: 750,
-        isPublished: true,
-        relatedTags: ['Journalism', 'Media', 'Special Report'],
-        createdAt: '2026-03-12T09:15:00Z',
-        updatedAt: '2026-03-12T09:15:00Z',
-      },
-      {
-        id: 'art_004',
-        slug: 'grand-alif-annual-assembly-2026-schedule-and-broadcast',
-        title: 'Grand Alif Annual Assembly 2026: Schedule, Keynotes & Live Broadcast Details',
-        subtitle: 'All proceedings, guest lectures, and commemorative honours will be broadcast live via Alif Creations 12.',
-        category: 'Events',
-        headlineStatus: false,
-        breakingStatus: false,
-        coverImage:
-          'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1400&q=80',
-        content: `
-          <p class="lead">Preparations for the flagship event of our academic year, the Grand Alif Annual Assembly 2026, have entered their final phase.</p>
-          <p>Featuring keynote addresses by esteemed alumni mentors, ceremonial unveiling of the class yearbook, and musical performances by the AF12 Cultural Ensemble, this year's assembly promises to be our most memorable gathering yet.</p>
-          <p>For class members and well-wishers attending remotely, the full four-hour ceremony will stream in 4K resolution on our official YouTube channel.</p>
-        `,
-        author: 'Event Committee',
-        authorRole: 'Organizing Secretary',
-        publishedAt: '2026-03-05T11:00:00Z',
-        viewCount: 1120,
-        isPublished: true,
-        relatedTags: ['Assembly', 'Live Broadcast', 'Keynotes'],
-        createdAt: '2026-03-05T11:00:00Z',
-        updatedAt: '2026-03-05T11:00:00Z',
-      },
-    ],
-    programs: [
-      {
-        id: 'prog_001',
-        title: 'Grand Class Conclave & Cultural Gala 2026',
-        category: 'Gala & Conclave',
-        date: '2026-04-12',
-        location: 'Royal Grand Convention Auditorium, Central Campus',
-        description:
-          'The premier formal gathering celebrating our collective accomplishments, featuring distinguished guest lectures, cultural recitals, award distributions, and the official release ceremony of Edition XII Magazine.',
-        coverImage:
-          'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80',
-        photos: [
-          'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=80',
-          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1000&q=80',
-          'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1000&q=80',
-        ],
-        youtubeUrl: 'https://www.youtube.com/@AlifCreations12',
-        isFeatured: true,
-        isPublished: true,
-        createdAt: '2026-03-01T10:00:00Z',
-        updatedAt: '2026-03-01T10:00:00Z',
-      },
-      {
-        id: 'prog_002',
-        title: 'Annual Class Expedition: The Nilgiris Highlands Journey',
-        category: 'Expedition & Trip',
-        date: '2026-01-20',
-        location: 'Ooty & Nilgiri Mountain Range',
-        description:
-          'A transformative four-day wilderness expedition and leadership retreat in the misty Nilgiri hills. Trekking through pine forests, lakeside bonfires, and team-building summits under starry skies.',
-        coverImage:
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1400&q=80',
-        photos: [
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80',
-          'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80',
-          'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1000&q=80',
-        ],
-        youtubeUrl: 'https://www.youtube.com/@AlifCreations12',
-        isFeatured: true,
-        isPublished: true,
-        createdAt: '2026-01-25T10:00:00Z',
-        updatedAt: '2026-01-25T10:00:00Z',
-      },
-      {
-        id: 'prog_003',
-        title: 'Alif Community Outreach & Educational Drive',
-        category: 'Community Service',
-        date: '2025-11-15',
-        location: 'City Youth Center & District Library',
-        description:
-          'A student-led philanthropic initiative delivering over 500 academic books, digital literacy kits, and science workshop sessions to underprivileged middle school students.',
-        coverImage:
-          'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1400&q=80',
-        photos: [
-          'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=80',
-          'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1000&q=80',
-        ],
-        isFeatured: false,
-        isPublished: true,
-        createdAt: '2025-11-20T10:00:00Z',
-        updatedAt: '2025-11-20T10:00:00Z',
-      },
-    ],
-    videos: [
-      {
-        id: 'vid_001',
-        title: 'Alif Friends 12: The Official Cinematic Documentary',
-        description:
-          'A masterfully crafted 15-minute documentary tracing the journey, struggles, camaraderie, and triumphs of the class of Alif Friends 12. Directed and edited by our in-house media team.',
-        category: 'Documentary',
-        videoType: 'youtube',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Clean embeddable video
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1400&q=80',
-        duration: '14:48',
-        isFeatured: true,
-        isPublished: true,
-        collectionName: 'Cinematic Archive',
-        createdAt: '2026-03-01T12:00:00Z',
-        updatedAt: '2026-03-01T12:00:00Z',
-      },
-      {
-        id: 'vid_002',
-        title: 'Cultural Night 2026: Live Musical & Stage Highlights',
-        description:
-          'Electrifying musical ensemble performances, dramatic theatre plays, and spoken word tributes performed live on stage during the Annual Cultural Night.',
-        category: 'Performances',
-        videoType: 'youtube',
-        youtubeUrl: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=1400&q=80',
-        duration: '09:22',
-        isFeatured: false,
-        isPublished: true,
-        collectionName: 'Live Stage',
-        createdAt: '2026-02-18T10:00:00Z',
-        updatedAt: '2026-02-18T10:00:00Z',
-      },
-      {
-        id: 'vid_003',
-        title: 'Behind The Scenes: Crafting Edition XII Magazine',
-        description:
-          'Step inside the editing suite and print press room as our student designers and editors bring the 68-page Edition XII from rough concept to finished gold-foil hardcover.',
-        category: 'Behind The Scenes',
-        videoType: 'youtube',
-        youtubeUrl: 'https://www.youtube.com/watch?v=LXb3EKWsInQ',
-        thumbnailUrl:
-          'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=1400&q=80',
-        duration: '06:35',
-        isFeatured: false,
-        isPublished: true,
-        collectionName: 'Editorial Room',
-        createdAt: '2026-03-10T15:00:00Z',
-        updatedAt: '2026-03-10T15:00:00Z',
-      },
-    ],
-    albums: [
-      {
-        id: 'alb_001',
-        title: 'The Class Heritage & Milestone Portraiture',
-        category: 'Special Moment',
-        description:
-          'Formal and candid studio portraits capturing the faces, dignity, and individuality of every member of Alif Friends 12.',
-        coverImage:
-          'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80',
-        isRestricted: false,
-        isPublished: true,
-        photos: [
-          {
-            id: 'ph_101',
-            url: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80',
-            caption: 'The Executive Council & Class Leadership 2026',
-            alt: 'Group portrait',
-          },
-          {
-            id: 'ph_102',
-            url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Candid laughter in the central courtyard during lunch recess',
-            alt: 'Courtyard memories',
-          },
-          {
-            id: 'ph_103',
-            url: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Collaborative workshop in the computer research laboratory',
-            alt: 'Laboratory session',
-          },
-          {
-            id: 'ph_104',
-            url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Editorial board reviewing first printed proofs of Edition XII',
-            alt: 'Editorial review',
-          },
-        ],
-        createdAt: '2026-03-01T10:00:00Z',
-        updatedAt: '2026-03-01T10:00:00Z',
-      },
-      {
-        id: 'alb_002',
-        title: 'Highland Expedition: The Nilgiris Trek',
-        category: 'Trip',
-        description:
-          'Sunrises over mountain ridges, campfire stories, and unforgettable trails through tea plantations during our senior trip.',
-        coverImage:
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
-        isRestricted: false,
-        isPublished: true,
-        photos: [
-          {
-            id: 'ph_201',
-            url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Ascending the peak at dawn under golden skies',
-            alt: 'Mountain summit',
-          },
-          {
-            id: 'ph_202',
-            url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Resting by the emerald mountain river',
-            alt: 'River valley',
-          },
-          {
-            id: 'ph_203',
-            url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Starry night vigil around the highland campfire',
-            alt: 'Campfire',
-          },
-        ],
-        createdAt: '2026-01-28T12:00:00Z',
-        updatedAt: '2026-01-28T12:00:00Z',
-      },
-      {
-        id: 'alb_003',
-        title: 'Athletics & Sports Championship Day',
-        category: 'Competition',
-        description:
-          'The energy, sweat, and glory of our athletes sweeping the podium in track & field and the football tournament.',
-        coverImage:
-          'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80',
-        isRestricted: false,
-        isPublished: true,
-        photos: [
-          {
-            id: 'ph_301',
-            url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Sprint relay finals: the baton exchange that clinched gold',
-            alt: 'Sprint finish',
-          },
-          {
-            id: 'ph_302',
-            url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80',
-            caption: 'Football team lifting the championship shield',
-            alt: 'Trophy celebration',
-          },
-        ],
-        createdAt: '2025-12-10T14:00:00Z',
-        updatedAt: '2025-12-10T14:00:00Z',
-      },
-    ],
-    members: [
-      {
-        id: 'mem_001',
-        name: 'Zayd Mohammed',
-        position: 'Class President & Editorial Coordinator',
-        bio: 'Passionate about public debate, student governance, and archival literature. Believes that every classmate possesses a unique spark that elevates the collective whole.',
-        photoUrl:
-          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-        quote: 'Leadership is service. When we lift one another, our entire generation rises.',
-        orderIndex: 1,
-        isPublished: true,
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
-      {
-        id: 'mem_002',
-        name: 'Farhan Ali',
-        position: 'Editor-in-Chief & Creative Director',
-        bio: 'Spearheads the publication layout, typography, and journalistic curation of the AF12 digital magazine and newspaper publications.',
-        photoUrl:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-        quote: 'Words have the power to freeze time and immortalize shared moments.',
-        orderIndex: 2,
-        isPublished: true,
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
-      {
-        id: 'mem_003',
-        name: 'Rayyan Siddiqui',
-        position: 'Head of Media & Cinematography',
-        bio: 'Directs the cinematic documentaries and visual storytelling for Alif Creations 12. Enthusiast of 35mm photography and color grading.',
-        photoUrl:
-          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-        quote: 'Through the lens, even fleeting moments become enduring works of art.',
-        orderIndex: 3,
-        isPublished: true,
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
-      {
-        id: 'mem_004',
-        name: 'Bilal Khan',
-        position: 'Sports Captain & Athletic Lead',
-        bio: 'State-level sprinter and captain of the class football squad. Champions relentless discipline, physical fitness, and unyielding team spirit.',
-        photoUrl:
-          'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
-        quote: 'Victories are built on the cold mornings when no one is watching.',
-        orderIndex: 4,
-        isPublished: true,
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
-      {
-        id: 'mem_005',
-        name: 'Amaan Shaikh',
-        position: 'Cultural Secretary & Event Curator',
-        bio: 'Organizes our stage dramas, musical evenings, and cultural symposia. Passionate about classical poetry and contemporary theatre.',
-        photoUrl:
-          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
-        quote: 'Art is the heartbeat that breathes soul into our academic years.',
-        orderIndex: 5,
-        isPublished: true,
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
-      {
-        id: 'mem_006',
-        name: 'Hamza Tariq',
-        position: 'Academic Lead & Research Coordinator',
-        bio: 'Top scorer in mathematics and computer sciences. Mentors peers in programming, debate research, and academic symposiums.',
-        photoUrl:
-          'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=800&q=80',
-        quote: 'Curiosity is the true engine of progress and discovery.',
-        orderIndex: 6,
-        isPublished: true,
-        createdAt: '2026-01-01T00:00:00Z',
-        updatedAt: '2026-01-01T00:00:00Z',
-      },
-    ],
-    achievements: [
-      {
-        id: 'ach_001',
-        title: 'Grand Champions – State Youth Parliamentary Conclave',
-        category: 'Competition',
-        date: '2026-02-14',
-        description:
-          'The AF12 debating caucus out-argued 32 institutions over five rounds to win the prestigious rolling trophy for parliamentary excellence.',
-        awardedBy: 'State Youth Assembly & Department of Higher Education',
-        imageUrl:
-          'https://images.unsplash.com/photo-1578269174936-2709b6aeb913?auto=format&fit=crop&w=1000&q=80',
-        badgeTitle: 'First Place – Rolling Trophy',
-        isFeatured: true,
-        isPublished: true,
-        createdAt: '2026-02-15T00:00:00Z',
-        updatedAt: '2026-02-15T00:00:00Z',
-      },
-      {
-        id: 'ach_002',
-        title: 'Best Student Editorial Publication 2025–2026',
-        category: 'Award',
-        date: '2026-01-10',
-        description:
-          'Honoured for outstanding design aesthetics, ethical student reporting, and editorial maturity across the state education circle.',
-        awardedBy: 'Collegiate Press & Media Association',
-        imageUrl:
-          'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1000&q=80',
-        badgeTitle: 'Editorial Gold Award',
-        isFeatured: true,
-        isPublished: true,
-        createdAt: '2026-01-12T00:00:00Z',
-        updatedAt: '2026-01-12T00:00:00Z',
-      },
-      {
-        id: 'ach_003',
-        title: 'Inter-District Football Championship Winners',
-        category: 'Competition',
-        date: '2025-11-28',
-        description:
-          'An undefeated tournament streak culminating in a dramatic 2-1 victory in the championship final against the defending champions.',
-        awardedBy: 'District Athletics & Sports Federation',
-        imageUrl:
-          'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&q=80',
-        badgeTitle: 'Championship Shield',
-        isFeatured: false,
-        isPublished: true,
-        createdAt: '2025-11-30T00:00:00Z',
-        updatedAt: '2025-11-30T00:00:00Z',
-      },
-      {
-        id: 'ach_004',
-        title: 'Distinguished Citation in Community Outreach & Literacy',
-        category: 'Special Recognition',
-        date: '2025-10-18',
-        description:
-          'Commended for spearheading educational material distribution and computer literacy workshops across municipal schools.',
-        awardedBy: 'Metropolitan Social Welfare Council',
-        imageUrl:
-          'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=80',
-        badgeTitle: 'Civic Honor Citation',
-        isFeatured: false,
-        isPublished: true,
-        createdAt: '2025-10-20T00:00:00Z',
-        updatedAt: '2025-10-20T00:00:00Z',
-      },
-    ],
-    announcements: [
-      {
-        id: 'ann_001',
-        title: 'Official Worldwide Release of Digital Magazine Edition XII',
-        category: 'Notice',
-        date: '2026-03-15',
-        content:
-          'The digital edition of our flagship publication "The Golden Epoch" is now accessible on all devices. High-resolution PDF downloads and the full-screen online reader are available in the Magazine section.',
-        priority: 'high',
-        isFeatured: true,
-        isPublished: true,
-        createdAt: '2026-03-15T09:00:00Z',
-        updatedAt: '2026-03-15T09:00:00Z',
-      },
-      {
-        id: 'ann_002',
-        title: 'Call for Literary Submissions: Special Monsoon Supplement',
-        category: 'General',
-        date: '2026-03-25',
-        content:
-          'The editorial board invites essays, original poetry, photo essays, and scientific op-eds for the upcoming supplement. Submissions close on April 15th via our official editorial email.',
-        priority: 'medium',
-        isFeatured: false,
-        isPublished: true,
-        createdAt: '2026-03-25T10:00:00Z',
-        updatedAt: '2026-03-25T10:00:00Z',
-      },
-      {
-        id: 'ann_003',
-        title: 'Grand Annual Assembly 2026 – Venue & Seating Guidelines',
-        category: 'Event',
-        date: '2026-04-01',
-        content:
-          'All attendees are requested to be seated by 09:30 AM at the Royal Grand Convention Auditorium. Formal attire is requested. Live stream links will be shared on our YouTube channel.',
-        priority: 'high',
-        isFeatured: true,
-        isPublished: true,
-        createdAt: '2026-04-01T08:00:00Z',
-        updatedAt: '2026-04-01T08:00:00Z',
-      },
-    ],
-    media: [
-      {
-        id: 'med_001',
-        filename: 'af12-magazine-edition-12-cover.jpg',
-        originalName: 'cover_edition_12.jpg',
-        url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80',
-        mimeType: 'image/jpeg',
-        size: 2450000,
-        category: 'image',
-        createdAt: '2026-03-15T08:00:00Z',
-      },
-      {
-        id: 'med_002',
-        filename: 'af12-assembly-banner.jpg',
-        originalName: 'assembly_2026.jpg',
-        url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80',
-        mimeType: 'image/jpeg',
-        size: 3200000,
-        category: 'image',
-        createdAt: '2026-03-01T10:00:00Z',
-      },
-    ],
+    magazines: [],
+    articles: [],
+    programs: [],
+    videos: [],
+    albums: [],
+    members: [],
+    achievements: [],
+    announcements: [],
+    media: [],
     messages: [],
     finance: {
       openingBalance: 1100,
@@ -680,467 +92,1541 @@ function getInitialSeedData(): DatabaseSchema {
       setupDate: '2026-03-01T00:00:00Z',
       lastUpdated: '2026-03-01T00:00:00Z',
       transactions: [],
-      auditLogs: [
-        {
-          id: 'log_init',
-          action: 'setup',
-          details: 'Class treasury established with initial opening balance of ₹1,100',
-          performedBy: 'admin',
-          timestamp: '2026-03-01T00:00:00Z',
-        },
-      ],
+      auditLogs: [],
     },
   };
 }
 
-// Recalculates running balance for all transactions based on opening balance
-function recalculateFinanceBalances(data: DatabaseSchema): void {
-  if (!data.finance) return;
-  const sorted = [...data.finance.transactions].sort((a, b) => {
-    const dateCmp = a.date.localeCompare(b.date);
-    if (dateCmp !== 0) return dateCmp;
-    return a.createdAt.localeCompare(b.createdAt);
-  });
+// Safe local database reader for local offline development only.
+// Never creates directories or writes files in production / Vercel.
+function getLocalDatabase(): DatabaseSchema {
+  if (memoryCache) return memoryCache;
 
-  let running = data.finance.openingBalance;
-  let totalInc = 0;
-  let totalExp = 0;
-
-  for (const t of sorted) {
-    if (t.type === 'income') {
-      running += t.amount;
-      totalInc += t.amount;
-    } else {
-      running -= t.amount;
-      totalExp += t.amount;
-    }
-    t.balanceAfter = running;
-  }
-
-  for (const t of data.finance.transactions) {
-    const found = sorted.find((s) => s.id === t.id);
-    if (found) {
-      t.balanceAfter = found.balanceAfter;
-    }
-  }
-
-  data.finance.currentBalance = running;
-  data.finance.totalIncome = totalInc;
-  data.finance.totalExpenses = totalExp;
-  data.finance.lastUpdated = new Date().toISOString();
-}
-
-// Thread-safe read/write operations
-let memoryCache: DatabaseSchema | null = null;
-
-export function getDatabase(): DatabaseSchema {
-  if (memoryCache) {
-    return memoryCache;
-  }
-
-  if (!fs.existsSync(DB_FILE)) {
+  if (isServerless) {
+    // In serverless environment without Supabase, return seed safely without touching disk
     const seed = getInitialSeedData();
-    fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2), 'utf-8');
     memoryCache = seed;
     return seed;
   }
 
   try {
-    const content = fs.readFileSync(DB_FILE, 'utf-8');
-    const data: DatabaseSchema = JSON.parse(content);
-    if (!data.finance) {
-      data.finance = {
-        openingBalance: 1100,
-        currency: 'INR',
-        currencySymbol: '₹',
-        currentBalance: 1100,
-        totalIncome: 0,
-        totalExpenses: 0,
-        setupDate: '2026-03-01T00:00:00Z',
-        lastUpdated: '2026-03-01T00:00:00Z',
-        transactions: [],
-        auditLogs: [
-          {
-            id: 'log_init',
-            action: 'setup',
-            details: 'Class treasury established with initial opening balance of ₹1,100',
-            performedBy: 'admin',
-            timestamp: '2026-03-01T00:00:00Z',
-          },
-        ],
-      };
-      saveDatabase(data);
+    if (fs.existsSync(DB_FILE)) {
+      const raw = fs.readFileSync(DB_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      memoryCache = parsed;
+      return parsed;
     }
-    memoryCache = data;
-    return data;
   } catch (err) {
-    console.error('Error reading database file, re-initializing seed:', err);
-    const seed = getInitialSeedData();
-    fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2), 'utf-8');
-    memoryCache = seed;
-    return seed;
+    console.warn('Local database read fallback notice:', err);
+  }
+
+  const seed = getInitialSeedData();
+  memoryCache = seed;
+  return seed;
+}
+
+function saveLocalDatabase(data: DatabaseSchema): void {
+  memoryCache = data;
+  if (isServerless) return; // Never write to disk in serverless
+
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const tempPath = `${DB_FILE}.tmp.${Date.now()}`;
+    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tempPath, DB_FILE);
+  } catch (err) {
+    console.warn('Local database write notice:', err);
   }
 }
 
-export function saveDatabase(data: DatabaseSchema): void {
-  memoryCache = data;
-  const tempPath = `${DB_FILE}.tmp.${Date.now()}`;
-  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
-  fs.renameSync(tempPath, DB_FILE);
+// -----------------------------------------------------------------------------
+// Supabase Row <-> TypeScript Mappers
+// -----------------------------------------------------------------------------
+
+function toSettings(row: any): WebsiteSettings {
+  return {
+    siteName: row.site_name,
+    tagline: row.tagline,
+    heroHeading: row.hero_heading,
+    heroSubheading: row.hero_subheading,
+    heroBadge: row.hero_badge,
+    heroImage: row.hero_image,
+    aboutStory: row.about_story,
+    aboutMission: row.about_mission,
+    aboutVision: row.about_vision,
+    founderQuote: row.founder_quote,
+    officialYoutube: row.official_youtube,
+    officialInstagram: row.official_instagram,
+    emailPrimary: row.email_primary,
+    emailSecondary: row.email_secondary,
+    membersSectionEnabled: Boolean(row.members_section_enabled),
+    breakingTickerText: row.breaking_ticker_text,
+    showBreakingTicker: Boolean(row.show_breaking_ticker),
+    updatedAt: row.updated_at,
+  };
 }
 
-// Data Access API
+function toSettingsRow(settings: Partial<WebsiteSettings>): any {
+  const row: any = {};
+  if (settings.siteName !== undefined) row.site_name = settings.siteName;
+  if (settings.tagline !== undefined) row.tagline = settings.tagline;
+  if (settings.heroHeading !== undefined) row.hero_heading = settings.heroHeading;
+  if (settings.heroSubheading !== undefined) row.hero_subheading = settings.heroSubheading;
+  if (settings.heroBadge !== undefined) row.hero_badge = settings.heroBadge;
+  if (settings.heroImage !== undefined) row.hero_image = settings.heroImage;
+  if (settings.aboutStory !== undefined) row.about_story = settings.aboutStory;
+  if (settings.aboutMission !== undefined) row.about_mission = settings.aboutMission;
+  if (settings.aboutVision !== undefined) row.about_vision = settings.aboutVision;
+  if (settings.founderQuote !== undefined) row.founder_quote = settings.founderQuote;
+  if (settings.officialYoutube !== undefined) row.official_youtube = settings.officialYoutube;
+  if (settings.officialInstagram !== undefined) row.official_instagram = settings.officialInstagram;
+  if (settings.emailPrimary !== undefined) row.email_primary = settings.emailPrimary;
+  if (settings.emailSecondary !== undefined) row.email_secondary = settings.emailSecondary;
+  if (settings.membersSectionEnabled !== undefined) row.members_section_enabled = settings.membersSectionEnabled;
+  if (settings.breakingTickerText !== undefined) row.breaking_ticker_text = settings.breakingTickerText;
+  if (settings.showBreakingTicker !== undefined) row.show_breaking_ticker = settings.showBreakingTicker;
+  row.updated_at = new Date().toISOString();
+  return row;
+}
+
+function toAdminUser(row: any): AdminUser {
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    role: row.role || 'superadmin',
+    createdAt: row.created_at,
+    lastLogin: row.last_login || undefined,
+  };
+}
+
+function toMagazine(row: any): Magazine {
+  return {
+    id: row.id,
+    title: row.title,
+    editionNumber: row.edition_number,
+    publicationDate: row.publication_date,
+    description: row.description,
+    coverImage: row.cover_image,
+    pdfUrl: row.pdf_url,
+    author: row.author,
+    editor: row.editor,
+    pageCount: row.page_count ?? undefined,
+    fileSize: row.file_size ?? undefined,
+    isFeatured: Boolean(row.is_featured),
+    isPublished: Boolean(row.is_published),
+    tags: row.tags || [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toMagazineRow(m: Partial<Magazine>): any {
+  const row: any = {};
+  if (m.title !== undefined) row.title = m.title;
+  if (m.editionNumber !== undefined) row.edition_number = m.editionNumber;
+  if (m.publicationDate !== undefined) row.publication_date = m.publicationDate;
+  if (m.description !== undefined) row.description = m.description;
+  if (m.coverImage !== undefined) row.cover_image = m.coverImage;
+  if (m.pdfUrl !== undefined) row.pdf_url = m.pdfUrl;
+  if (m.author !== undefined) row.author = m.author;
+  if (m.editor !== undefined) row.editor = m.editor;
+  if (m.pageCount !== undefined) row.page_count = m.pageCount;
+  if (m.fileSize !== undefined) row.file_size = m.fileSize;
+  if (m.isFeatured !== undefined) row.is_featured = m.isFeatured;
+  if (m.isPublished !== undefined) row.is_published = m.isPublished;
+  if (m.tags !== undefined) row.tags = m.tags;
+  return row;
+}
+
+function toArticle(row: any): Article {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    subtitle: row.subtitle || undefined,
+    category: row.category,
+    headlineStatus: Boolean(row.headline_status),
+    breakingStatus: Boolean(row.breaking_status),
+    coverImage: row.cover_image,
+    content: row.content,
+    author: row.author,
+    authorRole: row.author_role || undefined,
+    publishedAt: row.published_at,
+    viewCount: row.view_count || 0,
+    isPublished: Boolean(row.is_published),
+    galleryImages: row.gallery_images || [],
+    videoUrl: row.video_url || undefined,
+    pdfUrl: row.pdf_url || undefined,
+    pdfTitle: row.pdf_title || undefined,
+    relatedTags: row.related_tags || [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toArticleRow(a: Partial<Article>): any {
+  const row: any = {};
+  if (a.slug !== undefined) row.slug = a.slug;
+  if (a.title !== undefined) row.title = a.title;
+  if (a.subtitle !== undefined) row.subtitle = a.subtitle;
+  if (a.category !== undefined) row.category = a.category;
+  if (a.headlineStatus !== undefined) row.headline_status = a.headlineStatus;
+  if (a.breakingStatus !== undefined) row.breaking_status = a.breakingStatus;
+  if (a.coverImage !== undefined) row.cover_image = a.coverImage;
+  if (a.content !== undefined) row.content = a.content;
+  if (a.author !== undefined) row.author = a.author;
+  if (a.authorRole !== undefined) row.author_role = a.authorRole;
+  if (a.publishedAt !== undefined) row.published_at = a.publishedAt;
+  if (a.viewCount !== undefined) row.view_count = a.viewCount;
+  if (a.isPublished !== undefined) row.is_published = a.isPublished;
+  if (a.galleryImages !== undefined) row.gallery_images = a.galleryImages;
+  if (a.videoUrl !== undefined) row.video_url = a.videoUrl;
+  if (a.pdfUrl !== undefined) row.pdf_url = a.pdfUrl;
+  if (a.pdfTitle !== undefined) row.pdf_title = a.pdfTitle;
+  if (a.relatedTags !== undefined) row.related_tags = a.relatedTags;
+  return row;
+}
+
+function toProgram(row: any): Program {
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    date: row.date,
+    location: row.location,
+    description: row.description,
+    coverImage: row.cover_image,
+    photos: row.photos || [],
+    youtubeUrl: row.youtube_url || undefined,
+    videoUrl: row.video_url || undefined,
+    pdfUrl: row.pdf_url || undefined,
+    pdfTitle: row.pdf_title || undefined,
+    isFeatured: Boolean(row.is_featured),
+    isPublished: Boolean(row.is_published),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toProgramRow(p: Partial<Program>): any {
+  const row: any = {};
+  if (p.title !== undefined) row.title = p.title;
+  if (p.category !== undefined) row.category = p.category;
+  if (p.date !== undefined) row.date = p.date;
+  if (p.location !== undefined) row.location = p.location;
+  if (p.description !== undefined) row.description = p.description;
+  if (p.coverImage !== undefined) row.cover_image = p.coverImage;
+  if (p.photos !== undefined) row.photos = p.photos;
+  if (p.youtubeUrl !== undefined) row.youtube_url = p.youtubeUrl;
+  if (p.videoUrl !== undefined) row.video_url = p.videoUrl;
+  if (p.pdfUrl !== undefined) row.pdf_url = p.pdfUrl;
+  if (p.pdfTitle !== undefined) row.pdf_title = p.pdfTitle;
+  if (p.isFeatured !== undefined) row.is_featured = p.isFeatured;
+  if (p.isPublished !== undefined) row.is_published = p.isPublished;
+  return row;
+}
+
+function toVideo(row: any): VideoItem {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    videoType: row.video_type || 'youtube',
+    youtubeUrl: row.youtube_url || undefined,
+    videoUrl: row.video_url || undefined,
+    thumbnailUrl: row.thumbnail_url,
+    duration: row.duration || undefined,
+    isFeatured: Boolean(row.is_featured),
+    isPublished: Boolean(row.is_published),
+    collectionName: row.collection_name || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toVideoRow(v: Partial<VideoItem>): any {
+  const row: any = {};
+  if (v.title !== undefined) row.title = v.title;
+  if (v.description !== undefined) row.description = v.description;
+  if (v.category !== undefined) row.category = v.category;
+  if (v.videoType !== undefined) row.video_type = v.videoType;
+  if (v.youtubeUrl !== undefined) row.youtube_url = v.youtubeUrl;
+  if (v.videoUrl !== undefined) row.video_url = v.videoUrl;
+  if (v.thumbnailUrl !== undefined) row.thumbnail_url = v.thumbnailUrl;
+  if (v.duration !== undefined) row.duration = v.duration;
+  if (v.isFeatured !== undefined) row.is_featured = v.isFeatured;
+  if (v.isPublished !== undefined) row.is_published = v.isPublished;
+  if (v.collectionName !== undefined) row.collection_name = v.collectionName;
+  return row;
+}
+
+function toAlbum(row: any): GalleryAlbum {
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    description: row.description || '',
+    coverImage: row.cover_image,
+    isRestricted: Boolean(row.is_restricted),
+    isPublished: Boolean(row.is_published),
+    isFeatured: Boolean(row.is_featured),
+    eventDate: row.event_date || undefined,
+    photos: row.photos || [],
+    videos: row.videos || [],
+    pdfUrl: row.pdf_url || undefined,
+    pdfTitle: row.pdf_title || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toAlbumRow(a: Partial<GalleryAlbum>): any {
+  const row: any = {};
+  if (a.title !== undefined) row.title = a.title;
+  if (a.category !== undefined) row.category = a.category;
+  if (a.description !== undefined) row.description = a.description;
+  if (a.coverImage !== undefined) row.cover_image = a.coverImage;
+  if (a.isRestricted !== undefined) row.is_restricted = a.isRestricted;
+  if (a.isPublished !== undefined) row.is_published = a.isPublished;
+  if (a.isFeatured !== undefined) row.is_featured = a.isFeatured;
+  if (a.eventDate !== undefined) row.event_date = a.eventDate;
+  if (a.photos !== undefined) row.photos = a.photos;
+  if (a.videos !== undefined) row.videos = a.videos;
+  if (a.pdfUrl !== undefined) row.pdf_url = a.pdfUrl;
+  if (a.pdfTitle !== undefined) row.pdf_title = a.pdfTitle;
+  return row;
+}
+
+function toMember(row: any): ClassMember {
+  return {
+    id: row.id,
+    name: row.name,
+    position: row.position,
+    bio: row.bio,
+    photoUrl: row.photo_url,
+    quote: row.quote || undefined,
+    orderIndex: row.order_index ?? 0,
+    category: row.category || undefined,
+    responsibility: row.responsibility || undefined,
+    isPublished: Boolean(row.is_published),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toMemberRow(m: Partial<ClassMember>): any {
+  const row: any = {};
+  if (m.name !== undefined) row.name = m.name;
+  if (m.position !== undefined) row.position = m.position;
+  if (m.bio !== undefined) row.bio = m.bio;
+  if (m.photoUrl !== undefined) row.photo_url = m.photoUrl;
+  if (m.quote !== undefined) row.quote = m.quote;
+  if (m.orderIndex !== undefined) row.order_index = m.orderIndex;
+  if (m.category !== undefined) row.category = m.category;
+  if (m.responsibility !== undefined) row.responsibility = m.responsibility;
+  if (m.isPublished !== undefined) row.is_published = m.isPublished;
+  return row;
+}
+
+function toAchievement(row: any): Achievement {
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    date: row.date,
+    description: row.description,
+    awardedBy: row.awarded_by || undefined,
+    imageUrl: row.image_url,
+    photos: row.photos || [],
+    videoUrl: row.video_url || undefined,
+    pdfUrl: row.pdf_url || undefined,
+    pdfTitle: row.pdf_title || undefined,
+    badgeTitle: row.badge_title || undefined,
+    isFeatured: Boolean(row.is_featured),
+    isPublished: Boolean(row.is_published),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toAchievementRow(a: Partial<Achievement>): any {
+  const row: any = {};
+  if (a.title !== undefined) row.title = a.title;
+  if (a.category !== undefined) row.category = a.category;
+  if (a.date !== undefined) row.date = a.date;
+  if (a.description !== undefined) row.description = a.description;
+  if (a.awardedBy !== undefined) row.awarded_by = a.awardedBy;
+  if (a.imageUrl !== undefined) row.image_url = a.imageUrl;
+  if (a.photos !== undefined) row.photos = a.photos;
+  if (a.videoUrl !== undefined) row.video_url = a.videoUrl;
+  if (a.pdfUrl !== undefined) row.pdf_url = a.pdfUrl;
+  if (a.pdfTitle !== undefined) row.pdf_title = a.pdfTitle;
+  if (a.badgeTitle !== undefined) row.badge_title = a.badgeTitle;
+  if (a.isFeatured !== undefined) row.is_featured = a.isFeatured;
+  if (a.isPublished !== undefined) row.is_published = a.isPublished;
+  return row;
+}
+
+function toAnnouncement(row: any): Announcement {
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    date: row.date,
+    content: row.content,
+    coverImage: row.cover_image || undefined,
+    photos: row.photos || [],
+    videoUrl: row.video_url || undefined,
+    pdfUrl: row.pdf_url || undefined,
+    pdfTitle: row.pdf_title || undefined,
+    priority: row.priority || 'medium',
+    isFeatured: Boolean(row.is_featured),
+    isPublished: Boolean(row.is_published),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toAnnouncementRow(an: Partial<Announcement>): any {
+  const row: any = {};
+  if (an.title !== undefined) row.title = an.title;
+  if (an.category !== undefined) row.category = an.category;
+  if (an.date !== undefined) row.date = an.date;
+  if (an.content !== undefined) row.content = an.content;
+  if (an.coverImage !== undefined) row.cover_image = an.coverImage;
+  if (an.photos !== undefined) row.photos = an.photos;
+  if (an.videoUrl !== undefined) row.video_url = an.videoUrl;
+  if (an.pdfUrl !== undefined) row.pdf_url = an.pdfUrl;
+  if (an.pdfTitle !== undefined) row.pdf_title = an.pdfTitle;
+  if (an.priority !== undefined) row.priority = an.priority;
+  if (an.isFeatured !== undefined) row.is_featured = an.isFeatured;
+  if (an.isPublished !== undefined) row.is_published = an.isPublished;
+  return row;
+}
+
+function toMedia(row: any): MediaAsset {
+  return {
+    id: row.id,
+    filename: row.filename,
+    originalName: row.original_name,
+    url: row.url,
+    mimeType: row.mime_type,
+    size: row.size,
+    category: row.category,
+    section: row.section || undefined,
+    contentId: row.content_id || undefined,
+    uploadedBy: row.uploaded_by || 'admin',
+    storageLocation: row.storage_location || 'supabase',
+    createdAt: row.created_at,
+  };
+}
+
+function toMediaRow(md: Partial<MediaAsset>): any {
+  const row: any = {};
+  if (md.filename !== undefined) row.filename = md.filename;
+  if (md.originalName !== undefined) row.original_name = md.originalName;
+  if (md.url !== undefined) row.url = md.url;
+  if (md.mimeType !== undefined) row.mime_type = md.mimeType;
+  if (md.size !== undefined) row.size = md.size;
+  if (md.category !== undefined) row.category = md.category;
+  if (md.section !== undefined) row.section = md.section;
+  if (md.contentId !== undefined) row.content_id = md.contentId;
+  if (md.uploadedBy !== undefined) row.uploaded_by = md.uploadedBy;
+  if (md.storageLocation !== undefined) row.storage_location = md.storageLocation;
+  return row;
+}
+
+function toMessage(row: any): ContactMessage {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    subject: row.subject,
+    message: row.message,
+    status: row.status || 'unread',
+    createdAt: row.created_at,
+  };
+}
+
+function toFinanceSummary(row: any, transactionCount = 0): FinanceSummary {
+  return {
+    currency: row?.currency || 'INR',
+    currencySymbol: row?.currency_symbol || '₹',
+    openingBalance: Number(row?.opening_balance ?? 1100),
+    currentBalance: Number(row?.current_balance ?? 1100),
+    totalIncome: Number(row?.total_income ?? 0),
+    totalExpenses: Number(row?.total_expenses ?? 0),
+    transactionCount,
+    setupDate: row?.setup_date || '2026-03-01T00:00:00Z',
+    lastUpdated: row?.last_updated || new Date().toISOString(),
+  };
+}
+
+function toFinanceTransaction(row: any): FinanceTransaction {
+  return {
+    id: row.id,
+    type: row.type,
+    category: row.category,
+    amount: Number(row.amount),
+    date: row.date,
+    counterparty: row.counterparty,
+    description: row.description,
+    notes: row.notes || undefined,
+    receiptUrl: row.receipt_url || undefined,
+    balanceAfter: Number(row.balance_after),
+    addedBy: row.added_by || 'admin',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toFinanceAuditLog(row: any): FinanceAuditLog {
+  return {
+    id: row.id,
+    action: row.action,
+    transactionId: row.transaction_id || undefined,
+    details: row.details,
+    performedBy: row.performed_by || 'admin',
+    timestamp: row.timestamp,
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Unified Data Access API
+// All methods use Supabase PostgreSQL when available, or safe local fallback.
+// -----------------------------------------------------------------------------
+
 export const db = {
   // Settings
-  getSettings: () => getDatabase().settings,
-  updateSettings: (partial: Partial<WebsiteSettings>) => {
-    const data = getDatabase();
-    data.settings = {
-      ...data.settings,
+  async getSettings(): Promise<WebsiteSettings> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('settings')
+        .select('*')
+        .eq('id', 'default')
+        .maybeSingle();
+
+      if (!error && data) {
+        return toSettings(data);
+      }
+    }
+    return getLocalDatabase().settings;
+  },
+
+  async updateSettings(partial: Partial<WebsiteSettings>): Promise<WebsiteSettings> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const updateData = toSettingsRow(partial);
+      const { data, error } = await client
+        .from('settings')
+        .upsert({ id: 'default', ...updateData }, { onConflict: 'id' })
+        .select('*')
+        .single();
+
+      if (!error && data) {
+        return toSettings(data);
+      }
+      throw new Error(`Failed to update settings in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
+    local.settings = {
+      ...local.settings,
       ...partial,
       updatedAt: new Date().toISOString(),
     };
-    saveDatabase(data);
-    return data.settings;
+    saveLocalDatabase(local);
+    return local.settings;
   },
 
   // Admin Users
-  getAdminByUsername: (username: string) => {
-    const data = getDatabase();
-    return data.adminUsers.find((u) => u.username.toLowerCase() === username.toLowerCase());
+  async getAdminByUsername(username: string): Promise<AdminUser | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('admin_users')
+        .select('*')
+        .ilike('username', username)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toAdminUser(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    return local.adminUsers.find((u) => u.username.toLowerCase() === username.toLowerCase()) || null;
   },
-  updateAdminPassword: (userId: string, newPasswordHash: string) => {
-    const data = getDatabase();
-    const admin = data.adminUsers.find((u) => u.id === userId);
+
+  async updateAdminPassword(userId: string, newPasswordHash: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client
+        .from('admin_users')
+        .update({ password_hash: newPasswordHash })
+        .eq('id', userId);
+
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    const admin = local.adminUsers.find((u) => u.id === userId);
     if (!admin) return false;
     admin.passwordHash = newPasswordHash;
-    saveDatabase(data);
+    saveLocalDatabase(local);
     return true;
   },
 
   // Magazines
-  getMagazines: (onlyPublished = true) => {
-    const items = getDatabase().magazines;
+  async getMagazines(onlyPublished = true): Promise<Magazine[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('magazines')
+        .select('*')
+        .order('publication_date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toMagazine);
+      }
+    }
+
+    const items = getLocalDatabase().magazines;
     return onlyPublished ? items.filter((m) => m.isPublished) : items;
   },
-  getMagazineById: (id: string) => {
-    return getDatabase().magazines.find((m) => m.id === id);
+
+  async getMagazineById(id: string): Promise<Magazine | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('magazines')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toMagazine(data);
+      }
+      return null;
+    }
+
+    return getLocalDatabase().magazines.find((m) => m.id === id) || null;
   },
-  createMagazine: (magazine: Omit<Magazine, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createMagazine(magazine: Omit<Magazine, 'id' | 'createdAt' | 'updatedAt'>): Promise<Magazine> {
+    const id = `mag_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toMagazineRow(magazine),
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('magazines').insert(row).select('*').single();
+      if (!error && data) {
+        return toMagazine(data);
+      }
+      throw new Error(`Failed to create magazine in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newMag: Magazine = {
       ...magazine,
-      id: `mag_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: now,
+      updatedAt: now,
     };
-    data.magazines.unshift(newMag);
-    saveDatabase(data);
+    local.magazines.unshift(newMag);
+    saveLocalDatabase(local);
     return newMag;
   },
-  updateMagazine: (id: string, partial: Partial<Magazine>) => {
-    const data = getDatabase();
-    const index = data.magazines.findIndex((m) => m.id === id);
+
+  async updateMagazine(id: string, partial: Partial<Magazine>): Promise<Magazine | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toMagazineRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('magazines').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toMagazine(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.magazines.findIndex((m) => m.id === id);
     if (index === -1) return null;
-    data.magazines[index] = {
-      ...data.magazines[index],
+    local.magazines[index] = {
+      ...local.magazines[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.magazines[index];
+    saveLocalDatabase(local);
+    return local.magazines[index];
   },
-  deleteMagazine: (id: string) => {
-    const data = getDatabase();
-    data.magazines = data.magazines.filter((m) => m.id !== id);
-    saveDatabase(data);
+
+  async deleteMagazine(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('magazines').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.magazines = local.magazines.filter((m) => m.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
   // Articles
-  getArticles: (onlyPublished = true) => {
-    const items = getDatabase().articles;
+  async getArticles(onlyPublished = true): Promise<Article[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('articles')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toArticle);
+      }
+    }
+
+    const items = getLocalDatabase().articles;
     return onlyPublished ? items.filter((a) => a.isPublished) : items;
   },
-  getArticleBySlugOrId: (identifier: string) => {
-    return getDatabase().articles.find((a) => a.slug === identifier || a.id === identifier);
+
+  async getArticleBySlugOrId(identifier: string): Promise<Article | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('articles')
+        .select('*')
+        .or(`slug.eq.${identifier},id.eq.${identifier}`)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toArticle(data);
+      }
+      return null;
+    }
+
+    return getLocalDatabase().articles.find((a) => a.slug === identifier || a.id === identifier) || null;
   },
-  createArticle: (article: Omit<Article, 'id' | 'viewCount' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createArticle(article: Omit<Article, 'id' | 'viewCount' | 'createdAt' | 'updatedAt'>): Promise<Article> {
+    const id = `art_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toArticleRow(article),
+        view_count: 0,
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('articles').insert(row).select('*').single();
+      if (!error && data) {
+        return toArticle(data);
+      }
+      throw new Error(`Failed to create article in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newArt: Article = {
       ...article,
-      id: `art_${Date.now()}`,
+      id,
       viewCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
-    data.articles.unshift(newArt);
-    saveDatabase(data);
+    local.articles.unshift(newArt);
+    saveLocalDatabase(local);
     return newArt;
   },
-  updateArticle: (id: string, partial: Partial<Article>) => {
-    const data = getDatabase();
-    const index = data.articles.findIndex((a) => a.id === id);
+
+  async updateArticle(id: string, partial: Partial<Article>): Promise<Article | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toArticleRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('articles').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toArticle(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.articles.findIndex((a) => a.id === id);
     if (index === -1) return null;
-    data.articles[index] = {
-      ...data.articles[index],
+    local.articles[index] = {
+      ...local.articles[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.articles[index];
+    saveLocalDatabase(local);
+    return local.articles[index];
   },
-  incrementArticleView: (id: string) => {
-    const data = getDatabase();
-    const art = data.articles.find((a) => a.id === id || a.slug === id);
+
+  async incrementArticleView(id: string): Promise<void> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      try {
+        const { data } = await client
+          .from('articles')
+          .select('id, view_count')
+          .or(`id.eq.${id},slug.eq.${id}`)
+          .maybeSingle();
+
+        if (data) {
+          await client
+            .from('articles')
+            .update({ view_count: (data.view_count || 0) + 1 })
+            .eq('id', data.id);
+        }
+        return;
+      } catch (err) {
+        console.warn('Increment view warning:', err);
+      }
+    }
+
+    const local = getLocalDatabase();
+    const art = local.articles.find((a) => a.id === id || a.slug === id);
     if (art) {
       art.viewCount = (art.viewCount || 0) + 1;
-      saveDatabase(data);
+      saveLocalDatabase(local);
     }
   },
-  deleteArticle: (id: string) => {
-    const data = getDatabase();
-    data.articles = data.articles.filter((a) => a.id !== id);
-    saveDatabase(data);
+
+  async deleteArticle(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('articles').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.articles = local.articles.filter((a) => a.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
   // Programs
-  getPrograms: (onlyPublished = true) => {
-    const items = getDatabase().programs;
+  async getPrograms(onlyPublished = true): Promise<Program[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('programs')
+        .select('*')
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toProgram);
+      }
+    }
+
+    const items = getLocalDatabase().programs;
     return onlyPublished ? items.filter((p) => p.isPublished) : items;
   },
-  getProgramById: (id: string) => {
-    return getDatabase().programs.find((p) => p.id === id);
+
+  async getProgramById(id: string): Promise<Program | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('programs')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toProgram(data);
+      }
+      return null;
+    }
+
+    return getLocalDatabase().programs.find((p) => p.id === id) || null;
   },
-  createProgram: (prog: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createProgram(prog: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>): Promise<Program> {
+    const id = `prog_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toProgramRow(prog),
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('programs').insert(row).select('*').single();
+      if (!error && data) {
+        return toProgram(data);
+      }
+      throw new Error(`Failed to create program in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newProg: Program = {
       ...prog,
-      id: `prog_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: now,
+      updatedAt: now,
     };
-    data.programs.unshift(newProg);
-    saveDatabase(data);
+    local.programs.unshift(newProg);
+    saveLocalDatabase(local);
     return newProg;
   },
-  updateProgram: (id: string, partial: Partial<Program>) => {
-    const data = getDatabase();
-    const index = data.programs.findIndex((p) => p.id === id);
+
+  async updateProgram(id: string, partial: Partial<Program>): Promise<Program | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toProgramRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('programs').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toProgram(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.programs.findIndex((p) => p.id === id);
     if (index === -1) return null;
-    data.programs[index] = {
-      ...data.programs[index],
+    local.programs[index] = {
+      ...local.programs[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.programs[index];
+    saveLocalDatabase(local);
+    return local.programs[index];
   },
-  deleteProgram: (id: string) => {
-    const data = getDatabase();
-    data.programs = data.programs.filter((p) => p.id !== id);
-    saveDatabase(data);
+
+  async deleteProgram(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('programs').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.programs = local.programs.filter((p) => p.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
   // Videos
-  getVideos: (onlyPublished = true) => {
-    const items = getDatabase().videos;
+  async getVideos(onlyPublished = true): Promise<VideoItem[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('videos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toVideo);
+      }
+    }
+
+    const items = getLocalDatabase().videos;
     return onlyPublished ? items.filter((v) => v.isPublished) : items;
   },
-  getVideoById: (id: string) => {
-    return getDatabase().videos.find((v) => v.id === id);
+
+  async getVideoById(id: string): Promise<VideoItem | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('videos')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toVideo(data);
+      }
+      return null;
+    }
+
+    return getLocalDatabase().videos.find((v) => v.id === id) || null;
   },
-  createVideo: (vid: Omit<VideoItem, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createVideo(vid: Omit<VideoItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<VideoItem> {
+    const id = `vid_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toVideoRow(vid),
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('videos').insert(row).select('*').single();
+      if (!error && data) {
+        return toVideo(data);
+      }
+      throw new Error(`Failed to create video in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newVid: VideoItem = {
       ...vid,
-      id: `vid_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: now,
+      updatedAt: now,
     };
-    data.videos.unshift(newVid);
-    saveDatabase(data);
+    local.videos.unshift(newVid);
+    saveLocalDatabase(local);
     return newVid;
   },
-  updateVideo: (id: string, partial: Partial<VideoItem>) => {
-    const data = getDatabase();
-    const index = data.videos.findIndex((v) => v.id === id);
+
+  async updateVideo(id: string, partial: Partial<VideoItem>): Promise<VideoItem | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toVideoRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('videos').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toVideo(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.videos.findIndex((v) => v.id === id);
     if (index === -1) return null;
-    data.videos[index] = {
-      ...data.videos[index],
+    local.videos[index] = {
+      ...local.videos[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.videos[index];
+    saveLocalDatabase(local);
+    return local.videos[index];
   },
-  deleteVideo: (id: string) => {
-    const data = getDatabase();
-    data.videos = data.videos.filter((v) => v.id !== id);
-    saveDatabase(data);
+
+  async deleteVideo(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('videos').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.videos = local.videos.filter((v) => v.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
   // Gallery Albums
-  getAlbums: (onlyPublished = true) => {
-    const items = getDatabase().albums;
+  async getAlbums(onlyPublished = true): Promise<GalleryAlbum[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('gallery_albums')
+        .select('*')
+        .order('event_date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toAlbum);
+      }
+    }
+
+    const items = getLocalDatabase().albums;
     return onlyPublished ? items.filter((a) => a.isPublished) : items;
   },
-  getAlbumById: (id: string) => {
-    return getDatabase().albums.find((a) => a.id === id);
+
+  async getAlbumById(id: string): Promise<GalleryAlbum | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('gallery_albums')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toAlbum(data);
+      }
+      return null;
+    }
+
+    return getLocalDatabase().albums.find((a) => a.id === id) || null;
   },
-  createAlbum: (album: Omit<GalleryAlbum, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createAlbum(album: Omit<GalleryAlbum, 'id' | 'createdAt' | 'updatedAt'>): Promise<GalleryAlbum> {
+    const id = `alb_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toAlbumRow(album),
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('gallery_albums').insert(row).select('*').single();
+      if (!error && data) {
+        return toAlbum(data);
+      }
+      throw new Error(`Failed to create gallery album in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newAlb: GalleryAlbum = {
       ...album,
-      id: `alb_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: now,
+      updatedAt: now,
     };
-    data.albums.unshift(newAlb);
-    saveDatabase(data);
+    local.albums.unshift(newAlb);
+    saveLocalDatabase(local);
     return newAlb;
   },
-  updateAlbum: (id: string, partial: Partial<GalleryAlbum>) => {
-    const data = getDatabase();
-    const index = data.albums.findIndex((a) => a.id === id);
+
+  async updateAlbum(id: string, partial: Partial<GalleryAlbum>): Promise<GalleryAlbum | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toAlbumRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('gallery_albums').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toAlbum(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.albums.findIndex((a) => a.id === id);
     if (index === -1) return null;
-    data.albums[index] = {
-      ...data.albums[index],
+    local.albums[index] = {
+      ...local.albums[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.albums[index];
+    saveLocalDatabase(local);
+    return local.albums[index];
   },
-  deleteAlbum: (id: string) => {
-    const data = getDatabase();
-    data.albums = data.albums.filter((a) => a.id !== id);
-    saveDatabase(data);
+
+  async deleteAlbum(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('gallery_albums').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.albums = local.albums.filter((a) => a.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
-  // Members
-  getMembers: (onlyPublished = true) => {
-    const items = getDatabase().members;
+  // Class Members
+  async getMembers(onlyPublished = true): Promise<ClassMember[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('class_members')
+        .select('*')
+        .order('order_index', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toMember);
+      }
+    }
+
+    const items = getLocalDatabase().members;
     const sorted = [...items].sort((a, b) => a.orderIndex - b.orderIndex);
     return onlyPublished ? sorted.filter((m) => m.isPublished) : sorted;
   },
-  getMemberById: (id: string) => {
-    return getDatabase().members.find((m) => m.id === id);
+
+  async getMemberById(id: string): Promise<ClassMember | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('class_members')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toMember(data);
+      }
+      return null;
+    }
+
+    return getLocalDatabase().members.find((m) => m.id === id) || null;
   },
-  createMember: (member: Omit<ClassMember, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createMember(member: Omit<ClassMember, 'id' | 'createdAt' | 'updatedAt'>): Promise<ClassMember> {
+    const id = `mem_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toMemberRow(member),
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('class_members').insert(row).select('*').single();
+      if (!error && data) {
+        return toMember(data);
+      }
+      throw new Error(`Failed to create member in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newMem: ClassMember = {
       ...member,
-      id: `mem_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: now,
+      updatedAt: now,
     };
-    data.members.push(newMem);
-    saveDatabase(data);
+    local.members.push(newMem);
+    saveLocalDatabase(local);
     return newMem;
   },
-  updateMember: (id: string, partial: Partial<ClassMember>) => {
-    const data = getDatabase();
-    const index = data.members.findIndex((m) => m.id === id);
+
+  async updateMember(id: string, partial: Partial<ClassMember>): Promise<ClassMember | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toMemberRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('class_members').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toMember(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.members.findIndex((m) => m.id === id);
     if (index === -1) return null;
-    data.members[index] = {
-      ...data.members[index],
+    local.members[index] = {
+      ...local.members[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.members[index];
+    saveLocalDatabase(local);
+    return local.members[index];
   },
-  deleteMember: (id: string) => {
-    const data = getDatabase();
-    data.members = data.members.filter((m) => m.id !== id);
-    saveDatabase(data);
+
+  async deleteMember(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('class_members').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.members = local.members.filter((m) => m.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
   // Achievements
-  getAchievements: (onlyPublished = true) => {
-    const items = getDatabase().achievements;
+  async getAchievements(onlyPublished = true): Promise<Achievement[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('achievements')
+        .select('*')
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toAchievement);
+      }
+    }
+
+    const items = getLocalDatabase().achievements;
     return onlyPublished ? items.filter((a) => a.isPublished) : items;
   },
-  createAchievement: (ach: Omit<Achievement, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createAchievement(ach: Omit<Achievement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Achievement> {
+    const id = `ach_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toAchievementRow(ach),
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('achievements').insert(row).select('*').single();
+      if (!error && data) {
+        return toAchievement(data);
+      }
+      throw new Error(`Failed to create achievement in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newAch: Achievement = {
       ...ach,
-      id: `ach_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: now,
+      updatedAt: now,
     };
-    data.achievements.unshift(newAch);
-    saveDatabase(data);
+    local.achievements.unshift(newAch);
+    saveLocalDatabase(local);
     return newAch;
   },
-  updateAchievement: (id: string, partial: Partial<Achievement>) => {
-    const data = getDatabase();
-    const index = data.achievements.findIndex((a) => a.id === id);
+
+  async updateAchievement(id: string, partial: Partial<Achievement>): Promise<Achievement | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toAchievementRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('achievements').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toAchievement(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.achievements.findIndex((a) => a.id === id);
     if (index === -1) return null;
-    data.achievements[index] = {
-      ...data.achievements[index],
+    local.achievements[index] = {
+      ...local.achievements[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.achievements[index];
+    saveLocalDatabase(local);
+    return local.achievements[index];
   },
-  deleteAchievement: (id: string) => {
-    const data = getDatabase();
-    data.achievements = data.achievements.filter((a) => a.id !== id);
-    saveDatabase(data);
+
+  async deleteAchievement(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('achievements').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.achievements = local.achievements.filter((a) => a.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
   // Announcements
-  getAnnouncements: (onlyPublished = true) => {
-    const items = getDatabase().announcements;
+  async getAnnouncements(onlyPublished = true): Promise<Announcement[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('announcements')
+        .select('*')
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (onlyPublished) {
+        query = query.eq('is_published', true);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map(toAnnouncement);
+      }
+    }
+
+    const items = getLocalDatabase().announcements;
     return onlyPublished ? items.filter((a) => a.isPublished) : items;
   },
-  createAnnouncement: (ann: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const data = getDatabase();
+
+  async createAnnouncement(ann: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Announcement> {
+    const id = `ann_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toAnnouncementRow(ann),
+        created_at: now,
+        updated_at: now,
+      };
+      const { data, error } = await client.from('announcements').insert(row).select('*').single();
+      if (!error && data) {
+        return toAnnouncement(data);
+      }
+      throw new Error(`Failed to create announcement in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newAnn: Announcement = {
       ...ann,
-      id: `ann_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id,
+      createdAt: now,
+      updatedAt: now,
     };
-    data.announcements.unshift(newAnn);
-    saveDatabase(data);
+    local.announcements.unshift(newAnn);
+    saveLocalDatabase(local);
     return newAnn;
   },
-  updateAnnouncement: (id: string, partial: Partial<Announcement>) => {
-    const data = getDatabase();
-    const index = data.announcements.findIndex((a) => a.id === id);
+
+  async updateAnnouncement(id: string, partial: Partial<Announcement>): Promise<Announcement | null> {
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        ...toAnnouncementRow(partial),
+        updated_at: now,
+      };
+      const { data, error } = await client.from('announcements').update(row).eq('id', id).select('*').single();
+      if (!error && data) {
+        return toAnnouncement(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    const index = local.announcements.findIndex((a) => a.id === id);
     if (index === -1) return null;
-    data.announcements[index] = {
-      ...data.announcements[index],
+    local.announcements[index] = {
+      ...local.announcements[index],
       ...partial,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
-    saveDatabase(data);
-    return data.announcements[index];
+    saveLocalDatabase(local);
+    return local.announcements[index];
   },
-  deleteAnnouncement: (id: string) => {
-    const data = getDatabase();
-    data.announcements = data.announcements.filter((a) => a.id !== id);
-    saveDatabase(data);
+
+  async deleteAnnouncement(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('announcements').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.announcements = local.announcements.filter((a) => a.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
-  // Media
-  getMedia: () => getDatabase().media,
-  getMediaById: (id: string) => {
-    return getDatabase().media.find((m) => m.id === id);
+  // Media Assets
+  async getMedia(): Promise<MediaAsset[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('media_assets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        return data.map(toMedia);
+      }
+    }
+
+    return getLocalDatabase().media;
   },
-  getMediaUsage: (urlOrFilename: string): { isUsed: boolean; references: Array<{ section: string; title: string; id: string }> } => {
-    const data = getDatabase();
+
+  async getMediaById(id: string): Promise<MediaAsset | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('media_assets')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toMedia(data);
+      }
+      return null;
+    }
+
+    return getLocalDatabase().media.find((m) => m.id === id) || null;
+  },
+
+  async getMediaUsage(urlOrFilename: string): Promise<{ isUsed: boolean; references: Array<{ section: string; title: string; id: string }> }> {
     const references: Array<{ section: string; title: string; id: string }> = [];
     if (!urlOrFilename) return { isUsed: false, references };
 
@@ -1152,14 +1638,99 @@ export const db = {
       return value === target || value.includes(targetFile);
     };
 
-    // Magazines
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const [mags, arts, progs, vids, albs, mems, achs, anns] = await Promise.all([
+        client.from('magazines').select('id, title, cover_image, pdf_url'),
+        client.from('articles').select('id, title, cover_image, pdf_url, video_url, gallery_images, content'),
+        client.from('programs').select('id, title, cover_image, video_url, pdf_url, photos'),
+        client.from('videos').select('id, title, thumbnail_url, video_url'),
+        client.from('gallery_albums').select('id, title, cover_image, pdf_url, photos, videos'),
+        client.from('class_members').select('id, name, photo_url'),
+        client.from('achievements').select('id, title, image_url, pdf_url, video_url, photos'),
+        client.from('announcements').select('id, title, cover_image, pdf_url, video_url, photos, content'),
+      ]);
+
+      mags.data?.forEach((m) => {
+        if (matches(m.cover_image) || matches(m.pdf_url)) {
+          references.push({ section: 'Magazine', title: m.title, id: m.id });
+        }
+      });
+      arts.data?.forEach((a) => {
+        if (
+          matches(a.cover_image) ||
+          matches(a.pdf_url) ||
+          matches(a.video_url) ||
+          a.gallery_images?.some(matches) ||
+          (a.content && a.content.includes(targetFile))
+        ) {
+          references.push({ section: 'Newspaper', title: a.title, id: a.id });
+        }
+      });
+      progs.data?.forEach((p) => {
+        if (
+          matches(p.cover_image) ||
+          matches(p.video_url) ||
+          matches(p.pdf_url) ||
+          p.photos?.some(matches)
+        ) {
+          references.push({ section: 'Program', title: p.title, id: p.id });
+        }
+      });
+      vids.data?.forEach((v) => {
+        if (matches(v.thumbnail_url) || matches(v.video_url)) {
+          references.push({ section: 'Video', title: v.title, id: v.id });
+        }
+      });
+      albs.data?.forEach((g) => {
+        if (
+          matches(g.cover_image) ||
+          matches(g.pdf_url) ||
+          g.photos?.some((ph: any) => matches(typeof ph === 'string' ? ph : ph?.url)) ||
+          g.videos?.some(matches)
+        ) {
+          references.push({ section: 'Gallery Album', title: g.title, id: g.id });
+        }
+      });
+      mems.data?.forEach((mem) => {
+        if (matches(mem.photo_url)) {
+          references.push({ section: 'Class Member', title: mem.name, id: mem.id });
+        }
+      });
+      achs.data?.forEach((ach) => {
+        if (
+          matches(ach.image_url) ||
+          matches(ach.pdf_url) ||
+          matches(ach.video_url) ||
+          ach.photos?.some(matches)
+        ) {
+          references.push({ section: 'Achievement', title: ach.title, id: ach.id });
+        }
+      });
+      anns.data?.forEach((ann) => {
+        if (
+          matches(ann.cover_image) ||
+          matches(ann.pdf_url) ||
+          matches(ann.video_url) ||
+          ann.photos?.some(matches) ||
+          (ann.content && ann.content.includes(targetFile))
+        ) {
+          references.push({ section: 'Announcement', title: ann.title, id: ann.id });
+        }
+      });
+
+      return {
+        isUsed: references.length > 0,
+        references,
+      };
+    }
+
+    const data = getLocalDatabase();
     data.magazines?.forEach((m) => {
       if (matches(m.coverImage) || matches(m.pdfUrl)) {
         references.push({ section: 'Magazine', title: m.title, id: m.id });
       }
     });
-
-    // Newspaper Articles
     data.articles?.forEach((a) => {
       if (
         matches(a.coverImage) ||
@@ -1172,163 +1743,200 @@ export const db = {
       }
     });
 
-    // Programs
-    data.programs?.forEach((p) => {
-      if (
-        matches(p.coverImage) ||
-        matches(p.videoUrl) ||
-        matches(p.pdfUrl) ||
-        p.photos?.some(matches)
-      ) {
-        references.push({ section: 'Program', title: p.title, id: p.id });
-      }
-    });
-
-    // Videos
-    data.videos?.forEach((v) => {
-      if (matches(v.thumbnailUrl) || matches(v.videoUrl)) {
-        references.push({ section: 'Video', title: v.title, id: v.id });
-      }
-    });
-
-    // Gallery Albums
-    data.albums?.forEach((g) => {
-      if (
-        matches(g.coverImage) ||
-        matches(g.pdfUrl) ||
-        g.photos?.some((ph) => matches(typeof ph === 'string' ? ph : ph.url)) ||
-        g.videos?.some(matches)
-      ) {
-        references.push({ section: 'Gallery Album', title: g.title, id: g.id });
-      }
-    });
-
-    // Class Members
-    data.members?.forEach((mem) => {
-      if (matches(mem.photoUrl)) {
-        references.push({ section: 'Class Member', title: mem.name, id: mem.id });
-      }
-    });
-
-    // Achievements
-    data.achievements?.forEach((ach) => {
-      if (
-        matches(ach.imageUrl) ||
-        matches(ach.pdfUrl) ||
-        matches(ach.videoUrl) ||
-        ach.photos?.some(matches)
-      ) {
-        references.push({ section: 'Achievement', title: ach.title, id: ach.id });
-      }
-    });
-
-    // Announcements
-    data.announcements?.forEach((ann) => {
-      if (
-        matches(ann.coverImage) ||
-        matches(ann.pdfUrl) ||
-        matches(ann.videoUrl) ||
-        ann.photos?.some(matches) ||
-        (ann.content && ann.content.includes(targetFile))
-      ) {
-        references.push({ section: 'Announcement', title: ann.title, id: ann.id });
-      }
-    });
-
-    // Settings
-    if (matches(data.settings?.heroImage)) {
-      references.push({ section: 'Website Settings', title: 'Hero Background Image', id: 'settings' });
-    }
-
-    // Finance Receipts
-    data.finance?.transactions?.forEach((tx) => {
-      if (matches(tx.receiptUrl)) {
-        references.push({ section: 'Finance Ledger', title: `${tx.description} (${tx.id})`, id: tx.id });
-      }
-    });
-
     return {
       isUsed: references.length > 0,
       references,
     };
   },
-  createMedia: (media: Omit<MediaAsset, 'id' | 'createdAt'>) => {
-    const data = getDatabase();
+
+  async createMedia(media: Omit<MediaAsset, 'id' | 'createdAt'>): Promise<MediaAsset> {
+    const id = `med_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        ...toMediaRow(media),
+        created_at: now,
+      };
+      const { data, error } = await client.from('media_assets').insert(row).select('*').single();
+      if (!error && data) {
+        return toMedia(data);
+      }
+      throw new Error(`Failed to create media record in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newMed: MediaAsset = {
       ...media,
-      id: `med_${Date.now()}`,
-      createdAt: new Date().toISOString(),
+      id,
+      createdAt: now,
     };
-    data.media.unshift(newMed);
-    saveDatabase(data);
+    local.media.unshift(newMed);
+    saveLocalDatabase(local);
     return newMed;
   },
-  deleteMedia: (id: string) => {
-    const data = getDatabase();
-    data.media = data.media.filter((m) => m.id !== id);
-    saveDatabase(data);
+
+  async deleteMedia(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('media_assets').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.media = local.media.filter((m) => m.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
-  // Messages
-  getMessages: () => getDatabase().messages,
-  createMessage: (msg: Omit<ContactMessage, 'id' | 'status' | 'createdAt'>) => {
-    const data = getDatabase();
+  // Contact Messages
+  async getMessages(): Promise<ContactMessage[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        return data.map(toMessage);
+      }
+    }
+
+    return getLocalDatabase().messages;
+  },
+
+  async createMessage(msg: Omit<ContactMessage, 'id' | 'status' | 'createdAt'>): Promise<ContactMessage> {
+    const id = `msg_${Date.now()}`;
+    const now = new Date().toISOString();
+    const client = getSupabaseAdminClient();
+
+    if (client) {
+      const row = {
+        id,
+        name: msg.name,
+        email: msg.email,
+        subject: msg.subject,
+        message: msg.message,
+        status: 'unread',
+        created_at: now,
+      };
+      const { data, error } = await client.from('contact_messages').insert(row).select('*').single();
+      if (!error && data) {
+        return toMessage(data);
+      }
+      throw new Error(`Failed to save message in Supabase: ${error?.message}`);
+    }
+
+    const local = getLocalDatabase();
     const newMsg: ContactMessage = {
       ...msg,
-      id: `msg_${Date.now()}`,
+      id,
       status: 'unread',
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     };
-    data.messages.unshift(newMsg);
-    saveDatabase(data);
+    local.messages.unshift(newMsg);
+    saveLocalDatabase(local);
     return newMsg;
   },
-  deleteMessage: (id: string) => {
-    const data = getDatabase();
-    data.messages = data.messages.filter((m) => m.id !== id);
-    saveDatabase(data);
+
+  async deleteMessage(id: string): Promise<boolean> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { error } = await client.from('contact_messages').delete().eq('id', id);
+      return !error;
+    }
+
+    const local = getLocalDatabase();
+    local.messages = local.messages.filter((m) => m.id !== id);
+    saveLocalDatabase(local);
     return true;
   },
 
+  // ---------------------------------------------------------------------------
   // Class Finance System (Private & Administrator Controlled)
-  getFinanceSummary: (): FinanceSummary => {
-    const data = getDatabase();
+  // ---------------------------------------------------------------------------
+
+  async getFinanceSummary(): Promise<FinanceSummary> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const [{ data: sumData }, { count }] = await Promise.all([
+        client.from('finance_summary').select('*').eq('id', 'default').maybeSingle(),
+        client.from('finance_transactions').select('*', { count: 'exact', head: true }),
+      ]);
+
+      if (sumData) {
+        return toFinanceSummary(sumData, count || 0);
+      }
+    }
+
+    const local = getLocalDatabase();
     return {
-      currency: data.finance.currency,
-      currencySymbol: data.finance.currencySymbol,
-      openingBalance: data.finance.openingBalance,
-      currentBalance: data.finance.currentBalance,
-      totalIncome: data.finance.totalIncome,
-      totalExpenses: data.finance.totalExpenses,
-      transactionCount: data.finance.transactions.length,
-      setupDate: data.finance.setupDate,
-      lastUpdated: data.finance.lastUpdated,
+      currency: local.finance.currency,
+      currencySymbol: local.finance.currencySymbol,
+      openingBalance: local.finance.openingBalance,
+      currentBalance: local.finance.currentBalance,
+      totalIncome: local.finance.totalIncome,
+      totalExpenses: local.finance.totalExpenses,
+      transactionCount: local.finance.transactions.length,
+      setupDate: local.finance.setupDate,
+      lastUpdated: local.finance.lastUpdated,
     };
   },
 
-  getFinanceTransactions: (filters?: {
+  async getFinanceTransactions(filters?: {
     type?: TransactionType;
     category?: string;
     search?: string;
     startDate?: string;
     endDate?: string;
-  }): FinanceTransaction[] => {
-    const data = getDatabase();
-    let txs = [...data.finance.transactions];
+  }): Promise<FinanceTransaction[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      let query = client
+        .from('finance_transactions')
+        .select('*')
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false });
 
-    if (filters?.type) {
-      txs = txs.filter((t) => t.type === filters.type);
+      if (filters?.type) {
+        query = query.eq('type', filters.type);
+      }
+      if (filters?.category && filters.category !== 'all') {
+        query = query.eq('category', filters.category);
+      }
+      if (filters?.startDate) {
+        query = query.gte('date', filters.startDate);
+      }
+      if (filters?.endDate) {
+        query = query.lte('date', filters.endDate);
+      }
+
+      const { data, error } = await query;
+      if (!error && data) {
+        let results = data.map(toFinanceTransaction);
+        if (filters?.search) {
+          const q = filters.search.toLowerCase();
+          results = results.filter(
+            (t) =>
+              t.description.toLowerCase().includes(q) ||
+              t.counterparty.toLowerCase().includes(q) ||
+              t.category.toLowerCase().includes(q) ||
+              t.id.toLowerCase().includes(q)
+          );
+        }
+        return results;
+      }
     }
-    if (filters?.category && filters.category !== 'all') {
-      txs = txs.filter((t) => t.category === filters.category);
-    }
-    if (filters?.startDate) {
-      txs = txs.filter((t) => t.date >= filters.startDate!);
-    }
-    if (filters?.endDate) {
-      txs = txs.filter((t) => t.date <= filters.endDate!);
-    }
+
+    const local = getLocalDatabase();
+    let txs = [...local.finance.transactions];
+    if (filters?.type) txs = txs.filter((t) => t.type === filters.type);
+    if (filters?.category && filters.category !== 'all') txs = txs.filter((t) => t.category === filters.category);
+    if (filters?.startDate) txs = txs.filter((t) => t.date >= filters.startDate!);
+    if (filters?.endDate) txs = txs.filter((t) => t.date <= filters.endDate!);
     if (filters?.search) {
       const q = filters.search.toLowerCase();
       txs = txs.filter(
@@ -1339,20 +1947,123 @@ export const db = {
           t.id.toLowerCase().includes(q)
       );
     }
-
     return txs;
   },
 
-  getFinanceTransactionById: (id: string): FinanceTransaction | null => {
-    const data = getDatabase();
-    return data.finance.transactions.find((t) => t.id === id) || null;
+  async getFinanceTransactionById(id: string): Promise<FinanceTransaction | null> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('finance_transactions')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        return toFinanceTransaction(data);
+      }
+      return null;
+    }
+
+    const local = getLocalDatabase();
+    return local.finance.transactions.find((t) => t.id === id) || null;
   },
 
-  createFinanceTransaction: (
+  async createFinanceTransaction(
     tx: Omit<FinanceTransaction, 'id' | 'balanceAfter' | 'createdAt' | 'updatedAt'>
-  ): { transaction: FinanceTransaction; summary: FinanceSummary } => {
-    const data = getDatabase();
-    const count = data.finance.transactions.length + 1;
+  ): Promise<{ transaction: FinanceTransaction; summary: FinanceSummary }> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      // 1. Fetch current summary and all transactions to compute running balances
+      const [{ data: summaryRow }, { data: allTxs }] = await Promise.all([
+        client.from('finance_summary').select('*').eq('id', 'default').single(),
+        client.from('finance_transactions').select('*').order('date', { ascending: true }).order('created_at', { ascending: true }),
+      ]);
+
+      const openingBalance = Number(summaryRow?.opening_balance ?? 1100);
+      const nextCount = (allTxs?.length || 0) + 1;
+      const txId = `TXN-${String(nextCount).padStart(3, '0')}`;
+      const now = new Date().toISOString();
+      const amount = Number(tx.amount);
+
+      // Insert new transaction row
+      const newRow = {
+        id: txId,
+        type: tx.type,
+        category: tx.category,
+        amount,
+        date: tx.date,
+        counterparty: tx.counterparty,
+        description: tx.description,
+        notes: tx.notes || null,
+        receipt_url: tx.receiptUrl || null,
+        balance_after: 0, // Recalculated below
+        added_by: tx.addedBy || 'admin',
+        created_at: now,
+        updated_at: now,
+      };
+
+      await client.from('finance_transactions').insert(newRow);
+
+      // Recompute all running balances chronologically
+      const { data: updatedTxs } = await client
+        .from('finance_transactions')
+        .select('*')
+        .order('date', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      let running = openingBalance;
+      let totalIncome = 0;
+      let totalExpenses = 0;
+
+      if (updatedTxs) {
+        for (const item of updatedTxs) {
+          const itemAmt = Number(item.amount);
+          if (item.type === 'income') {
+            running += itemAmt;
+            totalIncome += itemAmt;
+          } else {
+            running -= itemAmt;
+            totalExpenses += itemAmt;
+          }
+          if (item.balance_after !== running) {
+            await client.from('finance_transactions').update({ balance_after: running }).eq('id', item.id);
+          }
+        }
+      }
+
+      // Update summary row
+      await client
+        .from('finance_summary')
+        .update({
+          current_balance: running,
+          total_income: totalIncome,
+          total_expenses: totalExpenses,
+          last_updated: now,
+        })
+        .eq('id', 'default');
+
+      // Record audit log
+      await client.from('finance_audit_logs').insert({
+        id: `audit_${Date.now()}`,
+        action: 'create',
+        transaction_id: txId,
+        details: `Recorded ${tx.type.toUpperCase()}: ₹${amount.toLocaleString('en-IN')} (${tx.category}) - ${tx.description}`,
+        performed_by: tx.addedBy || 'admin',
+        timestamp: now,
+      });
+
+      const savedTx = await this.getFinanceTransactionById(txId);
+      const updatedSummary = await this.getFinanceSummary();
+      return {
+        transaction: savedTx!,
+        summary: updatedSummary,
+      };
+    }
+
+    // Local fallback
+    const local = getLocalDatabase();
+    const count = local.finance.transactions.length + 1;
     const txId = `TXN-${String(count).padStart(3, '0')}`;
     const now = new Date().toISOString();
 
@@ -1364,10 +2075,8 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-
-    data.finance.transactions.unshift(newTx);
-
-    data.finance.auditLogs.unshift({
+    local.finance.transactions.unshift(newTx);
+    local.finance.auditLogs.unshift({
       id: `audit_${Date.now()}`,
       action: 'create',
       transactionId: txId,
@@ -1376,84 +2085,201 @@ export const db = {
       timestamp: now,
     });
 
-    recalculateFinanceBalances(data);
-    saveDatabase(data);
+    let running = local.finance.openingBalance;
+    let income = 0;
+    let expenses = 0;
+    const sorted = [...local.finance.transactions].sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
+    for (const t of sorted) {
+      if (t.type === 'income') {
+        running += t.amount;
+        income += t.amount;
+      } else {
+        running -= t.amount;
+        expenses += t.amount;
+      }
+      t.balanceAfter = running;
+    }
+    local.finance.currentBalance = running;
+    local.finance.totalIncome = income;
+    local.finance.totalExpenses = expenses;
+    local.finance.lastUpdated = now;
+    saveLocalDatabase(local);
 
-    const savedTx = data.finance.transactions.find((t) => t.id === txId)!;
     return {
-      transaction: savedTx,
-      summary: db.getFinanceSummary(),
+      transaction: local.finance.transactions.find((t) => t.id === txId)!,
+      summary: await this.getFinanceSummary(),
     };
   },
 
-  updateFinanceTransaction: (
+  async updateFinanceTransaction(
     id: string,
     partial: Partial<Omit<FinanceTransaction, 'id' | 'balanceAfter' | 'createdAt' | 'updatedAt'>>,
     performedBy = 'admin'
-  ): { transaction: FinanceTransaction | null; summary: FinanceSummary } => {
-    const data = getDatabase();
-    const index = data.finance.transactions.findIndex((t) => t.id === id);
-    if (index === -1) return { transaction: null, summary: db.getFinanceSummary() };
+  ): Promise<{ transaction: FinanceTransaction | null; summary: FinanceSummary }> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const now = new Date().toISOString();
+      const updateData: any = { updated_at: now };
+      if (partial.type !== undefined) updateData.type = partial.type;
+      if (partial.category !== undefined) updateData.category = partial.category;
+      if (partial.amount !== undefined) updateData.amount = Number(partial.amount);
+      if (partial.date !== undefined) updateData.date = partial.date;
+      if (partial.counterparty !== undefined) updateData.counterparty = partial.counterparty;
+      if (partial.description !== undefined) updateData.description = partial.description;
+      if (partial.notes !== undefined) updateData.notes = partial.notes;
+      if (partial.receiptUrl !== undefined) updateData.receipt_url = partial.receiptUrl;
 
-    const oldTx = data.finance.transactions[index];
+      await client.from('finance_transactions').update(updateData).eq('id', id);
+
+      // Recompute running balances
+      const [{ data: summaryRow }, { data: updatedTxs }] = await Promise.all([
+        client.from('finance_summary').select('*').eq('id', 'default').single(),
+        client.from('finance_transactions').select('*').order('date', { ascending: true }).order('created_at', { ascending: true }),
+      ]);
+
+      const openingBalance = Number(summaryRow?.opening_balance ?? 1100);
+      let running = openingBalance;
+      let totalIncome = 0;
+      let totalExpenses = 0;
+
+      if (updatedTxs) {
+        for (const item of updatedTxs) {
+          const itemAmt = Number(item.amount);
+          if (item.type === 'income') {
+            running += itemAmt;
+            totalIncome += itemAmt;
+          } else {
+            running -= itemAmt;
+            totalExpenses += itemAmt;
+          }
+          if (item.balance_after !== running) {
+            await client.from('finance_transactions').update({ balance_after: running }).eq('id', item.id);
+          }
+        }
+      }
+
+      await client
+        .from('finance_summary')
+        .update({
+          current_balance: running,
+          total_income: totalIncome,
+          total_expenses: totalExpenses,
+          last_updated: now,
+        })
+        .eq('id', 'default');
+
+      await client.from('finance_audit_logs').insert({
+        id: `audit_${Date.now()}`,
+        action: 'update',
+        transaction_id: id,
+        details: `Updated ${id}: category ${partial.category || 'unchanged'}`,
+        performed_by: performedBy,
+        timestamp: now,
+      });
+
+      const updatedTx = await this.getFinanceTransactionById(id);
+      const summary = await this.getFinanceSummary();
+      return { transaction: updatedTx, summary };
+    }
+
+    // Local fallback
+    const local = getLocalDatabase();
+    const index = local.finance.transactions.findIndex((t) => t.id === id);
+    if (index === -1) return { transaction: null, summary: await this.getFinanceSummary() };
+
+    const oldTx = local.finance.transactions[index];
     const now = new Date().toISOString();
-
-    data.finance.transactions[index] = {
+    local.finance.transactions[index] = {
       ...oldTx,
       ...partial,
       amount: partial.amount !== undefined ? Number(partial.amount) : oldTx.amount,
       updatedAt: now,
     };
-
-    data.finance.auditLogs.unshift({
-      id: `audit_${Date.now()}`,
-      action: 'update',
-      transactionId: id,
-      details: `Updated ${id}: amount ₹${data.finance.transactions[index].amount.toLocaleString('en-IN')}, category ${data.finance.transactions[index].category}`,
-      performedBy,
-      timestamp: now,
-    });
-
-    recalculateFinanceBalances(data);
-    saveDatabase(data);
-
+    saveLocalDatabase(local);
     return {
-      transaction: data.finance.transactions.find((t) => t.id === id) || null,
-      summary: db.getFinanceSummary(),
+      transaction: local.finance.transactions[index],
+      summary: await this.getFinanceSummary(),
     };
   },
 
-  deleteFinanceTransaction: (
+  async deleteFinanceTransaction(
     id: string,
     performedBy = 'admin'
-  ): { success: boolean; summary: FinanceSummary } => {
-    const data = getDatabase();
-    const tx = data.finance.transactions.find((t) => t.id === id);
-    if (!tx) return { success: false, summary: db.getFinanceSummary() };
+  ): Promise<{ success: boolean; summary: FinanceSummary }> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const now = new Date().toISOString();
+      await client.from('finance_transactions').delete().eq('id', id);
 
-    data.finance.transactions = data.finance.transactions.filter((t) => t.id !== id);
+      const [{ data: summaryRow }, { data: updatedTxs }] = await Promise.all([
+        client.from('finance_summary').select('*').eq('id', 'default').single(),
+        client.from('finance_transactions').select('*').order('date', { ascending: true }).order('created_at', { ascending: true }),
+      ]);
 
-    data.finance.auditLogs.unshift({
-      id: `audit_${Date.now()}`,
-      action: 'delete',
-      transactionId: id,
-      details: `Deleted transaction ${id} (was ${tx.type} of ₹${tx.amount.toLocaleString('en-IN')})`,
-      performedBy,
-      timestamp: new Date().toISOString(),
-    });
+      const openingBalance = Number(summaryRow?.opening_balance ?? 1100);
+      let running = openingBalance;
+      let totalIncome = 0;
+      let totalExpenses = 0;
 
-    recalculateFinanceBalances(data);
-    saveDatabase(data);
+      if (updatedTxs) {
+        for (const item of updatedTxs) {
+          const itemAmt = Number(item.amount);
+          if (item.type === 'income') {
+            running += itemAmt;
+            totalIncome += itemAmt;
+          } else {
+            running -= itemAmt;
+            totalExpenses += itemAmt;
+          }
+          if (item.balance_after !== running) {
+            await client.from('finance_transactions').update({ balance_after: running }).eq('id', item.id);
+          }
+        }
+      }
 
-    return {
-      success: true,
-      summary: db.getFinanceSummary(),
-    };
+      await client
+        .from('finance_summary')
+        .update({
+          current_balance: running,
+          total_income: totalIncome,
+          total_expenses: totalExpenses,
+          last_updated: now,
+        })
+        .eq('id', 'default');
+
+      await client.from('finance_audit_logs').insert({
+        id: `audit_${Date.now()}`,
+        action: 'delete',
+        transaction_id: id,
+        details: `Deleted transaction ${id}`,
+        performed_by: performedBy,
+        timestamp: now,
+      });
+
+      const summary = await this.getFinanceSummary();
+      return { success: true, summary };
+    }
+
+    const local = getLocalDatabase();
+    local.finance.transactions = local.finance.transactions.filter((t) => t.id !== id);
+    saveLocalDatabase(local);
+    return { success: true, summary: await this.getFinanceSummary() };
   },
 
-  getFinanceAuditLogs: (): FinanceAuditLog[] => {
-    const data = getDatabase();
-    return data.finance.auditLogs || [];
+  async getFinanceAuditLogs(): Promise<FinanceAuditLog[]> {
+    const client = getSupabaseAdminClient();
+    if (client) {
+      const { data, error } = await client
+        .from('finance_audit_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100);
+
+      if (!error && data) {
+        return data.map(toFinanceAuditLog);
+      }
+    }
+
+    return getLocalDatabase().finance.auditLogs || [];
   },
 };
-

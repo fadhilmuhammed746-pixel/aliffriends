@@ -32,16 +32,28 @@ import {
 
 export const revalidate = 0;
 
-export default function HomePage() {
-  const settings = db.getSettings();
-  const magazines = db.getMagazines(true);
-  const articles = db.getArticles(true);
-  const programs = db.getPrograms(true);
-  const videos = db.getVideos(true);
-  const albums = db.getAlbums(true);
-  const achievements = db.getAchievements(true);
-  const announcements = db.getAnnouncements(true);
-  const members = db.getMembers(true);
+export default async function HomePage() {
+  const [
+    settings,
+    magazines,
+    articles,
+    programs,
+    videos,
+    albums,
+    achievements,
+    announcements,
+    members,
+  ] = await Promise.all([
+    db.getSettings(),
+    db.getMagazines(true),
+    db.getArticles(true),
+    db.getPrograms(true),
+    db.getVideos(true),
+    db.getAlbums(true),
+    db.getAchievements(true),
+    db.getAnnouncements(true),
+    db.getMembers(true),
+  ]);
 
   const featuredMagazine = magazines.find((m) => m.isFeatured) || magazines[0];
   const leadArticle = articles.find((a) => a.headlineStatus) || articles[0];

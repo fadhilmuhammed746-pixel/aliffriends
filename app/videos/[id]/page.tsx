@@ -14,13 +14,13 @@ export default async function VideoDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const video = db.getVideoById(id);
+  const video = await db.getVideoById(id);
 
   if (!video || !video.isPublished) {
     notFound();
   }
 
-  const settings = db.getSettings();
+  const settings = await db.getSettings();
 
   return (
     <div className="py-12 sm:py-16 space-y-8 bg-forest-950 text-canvas min-h-screen">

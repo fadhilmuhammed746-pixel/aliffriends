@@ -13,7 +13,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const updated = db.updateAchievement(id, body);
+  const updated = await db.updateAchievement(id, body);
   if (!updated) {
     return NextResponse.json({ error: 'Achievement not found or update failed.' }, { status: 404 });
   }
@@ -31,7 +31,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = db.deleteAchievement(id);
+  const deleted = await db.deleteAchievement(id);
   return NextResponse.json({ success: deleted });
 }
 

@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get('category');
   const search = searchParams.get('search')?.toLowerCase();
 
-  let articles = db.getArticles(!all);
+  let articles = await db.getArticles(!all);
 
   if (category) {
     articles = articles.filter(
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '') + `-${Date.now().toString().slice(-4)}`;
 
-    const newArticle = db.createArticle({
+    const newArticle = await db.createArticle({
       title,
       slug,
       subtitle: body.subtitle || '',

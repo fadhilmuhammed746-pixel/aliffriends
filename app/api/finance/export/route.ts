@@ -9,8 +9,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
-    const summary = db.getFinanceSummary();
-    const transactions = db.getFinanceTransactions();
+    const [summary, transactions] = await Promise.all([
+      db.getFinanceSummary(),
+      db.getFinanceTransactions(),
+    ]);
 
     // Generate CSV content
     const header = [

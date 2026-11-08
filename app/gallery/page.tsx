@@ -18,7 +18,7 @@ export default async function GalleryArchivePage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
-  let albums = db.getAlbums(true);
+  let albums = await db.getAlbums(true);
 
   if (category) {
     albums = albums.filter((a) => a.category.toLowerCase() === category.toLowerCase());

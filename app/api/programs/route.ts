@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const all = searchParams.get('all') === 'true';
-  const programs = db.getPrograms(!all);
+  const programs = await db.getPrograms(!all);
   return NextResponse.json({ programs });
 }
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newProg = db.createProgram({
+    const newProg = await db.createProgram({
       title,
       category,
       date,

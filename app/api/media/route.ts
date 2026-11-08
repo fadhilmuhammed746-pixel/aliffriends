@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const section = searchParams.get('section') || 'all';
     const sort = searchParams.get('sort') || 'newest';
 
-    let mediaList = db.getMedia();
+    let mediaList = await db.getMedia();
 
     // 1. Search filter
     if (search) {
@@ -54,15 +54,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Attach usage metadata
-    const mediaWithUsage = mediaList.map((m) => {
-      const usage = db.getMediaUsage(m.url);
-      return {
-        ...m,
-        isUsed: usage.isUsed,
-        usageCount: usage.references.length,
-        references: usage.references,
-      };
-    });
+    const mediaWithUsage = await Promise.all(
+      mediaList.map(async (m) => {
+        const usage = await db.getMediaUsage(m.url);
+        return {
+          ...m,
+          isUsed: usage.isUsed,
+          usageCount: usage.references.length,
+          references: usage.references,
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,

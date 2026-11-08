@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const admin = db.getAdminByUsername(username);
+    const admin = await db.getAdminByUsername(username);
     if (!admin) {
       return NextResponse.json(
         { error: 'Invalid administrator credentials.' },

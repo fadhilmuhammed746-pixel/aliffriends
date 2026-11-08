@@ -12,8 +12,8 @@ import {
 
 export const revalidate = 0;
 
-export default function AnnouncementsPage() {
-  const announcements = db.getAnnouncements(true);
+export default async function AnnouncementsPage() {
+  const announcements = await db.getAnnouncements(true);
 
   return (
     <div className="py-16 sm:py-20 space-y-12 bg-canvas text-ink">

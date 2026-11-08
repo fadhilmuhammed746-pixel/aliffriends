@@ -14,9 +14,11 @@ import {
 
 export const revalidate = 0;
 
-export default function VideosArchivePage() {
-  const settings = db.getSettings();
-  const videos = db.getVideos(true);
+export default async function VideosArchivePage() {
+  const [settings, videos] = await Promise.all([
+    db.getSettings(),
+    db.getVideos(true),
+  ]);
   const featured = videos.find((v) => v.isFeatured) || videos[0];
   const others = videos.filter((v) => v.id !== featured?.id);
 

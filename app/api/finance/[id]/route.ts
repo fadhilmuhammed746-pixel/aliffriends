@@ -18,7 +18,7 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
 
-    const existing = db.getFinanceTransactionById(id);
+    const existing = await db.getFinanceTransactionById(id);
     if (!existing) {
       return NextResponse.json({ error: 'Transaction not found.' }, { status: 404 });
     }
@@ -30,7 +30,7 @@ export async function PUT(
       }
     }
 
-    const result = db.updateFinanceTransaction(id, body, session.username || 'admin');
+    const result = await db.updateFinanceTransaction(id, body, session.username || 'admin');
 
     if (!result.transaction) {
       return NextResponse.json({ error: 'Failed to update transaction.' }, { status: 404 });
@@ -61,7 +61,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const result = db.deleteFinanceTransaction(id, session.username || 'admin');
+    const result = await db.deleteFinanceTransaction(id, session.username || 'admin');
 
     if (!result.success) {
       return NextResponse.json({ error: 'Transaction not found.' }, { status: 404 });

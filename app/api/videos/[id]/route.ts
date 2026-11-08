@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const video = db.getVideoById(id);
+  const video = await db.getVideoById(id);
   if (!video) {
     return NextResponse.json({ error: 'Video not found.' }, { status: 404 });
   }
@@ -25,7 +25,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const updated = db.updateVideo(id, body);
+  const updated = await db.updateVideo(id, body);
   if (!updated) {
     return NextResponse.json({ error: 'Video not found or update failed.' }, { status: 404 });
   }
@@ -43,7 +43,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = db.deleteVideo(id);
+  const deleted = await db.deleteVideo(id);
   return NextResponse.json({ success: deleted });
 }
 

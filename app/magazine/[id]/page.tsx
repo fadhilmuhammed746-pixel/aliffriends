@@ -14,7 +14,7 @@ export default async function MagazineDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const magazine = db.getMagazineById(id);
+  const magazine = await db.getMagazineById(id);
 
   if (!magazine || !magazine.isPublished) {
     notFound();

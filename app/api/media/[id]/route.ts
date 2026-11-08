@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { db } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
+import { getSupabaseAdminClient } from '@/lib/supabase';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -16,12 +17,12 @@ export async function GET(req: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
-    const media = db.getMediaById(id);
+    const media = await db.getMediaById(id);
     if (!media) {
       return NextResponse.json({ error: 'Media asset not found.' }, { status: 404 });
     }
 
-    const usage = db.getMediaUsage(media.url);
+    const usage = await db.getMediaUsage(media.url);
     return NextResponse.json({
       success: true,
       media: {
@@ -45,7 +46,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
-    const media = db.getMediaById(id);
+    const media = await db.getMediaById(id);
     if (!media) {
       return NextResponse.json({ error: 'Media asset not found.' }, { status: 404 });
     }
@@ -54,7 +55,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     const force = searchParams.get('force') === 'true';
 
     // Check usage
-    const usage = db.getMediaUsage(media.url);
+    const usage = await db.getMediaUsage(media.url);
     if (usage.isUsed && !force) {
       return NextResponse.json(
         {
@@ -67,8 +68,20 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       );
     }
 
-    // Attempt to remove physical file from public/uploads if it exists locally
-    if (media.url && media.url.startsWith('/uploads/')) {
+    // Attempt to remove physical file from Supabase storage if cloud stored
+    const isCloudStorage = media.storageLocation === 'supabase' || media.url.includes('supabase.co');
+    if (isCloudStorage) {
+      const client = getSupabaseAdminClient();
+      if (client) {
+        const bucket = (media.section === 'finance' || media.section === 'receipts') ? 'af12-finance-receipts' : 'af12-media';
+        try {
+          await client.storage.from(bucket).remove([media.filename]);
+        } catch (err) {
+          console.warn('Supabase storage file deletion warning:', err);
+        }
+      }
+    } else if (media.url && media.url.startsWith('/uploads/')) {
+      // Attempt to remove physical file from public/uploads if it exists locally
       const fileName = media.url.replace('/uploads/', '');
       const filePath = path.join(process.cwd(), 'public', 'uploads', fileName);
       if (fs.existsSync(filePath)) {
@@ -81,7 +94,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     }
 
     // Delete record from database
-    db.deleteMedia(id);
+    await db.deleteMedia(id);
 
     return NextResponse.json({
       success: true,

@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const member = db.getMemberById(id);
+  const member = await db.getMemberById(id);
   if (!member) {
     return NextResponse.json({ error: 'Member not found.' }, { status: 404 });
   }
@@ -25,7 +25,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const updated = db.updateMember(id, body);
+  const updated = await db.updateMember(id, body);
   if (!updated) {
     return NextResponse.json({ error: 'Member not found or update failed.' }, { status: 404 });
   }
@@ -43,7 +43,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = db.deleteMember(id);
+  const deleted = await db.deleteMember(id);
   return NextResponse.json({ success: deleted });
 }
 

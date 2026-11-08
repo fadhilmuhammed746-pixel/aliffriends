@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const album = db.getAlbumById(id);
+  const album = await db.getAlbumById(id);
   if (!album) {
     return NextResponse.json({ error: 'Album not found.' }, { status: 404 });
   }
@@ -25,7 +25,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const updated = db.updateAlbum(id, body);
+  const updated = await db.updateAlbum(id, body);
   if (!updated) {
     return NextResponse.json({ error: 'Album not found or update failed.' }, { status: 404 });
   }
@@ -43,7 +43,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = db.deleteAlbum(id);
+  const deleted = await db.deleteAlbum(id);
   return NextResponse.json({ success: deleted });
 }
 

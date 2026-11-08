@@ -88,12 +88,12 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const settings = db.getSettings();
+  const settings = await db.getSettings();
 
   return (
     <html

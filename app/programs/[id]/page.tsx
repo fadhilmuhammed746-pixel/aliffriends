@@ -14,7 +14,7 @@ export default async function ProgramDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const program = db.getProgramById(id);
+  const program = await db.getProgramById(id);
 
   if (!program || !program.isPublished) {
     notFound();

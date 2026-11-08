@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
 
 export async function GET() {
-  const settings = db.getSettings();
+  const settings = await db.getSettings();
   return NextResponse.json({ settings });
 }
 
@@ -15,7 +15,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const updated = db.updateSettings(body);
+    const updated = await db.updateSettings(body);
     return NextResponse.json({ success: true, settings: updated });
   } catch (err) {
     console.error('Update settings error:', err);

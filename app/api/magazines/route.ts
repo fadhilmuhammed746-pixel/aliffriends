@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const all = searchParams.get('all') === 'true';
-  const magazines = db.getMagazines(!all);
+  const magazines = await db.getMagazines(!all);
   return NextResponse.json({ magazines });
 }
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newMag = db.createMagazine({
+    const newMag = await db.createMagazine({
       title,
       editionNumber,
       publicationDate,

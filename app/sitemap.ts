@@ -1,13 +1,15 @@
 import { MetadataRoute } from 'next';
 import { db } from '@/lib/db';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aliffriends12.org';
-  const articles = db.getArticles(true);
-  const magazines = db.getMagazines(true);
-  const programs = db.getPrograms(true);
-  const videos = db.getVideos(true);
-  const albums = db.getAlbums(true);
+  const [articles, magazines, programs, videos, albums] = await Promise.all([
+    db.getArticles(true),
+    db.getMagazines(true),
+    db.getPrograms(true),
+    db.getVideos(true),
+    db.getAlbums(true),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     '',

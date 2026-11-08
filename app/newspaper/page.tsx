@@ -36,7 +36,7 @@ export default async function NewspaperIndexPage({
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
   const { category, q } = await searchParams;
-  let articles = db.getArticles(true);
+  let articles = await db.getArticles(true);
 
   if (category) {
     articles = articles.filter(

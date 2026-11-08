@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const all = searchParams.get('all') === 'true';
-  const albums = db.getAlbums(!all);
+  const albums = await db.getAlbums(!all);
   return NextResponse.json({ albums });
 }
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newAlbum = db.createAlbum({
+    const newAlbum = await db.createAlbum({
       title,
       category,
       description: body.description || '',

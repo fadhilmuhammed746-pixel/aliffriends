@@ -13,7 +13,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const updated = db.updateAnnouncement(id, body);
+  const updated = await db.updateAnnouncement(id, body);
   if (!updated) {
     return NextResponse.json({ error: 'Announcement not found or update failed.' }, { status: 404 });
   }
@@ -31,7 +31,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const deleted = db.deleteAnnouncement(id);
+  const deleted = await db.deleteAnnouncement(id);
   return NextResponse.json({ success: deleted });
 }
 

@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const all = searchParams.get('all') === 'true';
-  const videos = db.getVideos(!all);
+  const videos = await db.getVideos(!all);
   return NextResponse.json({ videos });
 }
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newVideo = db.createVideo({
+    const newVideo = await db.createVideo({
       title,
       description: description || '',
       category,

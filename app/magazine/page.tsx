@@ -13,8 +13,8 @@ import {
 
 export const revalidate = 0;
 
-export default function MagazineArchivePage() {
-  const magazines = db.getMagazines(true);
+export default async function MagazineArchivePage() {
+  const magazines = await db.getMagazines(true);
 
   return (
     <div className="py-16 sm:py-20 bg-canvas text-ink">

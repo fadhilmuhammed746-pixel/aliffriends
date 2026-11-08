@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const all = searchParams.get('all') === 'true';
-  const members = db.getMembers(!all);
+  const members = await db.getMembers(!all);
   return NextResponse.json({ members });
 }
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newMem = db.createMember({
+    const newMem = await db.createMember({
       name,
       position,
       bio,

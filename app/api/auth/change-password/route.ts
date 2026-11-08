@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const admin = db.getAdminByUsername(session.username);
+    const admin = await db.getAdminByUsername(session.username);
     if (!admin) {
       return NextResponse.json({ error: 'Admin account not found.' }, { status: 404 });
     }
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // Hash new password securely with bcrypt
     const newHash = await hashPassword(newPassword);
-    const updated = db.updateAdminPassword(admin.id, newHash);
+    const updated = await db.updateAdminPassword(admin.id, newHash);
 
     if (!updated) {
       return NextResponse.json(
