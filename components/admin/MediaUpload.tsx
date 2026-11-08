@@ -94,9 +94,37 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       ? 'application/pdf,.pdf'
       : 'image/*,video/*,application/pdf';
 
-  // Global supported maximum size is 250 MB
-  const defaultLimit = 250;
+  // Global supported maximum size is 50 MB (Supabase project plan limit)
+  const defaultLimit = 50;
   const effectiveLimitMB = maxSizeMB || defaultLimit;
+
+  // Canonical MIME type resolver to prevent HTTP 400 from Supabase Storage
+  const getCanonicalMimeType = (fileName: string, browserMime?: string, serverCanonical?: string): string => {
+    if (serverCanonical && serverCanonical !== 'application/octet-stream') {
+      return serverCanonical;
+    }
+    const ext = (fileName.split('.').pop() || '').toLowerCase();
+    const map: Record<string, string> = {
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      webp: 'image/webp',
+      gif: 'image/gif',
+      svg: 'image/svg+xml',
+      mp4: 'video/mp4',
+      webm: 'video/webm',
+      mov: 'video/quicktime',
+      mkv: 'video/webm',
+      pdf: 'application/pdf',
+    };
+    if (map[ext]) return map[ext];
+    if (browserMime && browserMime !== 'application/octet-stream' && browserMime.trim() !== '') {
+      if (browserMime === 'image/jpg' || browserMime === 'image/pjpeg') return 'image/jpeg';
+      if (browserMime === 'image/x-png') return 'image/png';
+      return browserMime;
+    }
+    return 'application/octet-stream';
+  };
 
   // Format bytes helper
   const formatBytes = (bytes?: number) => {
@@ -143,81 +171,128 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       throw new Error(signData.error || 'Failed to acquire secure cloud upload token.');
     }
 
-    const { signedUrl, path: uniqueFileName, publicUrl, category } = signData;
+    const { signedUrl, path: uniqueFileName, publicUrl, category, canonicalMimeType } = signData;
+    const uploadMime = getCanonicalMimeType(file.name, file.type, canonicalMimeType);
 
     // 3. Direct browser-to-Supabase transfer with live progress tracking
     const startTime = Date.now();
     let lastLoaded = 0;
     let lastTime = startTime;
 
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhrRef.current = xhr;
+    const executePrimaryUpload = () =>
+      new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
 
-      xhr.open('PUT', signedUrl);
-      xhr.setRequestHeader(
-        'Content-Type',
-        file.type || (category === 'pdf' ? 'application/pdf' : 'application/octet-stream')
-      );
-      xhr.setRequestHeader('x-upsert', 'false');
+        xhr.open('PUT', signedUrl);
+        xhr.setRequestHeader('Content-Type', uploadMime);
+        xhr.setRequestHeader('x-upsert', 'false');
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable && event.total > 0) {
-          const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
-          setProgress(percent);
-          setUploadedBytes(event.loaded);
-          setTotalBytes(event.total);
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && event.total > 0) {
+            const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
+            setProgress(percent);
+            setUploadedBytes(event.loaded);
+            setTotalBytes(event.total);
 
-          const now = Date.now();
-          const elapsedSec = (now - lastTime) / 1000;
-          if (elapsedSec >= 0.4) {
-            const bytesPerSec = (event.loaded - lastLoaded) / elapsedSec;
-            if (bytesPerSec > 0) {
-              const speedStr =
-                bytesPerSec >= 1024 * 1024
-                  ? `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`
-                  : `${Math.round(bytesPerSec / 1024)} KB/s`;
-              setUploadSpeed(speedStr);
+            const now = Date.now();
+            const elapsedSec = (now - lastTime) / 1000;
+            if (elapsedSec >= 0.4) {
+              const bytesPerSec = (event.loaded - lastLoaded) / elapsedSec;
+              if (bytesPerSec > 0) {
+                const speedStr =
+                  bytesPerSec >= 1024 * 1024
+                    ? `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`
+                    : `${Math.round(bytesPerSec / 1024)} KB/s`;
+                setUploadSpeed(speedStr);
 
-              const remainingBytes = event.total - event.loaded;
-              const remainingSec = Math.round(remainingBytes / bytesPerSec);
-              if (remainingSec <= 1) {
-                setEstimatedTime('Finalizing...');
-              } else if (remainingSec < 60) {
-                setEstimatedTime(`${remainingSec}s remaining`);
-              } else {
-                const mins = Math.floor(remainingSec / 60);
-                const secs = remainingSec % 60;
-                setEstimatedTime(`${mins}m ${secs}s remaining`);
+                const remainingBytes = event.total - event.loaded;
+                const remainingSec = Math.round(remainingBytes / bytesPerSec);
+                if (remainingSec <= 1) {
+                  setEstimatedTime('Finalizing...');
+                } else if (remainingSec < 60) {
+                  setEstimatedTime(`${remainingSec}s remaining`);
+                } else {
+                  const mins = Math.floor(remainingSec / 60);
+                  const secs = remainingSec % 60;
+                  setEstimatedTime(`${mins}m ${secs}s remaining`);
+                }
+              }
+              lastLoaded = event.loaded;
+              lastTime = now;
+            }
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            setProgress(100);
+            resolve();
+          } else {
+            let errorDetail = xhr.statusText || 'Upload error';
+            try {
+              const errObj = JSON.parse(xhr.responseText);
+              if (errObj.message) {
+                errorDetail = errObj.message;
+              } else if (errObj.error) {
+                errorDetail = typeof errObj.error === 'string' ? errObj.error : JSON.stringify(errObj.error);
+              }
+            } catch {
+              if (xhr.responseText && xhr.responseText.length < 200) {
+                errorDetail = xhr.responseText;
               }
             }
-            lastLoaded = event.loaded;
-            lastTime = now;
+            reject(
+              new Error(
+                `Direct storage transfer rejected (HTTP ${xhr.status}: ${errorDetail}).`
+              )
+            );
           }
+        };
+
+        xhr.onerror = () =>
+          reject(new Error('Network connectivity lost during direct storage transfer.'));
+        xhr.onabort = () => reject(new Error('Upload cancelled.'));
+
+        xhr.send(file);
+      });
+
+    try {
+      await executePrimaryUpload();
+    } catch (primaryErr: any) {
+      if (primaryErr?.message?.includes('cancelled')) {
+        throw primaryErr;
+      }
+      console.warn('Direct raw transfer rejected, trying multipart form fallback:', primaryErr?.message);
+
+      // Fallback: multipart FormData upload directly to signedUrl
+      try {
+        const formData = new FormData();
+        formData.append('', file, file.name);
+        formData.append('cacheControl', '3600');
+
+        const fallbackRes = await fetch(signedUrl, {
+          method: 'PUT',
+          headers: { 'x-upsert': 'false' },
+          body: formData,
+        });
+
+        if (!fallbackRes.ok) {
+          const errText = await fallbackRes.text().catch(() => '');
+          let detail = fallbackRes.statusText || 'Upload error';
+          try {
+            const parsed = JSON.parse(errText);
+            detail = parsed.message || parsed.error || detail;
+          } catch {
+            if (errText && errText.length < 200) detail = errText;
+          }
+          throw new Error(`Direct storage transfer rejected (HTTP ${fallbackRes.status}: ${detail}).`);
         }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setProgress(100);
-          resolve();
-        } else {
-          reject(
-            new Error(
-              `Direct storage transfer rejected (HTTP ${xhr.status}: ${
-                xhr.statusText || 'Upload error'
-              }).`
-            )
-          );
-        }
-      };
-
-      xhr.onerror = () =>
-        reject(new Error('Network connectivity lost during direct storage transfer.'));
-      xhr.onabort = () => reject(new Error('Upload cancelled.'));
-
-      xhr.send(file);
-    });
+        setProgress(100);
+      } catch (fallbackErr: any) {
+        throw new Error(fallbackErr?.message || primaryErr?.message);
+      }
+    }
 
     // 4. Local fast PDF page-count extraction (non-blocking)
     let detectedPageCount: number | undefined = undefined;

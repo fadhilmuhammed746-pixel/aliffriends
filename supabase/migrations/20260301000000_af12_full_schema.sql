@@ -427,8 +427,8 @@ INSERT INTO public.finance_summary (id) VALUES ('default') ON CONFLICT (id) DO N
 -- -----------------------------------------------------------------------------
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES 
-  ('af12-media', 'af12-media', true, 262144000, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'video/mp4', 'video/webm', 'video/quicktime', 'application/pdf']),
-  ('af12-finance-receipts', 'af12-finance-receipts', false, 262144000, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+  ('af12-media', 'af12-media', true, 52428800, ARRAY['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/x-png', 'image/webp', 'image/gif', 'image/svg+xml', 'video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska', 'application/pdf', 'application/x-pdf', 'application/octet-stream']),
+  ('af12-finance-receipts', 'af12-finance-receipts', false, 52428800, ARRAY['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/x-png', 'image/webp', 'application/pdf', 'application/x-pdf', 'application/octet-stream'])
 ON CONFLICT (id) DO UPDATE SET
   public = EXCLUDED.public,
   file_size_limit = EXCLUDED.file_size_limit,

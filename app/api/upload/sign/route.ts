@@ -30,8 +30,23 @@ const ALLOWED_EXTENSIONS: Record<string, 'image' | 'video' | 'pdf'> = {
   '.pdf': 'pdf',
 };
 
-// Maximum permitted upload limit (250 MB)
-const MAX_UPLOAD_SIZE = 250 * 1024 * 1024;
+// Canonical MIME type lookup by file extension to ensure Supabase Storage compatibility
+const EXTENSION_MIME_MAP: Record<string, string> = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+  '.mkv': 'video/webm',
+  '.pdf': 'application/pdf',
+};
+
+// Maximum permitted upload limit (50 MB - Supabase project plan limit)
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
   try {
@@ -72,11 +87,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. File size check (up to 250 MB)
+    // 4. File size check (up to 50 MB Supabase plan limit)
     if (fileSize && typeof fileSize === 'number' && fileSize > MAX_UPLOAD_SIZE) {
       return NextResponse.json(
         {
-          error: `File size exceeds the maximum permitted limit of 250 MB. Current size: ${(fileSize / (1024 * 1024)).toFixed(1)} MB.`,
+          error: `File size exceeds the Supabase Storage limit of 50 MB. Current size: ${(fileSize / (1024 * 1024)).toFixed(1)} MB. Please optimize or compress the file before uploading.`,
         },
         { status: 400 }
       );
@@ -127,6 +142,8 @@ export async function POST(req: NextRequest) {
       // Keep standard endpoint fallback
     }
 
+    const canonicalMimeType = EXTENSION_MIME_MAP[ext] || (fileType && fileType !== 'application/octet-stream' ? fileType : (category === 'pdf' ? 'application/pdf' : 'application/octet-stream'));
+
     return NextResponse.json({
       success: true,
       canDirectUpload: true,
@@ -138,7 +155,8 @@ export async function POST(req: NextRequest) {
       directStorageEndpoint,
       isFinance,
       category,
-      maxSizeMB: 250,
+      canonicalMimeType,
+      maxSizeMB: 50,
     });
   } catch (error: any) {
     console.error('Sign upload authorization error:', error);
