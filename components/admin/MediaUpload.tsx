@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
+import * as tus from 'tus-js-client';
 import {
   Upload,
   X,
@@ -17,6 +18,10 @@ import {
   ArrowDown,
   Eye,
   Trash2,
+  Clock,
+  Gauge,
+  RotateCcw,
+  ShieldCheck,
 } from 'lucide-react';
 
 export type MediaType = 'image' | 'video' | 'pdf' | 'any';
@@ -62,16 +67,22 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [uploadedBytes, setUploadedBytes] = useState(0);
+  const [totalBytes, setTotalBytes] = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState('');
+  const [estimatedTime, setEstimatedTime] = useState('');
+  const [activeFileName, setActiveFileName] = useState('');
+  const [lastSelectedFile, setLastSelectedFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [libraryModalOpen, setLibraryModalOpen] = useState(false);
   const [libraryAssets, setLibraryAssets] = useState<MediaAssetSummary[]>([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [librarySearch, setLibrarySearch] = useState('');
-  const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const tusUploadRef = useRef<tus.Upload | null>(null);
 
   // Accept attribute string
   const acceptAttr =
@@ -83,72 +94,171 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       ? 'application/pdf,.pdf'
       : 'image/*,video/*,application/pdf';
 
+  // Global supported maximum size is 250 MB
   const defaultLimit = 250;
   const effectiveLimitMB = maxSizeMB || defaultLimit;
 
-  // Format bytes
+  // Format bytes helper
   const formatBytes = (bytes?: number) => {
-    if (!bytes) return '';
+    if (!bytes || isNaN(bytes)) return '0 B';
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
   };
 
-  // Upload a single file
-  const uploadFile = async (file: File): Promise<string | null> => {
-    // Client-side size check
+  // Perform Direct Supabase Storage Upload
+  // Large files stream directly to Supabase Storage and NEVER pass through Vercel Functions.
+  const uploadFileDirect = async (file: File): Promise<string | null> => {
+    // 1. Client-side size check (250 MB limit)
     if (file.size > effectiveLimitMB * 1024 * 1024) {
-      throw new Error(`File '${file.name}' exceeds the maximum limit of ${effectiveLimitMB} MB.`);
+      throw new Error(`File '${file.name}' exceeds the maximum allowed limit of ${effectiveLimitMB} MB.`);
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('section', section);
+    setLastSelectedFile(file);
+    setActiveFileName(file.name);
+    setTotalBytes(file.size);
+    setUploadedBytes(0);
+    setUploadSpeed('');
+    setEstimatedTime('');
 
-    abortControllerRef.current = new AbortController();
+    // 2. Obtain signed upload authorization from server (only JSON metadata, 0 file bytes)
+    const signRes = await fetch('/api/upload/sign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        section,
+      }),
+    });
 
-    // Use XMLHttpRequest for live progress tracking
-    return new Promise((resolve, reject) => {
+    if (!signRes.ok) {
+      const errData = await signRes.json().catch(() => ({}));
+      throw new Error(errData.error || `Upload authorization failed with HTTP ${signRes.status}.`);
+    }
+
+    const signData = await signRes.json();
+    if (!signData.success || !signData.signedUrl) {
+      throw new Error(signData.error || 'Failed to acquire secure cloud upload token.');
+    }
+
+    const { signedUrl, path: uniqueFileName, publicUrl, category } = signData;
+
+    // 3. Direct browser-to-Supabase transfer with live progress tracking
+    const startTime = Date.now();
+    let lastLoaded = 0;
+    let lastTime = startTime;
+
+    await new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/upload');
+      xhrRef.current = xhr;
+
+      xhr.open('PUT', signedUrl);
+      xhr.setRequestHeader(
+        'Content-Type',
+        file.type || (category === 'pdf' ? 'application/pdf' : 'application/octet-stream')
+      );
+      xhr.setRequestHeader('x-upsert', 'false');
 
       xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
+        if (event.lengthComputable && event.total > 0) {
+          const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
           setProgress(percent);
+          setUploadedBytes(event.loaded);
+          setTotalBytes(event.total);
+
+          const now = Date.now();
+          const elapsedSec = (now - lastTime) / 1000;
+          if (elapsedSec >= 0.4) {
+            const bytesPerSec = (event.loaded - lastLoaded) / elapsedSec;
+            if (bytesPerSec > 0) {
+              const speedStr =
+                bytesPerSec >= 1024 * 1024
+                  ? `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`
+                  : `${Math.round(bytesPerSec / 1024)} KB/s`;
+              setUploadSpeed(speedStr);
+
+              const remainingBytes = event.total - event.loaded;
+              const remainingSec = Math.round(remainingBytes / bytesPerSec);
+              if (remainingSec <= 1) {
+                setEstimatedTime('Finalizing...');
+              } else if (remainingSec < 60) {
+                setEstimatedTime(`${remainingSec}s remaining`);
+              } else {
+                const mins = Math.floor(remainingSec / 60);
+                const secs = remainingSec % 60;
+                setEstimatedTime(`${mins}m ${secs}s remaining`);
+              }
+            }
+            lastLoaded = event.loaded;
+            lastTime = now;
+          }
         }
       };
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            if (data.success && data.url) {
-              resolve(data.url);
-            } else {
-              reject(new Error(data.error || 'Upload failed.'));
-            }
-          } catch {
-            reject(new Error('Invalid response from server.'));
-          }
+          setProgress(100);
+          resolve();
         } else {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            reject(new Error(data.error || `Upload failed with status ${xhr.status}.`));
-          } catch {
-            reject(new Error(`Server error (${xhr.status}).`));
-          }
+          reject(
+            new Error(
+              `Direct storage transfer rejected (HTTP ${xhr.status}: ${
+                xhr.statusText || 'Upload error'
+              }).`
+            )
+          );
         }
       };
 
-      xhr.onerror = () => reject(new Error('Network error during upload.'));
+      xhr.onerror = () =>
+        reject(new Error('Network connectivity lost during direct storage transfer.'));
       xhr.onabort = () => reject(new Error('Upload cancelled.'));
 
-      xhr.send(formData);
+      xhr.send(file);
     });
+
+    // 4. Local fast PDF page-count extraction (non-blocking)
+    let detectedPageCount: number | undefined = undefined;
+    if (category === 'pdf' || file.name.endsWith('.pdf')) {
+      try {
+        const slice = await file.slice(0, 512 * 1024).text();
+        const countMatch = slice.match(/\/Count\s+(\d+)/);
+        if (countMatch) {
+          detectedPageCount = parseInt(countMatch[1], 10);
+        }
+      } catch {
+        // Non-blocking
+      }
+    }
+
+    // 5. Complete registration in database (metadata only)
+    const completeRes = await fetch('/api/upload/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: uniqueFileName,
+        originalName: file.name,
+        url: publicUrl || signedUrl,
+        mimeType: file.type || (category === 'pdf' ? 'application/pdf' : 'application/octet-stream'),
+        size: file.size,
+        category: category || 'other',
+        section,
+        pageCount: detectedPageCount,
+      }),
+    });
+
+    if (!completeRes.ok) {
+      const errData = await completeRes.json().catch(() => ({}));
+      throw new Error(errData.error || `Failed to catalog file metadata (${completeRes.status}).`);
+    }
+
+    const completeData = await completeRes.json();
+    return completeData.url;
   };
 
-  // Handle file selection (drag or browse)
+  // Handle files selection
   const handleFiles = async (files: FileList | File[]) => {
     if (!files || files.length === 0) return;
     setErrorMessage('');
@@ -163,28 +273,51 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
 
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          const url = await uploadFile(file);
+          const url = await uploadFileDirect(file);
           if (url) newUrls.push(url);
         }
 
         const combined = [...currentList, ...newUrls];
         onChange(combined);
-        setSuccessMessage(`Successfully uploaded ${newUrls.length} file(s).`);
+        setSuccessMessage(`Successfully uploaded ${newUrls.length} file(s) directly to cloud storage.`);
       } else {
         const file = files[0];
-        const url = await uploadFile(file);
+        const url = await uploadFileDirect(file);
         if (url) {
           onChange(url);
-          setSuccessMessage(`'${file.name}' uploaded successfully.`);
+          setSuccessMessage(`'${file.name}' uploaded successfully to persistent cloud storage.`);
         }
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Upload processing failed.');
+      setErrorMessage(err.message || 'Direct cloud upload failed.');
     } finally {
       setUploading(false);
       setProgress(0);
+      xhrRef.current = null;
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  // Retry upload
+  const handleRetry = () => {
+    if (lastSelectedFile) {
+      handleFiles([lastSelectedFile]);
+    }
+  };
+
+  // Cancel upload
+  const cancelUpload = () => {
+    if (xhrRef.current) {
+      xhrRef.current.abort();
+      xhrRef.current = null;
+    }
+    if (tusUploadRef.current) {
+      tusUploadRef.current.abort();
+      tusUploadRef.current = null;
+    }
+    setUploading(false);
+    setProgress(0);
+    setErrorMessage('Upload cancelled.');
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -205,14 +338,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
     }
   };
 
-  const cancelUpload = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    setUploading(false);
-    setProgress(0);
-  };
-
   // Open Media Library Modal
   const openLibraryModal = async () => {
     setLibraryModalOpen(true);
@@ -221,7 +346,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       const res = await fetch('/api/media');
       const data = await res.json();
       if (data.media) {
-        // Filter by category if specific
         let list: MediaAssetSummary[] = data.media;
         if (type !== 'any') {
           list = list.filter((m) => m.category === type);
@@ -248,18 +372,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
     setSuccessMessage('Media selected from library.');
   };
 
-  // Reorder for multiple
-  const moveItem = (index: number, direction: 'up' | 'down') => {
-    if (!Array.isArray(value)) return;
-    const newItems = [...value];
-    const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= newItems.length) return;
-    const temp = newItems[index];
-    newItems[index] = newItems[targetIdx];
-    newItems[targetIdx] = temp;
-    onChange(newItems);
-  };
-
   const removeItem = (targetUrl: string) => {
     if (multiple && Array.isArray(value)) {
       onChange(value.filter((u) => u !== targetUrl));
@@ -281,7 +393,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
     return (
       <div className="relative border border-editorial-border rounded-xl bg-white p-3 shadow-subtle group">
         <div className="flex items-center justify-between gap-3">
-          {/* Visual element */}
           <div className="flex items-center gap-3 min-w-0">
             {isPdf ? (
               <div className="w-12 h-14 bg-red-50 border border-red-200 rounded-lg flex flex-col items-center justify-center text-red-600 flex-shrink-0">
@@ -304,20 +415,23 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
               </div>
             )}
 
-            {/* Info */}
             <div className="min-w-0 flex-1">
               <p className="text-xs font-mono font-medium text-ink truncate" title={url}>
                 {url.split('/').pop() || url}
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-canvas-subtle border border-editorial-border text-ink-muted">
-                  {isPdf ? 'Document' : isVideo ? 'Video' : 'Image'}
+                  {isPdf ? 'PDF Document' : isVideo ? 'Video' : 'Image'}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-mono">
+                  <ShieldCheck className="w-3 h-3" />
+                  Direct Storage
                 </span>
                 <a
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[11px] text-forest hover:text-coral font-sans flex items-center gap-1 transition-colors"
+                  className="text-[11px] text-forest hover:text-coral font-sans flex items-center gap-1 transition-colors ml-1"
                 >
                   <Eye className="w-3 h-3" />
                   <span>View</span>
@@ -326,7 +440,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
             </div>
           </div>
 
-          {/* Action buttons */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               type="button"
@@ -355,7 +468,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
           </div>
         </div>
 
-        {/* Video Player Preview if direct video */}
         {isVideo && !url.includes('youtube') && (
           <div className="mt-3 rounded-lg overflow-hidden border border-editorial-border bg-black max-h-48">
             <video src={url} controls className="w-full max-h-48 object-contain" />
@@ -376,7 +488,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
           {label} {required && <span className="text-coral">*</span>}
         </label>
         <span className="text-[10px] font-mono text-ink-muted">
-          Max: {effectiveLimitMB}MB • {type.toUpperCase()}
+          Supported: Up to {effectiveLimitMB} MB • Direct Cloud Upload
         </span>
       </div>
 
@@ -394,7 +506,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         className="hidden"
       />
 
-      {/* Upload Dropzone (shown if no single value OR if multiple mode) */}
+      {/* Upload Dropzone */}
       {(!singleValue || multiple) && (
         <div
           onDragOver={handleDragOver}
@@ -407,27 +519,53 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
           }`}
         >
           {uploading ? (
-            <div className="py-3 space-y-3">
+            <div className="py-4 space-y-3.5 max-w-md mx-auto">
+              {/* File title & percentage */}
               <div className="flex items-center justify-between text-xs font-mono text-forest">
-                <span className="flex items-center gap-2">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-coral" />
-                  Uploading file...
+                <span className="flex items-center gap-2 truncate max-w-[240px]">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-coral flex-shrink-0" />
+                  <span className="truncate">{activeFileName || 'Uploading file...'}</span>
                 </span>
-                <span className="font-bold">{progress}%</span>
+                <span className="font-bold text-sm text-forest-900">{progress}%</span>
               </div>
-              <div className="w-full h-2 bg-canvas-subtle rounded-full overflow-hidden border border-editorial-border">
+
+              {/* Progress bar */}
+              <div className="w-full h-2.5 bg-canvas-subtle rounded-full overflow-hidden border border-editorial-border">
                 <div
-                  className="h-full bg-forest transition-all duration-200"
+                  className="h-full bg-gradient-to-r from-forest to-emerald-600 transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <button
-                type="button"
-                onClick={cancelUpload}
-                className="text-[11px] text-red-600 hover:underline"
-              >
-                Cancel Upload
-              </button>
+
+              {/* Stats: Bytes, Speed, Remaining Time */}
+              <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted px-1">
+                <span>
+                  {formatBytes(uploadedBytes)} / {formatBytes(totalBytes)}
+                </span>
+                {uploadSpeed && (
+                  <span className="inline-flex items-center gap-1">
+                    <Gauge className="w-3 h-3 text-forest" />
+                    {uploadSpeed}
+                  </span>
+                )}
+                {estimatedTime && (
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-coral" />
+                    {estimatedTime}
+                  </span>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-1 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={cancelUpload}
+                  className="px-3 py-1 rounded text-xs font-mono text-red-600 hover:bg-red-50 border border-red-200 transition-colors"
+                >
+                  Cancel Upload
+                </button>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center space-y-2">
@@ -453,11 +591,11 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                   or drag and drop your file here
                 </p>
                 <p className="text-[10px] text-ink-muted mt-0.5">
-                  Supports {type === 'image' ? 'JPG, PNG, WEBP, SVG' : type === 'video' ? 'MP4, WEBM, MOV' : type === 'pdf' ? 'PDF Documents' : 'Media files'} up to {effectiveLimitMB}MB
+                  Direct cloud transfer • Large files supported up to {effectiveLimitMB} MB
                 </p>
               </div>
 
-              {/* Library Button */}
+              {/* Central Media Library Button */}
               <div className="pt-1">
                 <button
                   type="button"
@@ -465,11 +603,39 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-canvas hover:bg-canvas-subtle text-forest border border-editorial-border text-[11px] font-sans font-semibold transition-colors"
                 >
                   <FolderOpen className="w-3.5 h-3.5 text-coral" />
-                  <span>Choose from Central Media Library</span>
+                  <span>Choose from Media Library</span>
                 </button>
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Error Message with Retry */}
+      {errorMessage && (
+        <div className="flex items-center justify-between p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          {lastSelectedFile && !uploading && (
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-red-100 hover:bg-red-200 text-red-900 font-mono text-[11px] font-bold transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Retry</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
+          <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span>{successMessage}</span>
         </div>
       )}
 
@@ -481,7 +647,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         <div className="space-y-2 pt-2">
           <div className="flex items-center justify-between text-xs font-mono text-ink-muted">
             <span>Attached Media ({multipleValues.length})</span>
-            <span>Drag or use arrows to reorder</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -507,7 +672,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                       <div className="w-9 h-9 rounded-lg border border-editorial-border overflow-hidden relative flex-shrink-0 bg-canvas">
                         <Image
                           src={itemUrl}
-                          alt={`Gallery item ${index + 1}`}
+                          alt={`Media item ${index + 1}`}
                           fill
                           sizes="36px"
                           className="object-cover"
@@ -519,37 +684,26 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                       <p className="text-[11px] font-mono text-ink truncate" title={itemUrl}>
                         {itemUrl.split('/').pop() || itemUrl}
                       </p>
+                      <a
+                        href={itemUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-forest hover:text-coral font-sans flex items-center gap-1 transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>View</span>
+                      </a>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => moveItem(index, 'up')}
-                      className="p-1 text-ink-muted hover:text-forest disabled:opacity-20 rounded"
-                      title="Move Up"
-                    >
-                      <ArrowUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={index === multipleValues.length - 1}
-                      onClick={() => moveItem(index, 'down')}
-                      className="p-1 text-ink-muted hover:text-forest disabled:opacity-20 rounded"
-                      title="Move Down"
-                    >
-                      <ArrowDown className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(itemUrl)}
-                      className="p-1 text-red-500 hover:text-red-700 rounded ml-1"
-                      title="Remove"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(itemUrl)}
+                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-100 flex-shrink-0"
+                    title="Remove item"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               );
             })}
@@ -557,135 +711,88 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         </div>
       )}
 
-      {/* Messages */}
-      {errorMessage && (
-        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span className="flex-1">{errorMessage}</span>
-          <button type="button" onClick={() => setErrorMessage('')} className="p-0.5">
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
-          <Check className="w-4 h-4 flex-shrink-0 text-emerald-600" />
-          <span className="flex-1">{successMessage}</span>
-          <button type="button" onClick={() => setSuccessMessage('')} className="p-0.5">
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      {/* Central Media Library Selection Modal */}
+      {/* Media Library Modal */}
       {libraryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-forest/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-canvas border border-editorial-border rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-editorial-border flex items-center justify-between bg-white">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-forest text-white flex items-center justify-center">
-                  <FolderOpen className="w-4 h-4 text-coral-light" />
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-sm text-forest uppercase tracking-wider">
-                    Select from Central Media Library
-                  </h3>
-                  <p className="text-[11px] text-ink-muted">
-                    Choose an existing {type !== 'any' ? type : 'media'} asset without re-uploading
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl border border-editorial-border max-w-3xl w-full max-h-[85vh] flex flex-col shadow-editorial overflow-hidden">
+            <div className="p-4 border-b border-editorial-border flex items-center justify-between bg-canvas">
+              <div>
+                <h3 className="font-serif font-bold text-forest text-base">Select from Media Library</h3>
+                <p className="text-xs text-ink-muted">Choose an existing cloud-stored asset</p>
               </div>
               <button
                 type="button"
                 onClick={() => setLibraryModalOpen(false)}
-                className="p-1.5 text-ink-muted hover:text-forest hover:bg-canvas rounded-lg transition-colors"
+                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Search Bar */}
-            <div className="p-4 border-b border-editorial-border bg-white/50 flex items-center gap-3">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Search by file name or keyword..."
-                  value={librarySearch}
-                  onChange={(e) => setLibrarySearch(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs bg-white border border-editorial-border rounded-lg text-ink focus:outline-none focus:ring-1 focus:ring-forest"
-                />
-              </div>
-              <span className="text-[11px] font-mono text-ink-muted">
-                {libraryAssets.length} assets
-              </span>
+            <div className="p-3 border-b border-editorial-border bg-white">
+              <input
+                type="text"
+                placeholder="Search media by filename..."
+                value={librarySearch}
+                onChange={(e) => setLibrarySearch(e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-editorial-border rounded-lg focus:outline-none focus:border-forest font-mono"
+              />
             </div>
 
-            {/* Modal Content Grid */}
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+            <div className="p-4 overflow-y-auto flex-1 min-h-[300px]">
               {libraryLoading ? (
-                <div className="py-16 text-center text-ink-muted text-xs font-mono">
-                  <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-coral" />
-                  Loading library files...
+                <div className="flex flex-col items-center justify-center h-48 space-y-2 text-ink-muted">
+                  <RefreshCw className="w-6 h-6 animate-spin text-coral" />
+                  <span className="text-xs font-mono">Loading library assets...</span>
                 </div>
               ) : libraryAssets.length === 0 ? (
-                <div className="py-16 text-center text-ink-muted text-xs">
-                  <FolderOpen className="w-10 h-10 mx-auto mb-2 text-ink-muted/40" />
-                  No matching media assets found in the library.
+                <div className="flex flex-col items-center justify-center h-48 text-ink-muted space-y-1">
+                  <FolderOpen className="w-8 h-8 text-ink-muted/40" />
+                  <p className="text-xs">No media assets found in library.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {libraryAssets
-                    .filter(
-                      (a) =>
-                        !librarySearch ||
-                        a.filename.toLowerCase().includes(librarySearch.toLowerCase()) ||
-                        a.originalName?.toLowerCase().includes(librarySearch.toLowerCase())
+                    .filter((m) =>
+                      m.filename.toLowerCase().includes(librarySearch.toLowerCase()) ||
+                      m.originalName?.toLowerCase().includes(librarySearch.toLowerCase())
                     )
                     .map((asset) => {
-                      const isPdf = asset.category === 'pdf';
+                      const isPdf = asset.category === 'pdf' || asset.url.endsWith('.pdf');
                       const isVid = asset.category === 'video';
 
                       return (
                         <div
                           key={asset.id}
                           onClick={() => handleSelectFromLibrary(asset.url)}
-                          className="group border border-editorial-border hover:border-forest rounded-xl overflow-hidden bg-white p-2 flex flex-col justify-between cursor-pointer transition-all hover:shadow-card hover:-translate-y-0.5"
+                          className="border border-editorial-border rounded-xl p-2 bg-white hover:border-forest hover:shadow-md cursor-pointer transition-all flex flex-col items-center text-center group"
                         >
-                          <div className="w-full h-24 relative rounded-lg overflow-hidden bg-canvas flex items-center justify-center">
+                          <div className="w-full h-24 relative rounded-lg overflow-hidden bg-canvas mb-2 flex items-center justify-center border border-editorial-border/60">
                             {isPdf ? (
                               <div className="flex flex-col items-center justify-center text-red-500">
                                 <FileText className="w-8 h-8" />
-                                <span className="text-[9px] font-mono font-bold mt-1">PDF</span>
+                                <span className="text-[9px] font-mono font-bold mt-1 uppercase">PDF</span>
                               </div>
                             ) : isVid ? (
-                              <div className="flex flex-col items-center justify-center text-coral">
+                              <div className="flex items-center justify-center text-coral">
                                 <Video className="w-8 h-8" />
-                                <span className="text-[9px] font-mono font-bold mt-1">VIDEO</span>
                               </div>
                             ) : (
                               <Image
                                 src={asset.url}
-                                alt={asset.originalName || asset.filename}
+                                alt={asset.filename}
                                 fill
-                                sizes="140px"
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                sizes="120px"
+                                className="object-cover group-hover:scale-105 transition-transform"
                               />
                             )}
                           </div>
-
-                          <div className="mt-2">
-                            <p className="text-[11px] font-mono text-ink truncate font-medium" title={asset.originalName || asset.filename}>
-                              {asset.originalName || asset.filename}
-                            </p>
-                            <div className="flex items-center justify-between text-[10px] font-mono text-ink-muted mt-1">
-                              <span>{formatBytes(asset.size)}</span>
-                              <span className="uppercase text-[9px] px-1 py-0.5 bg-canvas rounded">
-                                {asset.category}
-                              </span>
-                            </div>
-                          </div>
+                          <p className="text-[11px] font-mono text-ink truncate w-full" title={asset.originalName || asset.filename}>
+                            {asset.originalName || asset.filename}
+                          </p>
+                          <span className="text-[9px] font-mono text-ink-muted mt-0.5 uppercase">
+                            {formatBytes(asset.size)}
+                          </span>
                         </div>
                       );
                     })}
@@ -693,12 +800,11 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-editorial-border bg-white flex items-center justify-end">
+            <div className="p-3 border-t border-editorial-border bg-canvas flex justify-end">
               <button
                 type="button"
                 onClick={() => setLibraryModalOpen(false)}
-                className="px-4 py-2 rounded-lg border border-editorial-border text-xs font-sans text-ink hover:bg-canvas transition-colors"
+                className="px-4 py-2 text-xs font-sans font-semibold rounded-lg bg-white border border-editorial-border text-ink hover:bg-canvas-subtle transition-colors"
               >
                 Close
               </button>
@@ -709,4 +815,3 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
     </div>
   );
 };
-
