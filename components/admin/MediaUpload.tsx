@@ -83,7 +83,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       ? 'application/pdf,.pdf'
       : 'image/*,video/*,application/pdf';
 
-  const defaultLimit = type === 'image' ? 15 : 100;
+  const defaultLimit = 250;
   const effectiveLimitMB = maxSizeMB || defaultLimit;
 
   // Format bytes

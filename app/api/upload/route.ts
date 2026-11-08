@@ -35,8 +35,8 @@ const ALLOWED_EXTENSIONS: Record<string, 'image' | 'video' | 'pdf'> = {
 };
 
 // Size limits
-const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15MB
-const MAX_VIDEO_PDF_SIZE = 100 * 1024 * 1024; // 100MB
+const MAX_IMAGE_SIZE = 250 * 1024 * 1024; // 250MB
+const MAX_VIDEO_PDF_SIZE = 250 * 1024 * 1024; // 250MB
 
 function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

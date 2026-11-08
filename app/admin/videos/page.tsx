@@ -338,7 +338,7 @@ export default function AdminVideosPage() {
                   ) : (
                     <MediaUpload
                       label="Upload Video File"
-                      description="Upload native MP4, WEBM, or MOV video file (up to 100MB)."
+                      description="Upload native MP4, WEBM, or MOV video file (up to 250MB)."
                       type="video"
                       section="video"
                       value={videoUrl}

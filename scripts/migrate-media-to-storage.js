@@ -60,7 +60,7 @@ async function runMediaMigration() {
     const mediaBucket = buckets?.find((b) => b.id === 'af12-media' || b.name === 'af12-media');
     if (!mediaBucket) {
       console.log('Creating af12-media bucket...');
-      await supabase.storage.createBucket('af12-media', { public: true });
+      await supabase.storage.createBucket('af12-media', { public: true, fileSizeLimit: 262144000 });
     }
   } catch (err) {
     console.warn('Bucket check/creation notice (may already exist via SQL migration):', err.message);

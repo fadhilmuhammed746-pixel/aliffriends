@@ -418,8 +418,8 @@ CREATE POLICY "Service role full access finance_audit_logs" ON public.finance_au
 -- -----------------------------------------------------------------------------
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES 
-  ('af12-media', 'af12-media', true, 104857600, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'video/mp4', 'video/webm', 'video/quicktime', 'application/pdf']),
-  ('af12-finance-receipts', 'af12-finance-receipts', false, 15728640, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+  ('af12-media', 'af12-media', true, 262144000, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'video/mp4', 'video/webm', 'video/quicktime', 'application/pdf']),
+  ('af12-finance-receipts', 'af12-finance-receipts', false, 262144000, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
 ON CONFLICT (id) DO UPDATE SET
   public = EXCLUDED.public,
   file_size_limit = EXCLUDED.file_size_limit,
