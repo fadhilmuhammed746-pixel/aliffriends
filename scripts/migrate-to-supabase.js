@@ -8,42 +8,82 @@ const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
-// Optional: Load .env.local if present
-const envLocalPath = path.join(__dirname, '..', '.env.local');
-if (fs.existsSync(envLocalPath)) {
-  const envContent = fs.readFileSync(envLocalPath, 'utf8');
-  envContent.split('\n').forEach((line) => {
-    const trimmed = line.trim();
-    if (trimmed && !trimmed.startsWith('#')) {
-      const match = trimmed.match(/^([^=]+)=(.*)$/);
-      if (match) {
-        const key = match[1].trim();
-        let val = match[2].trim();
-        if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
-        if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
-        if (!process.env[key]) {
-          process.env[key] = val;
+// Load environment variables from .env.local if present
+function loadEnvLocal() {
+  const envLocalPath = path.join(__dirname, '..', '.env.local');
+  if (fs.existsSync(envLocalPath)) {
+    const envContent = fs.readFileSync(envLocalPath, 'utf8');
+    envContent.split(/\r?\n/).forEach((line) => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const match = trimmed.match(/^([^=]+)=(.*)$/);
+        if (match) {
+          const key = match[1].trim();
+          let val = match[2].trim();
+          if (
+            (val.startsWith('"') && val.endsWith('"')) ||
+            (val.startsWith("'") && val.endsWith("'"))
+          ) {
+            val = val.slice(1, -1);
+          }
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
         }
       }
-    }
-  });
+    });
+  }
 }
 
+loadEnvLocal();
+
+// Privileged server keys only:
+// 1. SUPABASE_SECRET_KEY (preferred modern privileged key)
+// 2. SUPABASE_SERVICE_ROLE_KEY (legacy fallback)
+// Public keys (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / NEXT_PUBLIC_SUPABASE_ANON_KEY) are intentionally excluded
+// because Row Level Security (RLS) blocks public/anon roles from database migration writes.
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_KEY =
+  process.env.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const KEY_SOURCE = process.env.SUPABASE_SECRET_KEY
+  ? 'SUPABASE_SECRET_KEY'
+  : process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? 'SUPABASE_SERVICE_ROLE_KEY'
+  : null;
 
 async function runMigration() {
   console.log('===============================================================');
   console.log('   ALIF FRIENDS 12 — SUPABASE POSTGRESQL DATA MIGRATION        ');
   console.log('===============================================================');
 
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('❌ Missing Supabase credentials in environment.');
-    console.error('Please configure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY).');
+  if (!SUPABASE_URL) {
+    console.error('❌ Missing Supabase project URL.');
+    console.error('Please configure NEXT_PUBLIC_SUPABASE_URL in .env.local or environment.');
     process.exit(1);
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  if (!SUPABASE_KEY) {
+    console.error('❌ Missing privileged Supabase secret key.');
+    console.error('Please configure SUPABASE_SECRET_KEY (preferred) or SUPABASE_SERVICE_ROLE_KEY (legacy) in .env.local.');
+    console.error('\nNotice: Public/anon keys (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / NEXT_PUBLIC_SUPABASE_ANON_KEY)');
+    console.error('cannot be used for migration because PostgreSQL Row Level Security (RLS) blocks');
+    console.error('unprivileged roles from writing to admin_users, finance, and published content.\n');
+    process.exit(1);
+  }
+
+  console.log(`✓ Target Supabase URL: ${SUPABASE_URL}`);
+  console.log(`✓ Using privileged server key: ${KEY_SOURCE} (securely verified)`);
+
+  // Secure server-only Supabase client configuration
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
   const dbFile = path.join(__dirname, '..', 'data', 'af12_database.json');
 
   if (!fs.existsSync(dbFile)) {

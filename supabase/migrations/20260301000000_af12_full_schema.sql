@@ -310,6 +310,9 @@ CREATE INDEX IF NOT EXISTS idx_achievements_date ON public.achievements(is_publi
 CREATE INDEX IF NOT EXISTS idx_announcements_date ON public.announcements(is_published, date DESC);
 CREATE INDEX IF NOT EXISTS idx_finance_tx_date ON public.finance_transactions(date DESC);
 CREATE INDEX IF NOT EXISTS idx_media_category ON public.media_assets(category);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_created ON public.contact_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_finance_audit_timestamp ON public.finance_audit_logs(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_articles_headlines ON public.articles(headline_status, breaking_status) WHERE is_published = true;
 
 -- -----------------------------------------------------------------------------
 -- Row Level Security (RLS) Configuration
@@ -367,51 +370,57 @@ CREATE POLICY "Public can submit contact messages" ON public.contact_messages FO
 
 -- Service Role (Full Backend API Access)
 -- When the server uses SUPABASE_SERVICE_ROLE_KEY, it automatically bypasses RLS in Supabase.
--- However, we also grant explicit authenticated policies for any direct administrative clients:
+-- Explicit policies provide structured, audited service-role access:
 DROP POLICY IF EXISTS "Service role full access settings" ON public.settings;
-CREATE POLICY "Service role full access settings" ON public.settings FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access settings" ON public.settings FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access admin_users" ON public.admin_users;
-CREATE POLICY "Service role full access admin_users" ON public.admin_users FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access admin_users" ON public.admin_users FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access magazines" ON public.magazines;
-CREATE POLICY "Service role full access magazines" ON public.magazines FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access magazines" ON public.magazines FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access articles" ON public.articles;
-CREATE POLICY "Service role full access articles" ON public.articles FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access articles" ON public.articles FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access programs" ON public.programs;
-CREATE POLICY "Service role full access programs" ON public.programs FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access programs" ON public.programs FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access videos" ON public.videos;
-CREATE POLICY "Service role full access videos" ON public.videos FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access videos" ON public.videos FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access gallery" ON public.gallery_albums;
-CREATE POLICY "Service role full access gallery" ON public.gallery_albums FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access gallery" ON public.gallery_albums FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access members" ON public.class_members;
-CREATE POLICY "Service role full access members" ON public.class_members FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access members" ON public.class_members FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access achievements" ON public.achievements;
-CREATE POLICY "Service role full access achievements" ON public.achievements FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access achievements" ON public.achievements FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access announcements" ON public.announcements;
-CREATE POLICY "Service role full access announcements" ON public.announcements FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access announcements" ON public.announcements FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access media" ON public.media_assets;
-CREATE POLICY "Service role full access media" ON public.media_assets FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access media" ON public.media_assets FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access messages" ON public.contact_messages;
-CREATE POLICY "Service role full access messages" ON public.contact_messages FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access messages" ON public.contact_messages FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access finance_summary" ON public.finance_summary;
-CREATE POLICY "Service role full access finance_summary" ON public.finance_summary FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access finance_summary" ON public.finance_summary FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access finance_transactions" ON public.finance_transactions;
-CREATE POLICY "Service role full access finance_transactions" ON public.finance_transactions FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access finance_transactions" ON public.finance_transactions FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 DROP POLICY IF EXISTS "Service role full access finance_audit_logs" ON public.finance_audit_logs;
-CREATE POLICY "Service role full access finance_audit_logs" ON public.finance_audit_logs FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role full access finance_audit_logs" ON public.finance_audit_logs FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+
+-- -----------------------------------------------------------------------------
+-- Default Initial Record Seeding (Idempotent)
+-- -----------------------------------------------------------------------------
+INSERT INTO public.settings (id) VALUES ('default') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.finance_summary (id) VALUES ('default') ON CONFLICT (id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------
 -- Storage Buckets Configuration (Supabase Storage)

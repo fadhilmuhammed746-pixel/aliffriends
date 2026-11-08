@@ -4,6 +4,7 @@ import './globals.css';
 import { Navbar } from '@/components/navigation/Navbar';
 import { Footer } from '@/components/navigation/Footer';
 import { BreakingTicker } from '@/components/navigation/BreakingTicker';
+import { PwaProvider, InstallAppModal } from '@/components/pwa';
 import { db } from '@/lib/db';
 
 const playfair = Playfair_Display({
@@ -46,13 +47,24 @@ export const metadata: Metadata = {
     'Alif Creations 12',
   ],
   authors: [{ name: 'Alif Friends 12 Editorial Directorate' }],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'ALIF FRIENDS 12',
+  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
       { url: '/favicon.png', type: 'image/png' },
     ],
     shortcut: '/favicon.png',
-    apple: '/favicon.png',
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/favicon.png', sizes: '128x128', type: 'image/png' },
+    ],
   },
   openGraph: {
     title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
@@ -89,15 +101,18 @@ export default function RootLayout({
       className={`${playfair.variable} ${cormorant.variable} ${plusJakarta.variable}`}
     >
       <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
-        <div>
-          <BreakingTicker
-            text={settings.breakingTickerText}
-            show={settings.showBreakingTicker}
-          />
-          <Navbar />
-          <div className="relative">{children}</div>
-        </div>
-        <Footer />
+        <PwaProvider>
+          <div>
+            <BreakingTicker
+              text={settings.breakingTickerText}
+              show={settings.showBreakingTicker}
+            />
+            <Navbar />
+            <div className="relative">{children}</div>
+          </div>
+          <Footer />
+          <InstallAppModal />
+        </PwaProvider>
       </body>
     </html>
   );

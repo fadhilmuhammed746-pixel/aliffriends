@@ -21,6 +21,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { VideoPlayer } from '@/components/video/VideoPlayer';
+import { DownloadAppButton } from '@/components/pwa';
 import {
   Container,
   SectionHeader,
@@ -107,7 +108,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* CTAs: One Primary Coral CTA + One Ghost Button */}
+              {/* CTAs: Primary Coral CTA + Ghost Light + Premium Download App Button */}
               <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-4">
                 <Button
                   href="/magazine"
@@ -126,6 +127,8 @@ export default function HomePage() {
                 >
                   Read The Newsroom
                 </Button>
+
+                <DownloadAppButton variant="hero" />
               </div>
 
               {/* Micro-Stats Bar */}

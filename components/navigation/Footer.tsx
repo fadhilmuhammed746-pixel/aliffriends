@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Logo } from '../brand/Logo';
+import { DownloadAppButton } from '@/components/pwa';
 import {
   Youtube,
   Instagram,
@@ -91,6 +92,9 @@ export const Footer: React.FC = () => {
                   <span>@_alif_friends_</span>
                   <ArrowUpRight className="w-3 h-3 text-coral-light opacity-80" />
                 </a>
+
+                {/* Download App Action in Footer */}
+                <DownloadAppButton variant="footer" />
               </div>
             </div>
           </div>

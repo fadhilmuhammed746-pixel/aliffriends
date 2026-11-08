@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Logo } from '../brand/Logo';
+import { DownloadAppButton } from '@/components/pwa';
 import {
   X,
   BookOpen,
@@ -182,6 +183,9 @@ export const Navbar: React.FC = () => {
                 })}
               </nav>
 
+              {/* Download App Action Button (Desktop Header) */}
+              <DownloadAppButton variant="header" />
+
               {/* Hamburger Toggle */}
               <button
                 type="button"
@@ -218,10 +222,13 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Tablet & Mobile Right Controls */}
-            <div className="xl:hidden flex items-center gap-3">
+            <div className="xl:hidden flex items-center gap-2.5">
+              <DownloadAppButton variant="mobile-bar" className="sm:hidden" />
+              <DownloadAppButton variant="header" className="hidden sm:inline-flex" />
+
               <Link
                 href="/magazine"
-                className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-50 border border-forest-100 text-forest text-xs font-serif"
+                className="hidden md:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-50 border border-forest-100 text-forest text-xs font-serif"
                 title="View Latest Digital Magazine Edition"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-coral animate-pulse" />
@@ -356,6 +363,11 @@ export const Navbar: React.FC = () => {
                 );
               })}
             </nav>
+
+            {/* Download App Section in Hamburger Overlay */}
+            <div className="px-6 py-4 border-t border-editorial-border bg-canvas-warm/60">
+              <DownloadAppButton variant="menu" />
+            </div>
 
             {/* Menu Footer */}
             <div className="p-6 border-t border-editorial-border bg-white/70 space-y-4">
