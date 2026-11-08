@@ -18,6 +18,7 @@
 *.pem
 
 # Local env files
+.env
 .env*.local
 
 # Vercel
@@ -27,3 +28,7 @@
 *.tsbuildinfo
 next-env.d.ts
 
+# Security & Local Database (Private content & credentials)
+/data/
+/backups/
+/public/uploads/

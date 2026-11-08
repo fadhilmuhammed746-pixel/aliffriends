@@ -4,12 +4,9 @@ import path from 'path';
 import crypto from 'crypto';
 import { getAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { createClient } from '@supabase/supabase-js';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
-
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
 
 // Security: Disallowed dangerous executable extensions
 const DISALLOWED_EXTENSIONS = new Set([
@@ -40,6 +37,15 @@ const ALLOWED_EXTENSIONS: Record<string, 'image' | 'video' | 'pdf'> = {
 // Size limits
 const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15MB
 const MAX_VIDEO_PDF_SIZE = 100 * 1024 * 1024; // 100MB
+
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (url && key) {
+    return createClient(url, key);
+  }
+  return null;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -96,18 +102,77 @@ export async function POST(req: NextRequest) {
     // 4. Safe file naming
     const buffer = Buffer.from(await file.arrayBuffer());
     const rawBaseName = path.basename(file.name, ext);
-    const safeBaseName = rawBaseName
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]/g, '-')
-      .slice(0, 40) || 'asset';
+    const safeBaseName =
+      rawBaseName
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, '-')
+        .slice(0, 40) || 'asset';
 
     const randomHash = crypto.randomBytes(4).toString('hex');
     const uniqueFileName = `${Date.now()}_${safeBaseName}_${randomHash}${ext}`;
-    const filePath = path.join(UPLOAD_DIR, uniqueFileName);
 
-    // Write file to disk
-    fs.writeFileSync(filePath, buffer);
-    const fileUrl = `/uploads/${uniqueFileName}`;
+    const supabase = getSupabaseClient();
+    let fileUrl = '';
+    let storageLocation: 'supabase' | 'local' = 'local';
+
+    if (supabase) {
+      // Production Cloud Storage: Supabase Storage
+      const isFinance = requestedSection === 'finance' || requestedSection === 'receipts';
+      const bucketName = isFinance ? 'af12-finance-receipts' : 'af12-media';
+
+      const mimeType =
+        file.type ||
+        (category === 'pdf'
+          ? 'application/pdf'
+          : category === 'video'
+          ? 'video/mp4'
+          : 'image/jpeg');
+
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from(bucketName)
+        .upload(uniqueFileName, buffer, {
+          contentType: mimeType,
+          upsert: false,
+        });
+
+      if (uploadErr) {
+        console.error('Supabase storage upload error:', uploadErr);
+        throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
+      }
+
+      if (isFinance) {
+        // For private finance receipts, generate signed URL valid for 24 hours
+        const { data: signData } = await supabase.storage
+          .from(bucketName)
+          .createSignedUrl(uniqueFileName, 60 * 60 * 24);
+        fileUrl = signData?.signedUrl || `/api/finance/receipt?file=${uniqueFileName}`;
+      } else {
+        const { data: pubData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(uniqueFileName);
+        fileUrl = pubData.publicUrl;
+      }
+      storageLocation = 'supabase';
+    } else {
+      // Local development fallback
+      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          {
+            error:
+              'Cloud storage is not configured. On production / Vercel, NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.',
+          },
+          { status: 500 }
+        );
+      }
+
+      if (!fs.existsSync(UPLOAD_DIR)) {
+        fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+      }
+      const filePath = path.join(UPLOAD_DIR, uniqueFileName);
+      fs.writeFileSync(filePath, buffer);
+      fileUrl = `/uploads/${uniqueFileName}`;
+      storageLocation = 'local';
+    }
 
     // 5. Automatic PDF page count extraction
     let detectedPageCount: number | undefined = undefined;
@@ -127,17 +192,23 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Record metadata in database
-    const mediaRecord = db.createMedia({
+    const mediaRecord = await db.createMedia({
       filename: uniqueFileName,
       originalName: file.name,
       url: fileUrl,
-      mimeType: file.type || (category === 'pdf' ? 'application/pdf' : category === 'video' ? 'video/mp4' : 'image/jpeg'),
+      mimeType:
+        file.type ||
+        (category === 'pdf'
+          ? 'application/pdf'
+          : category === 'video'
+          ? 'video/mp4'
+          : 'image/jpeg'),
       size: file.size,
       category,
       section: requestedSection,
       contentId,
       uploadedBy: session.username || 'admin',
-      storageLocation: 'local',
+      storageLocation,
     });
 
     return NextResponse.json({
@@ -149,9 +220,13 @@ export async function POST(req: NextRequest) {
       category,
       pageCount: detectedPageCount,
       media: mediaRecord,
+      storageLocation,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('File upload error:', error);
-    return NextResponse.json({ error: 'File upload processing failed.' }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || 'File upload processing failed.' },
+      { status: 500 }
+    );
   }
 }
