@@ -5,6 +5,8 @@ import { Navbar } from '@/components/navigation/Navbar';
 import { Footer } from '@/components/navigation/Footer';
 import { BreakingTicker } from '@/components/navigation/BreakingTicker';
 import { PwaProvider, InstallAppModal } from '@/components/pwa';
+import { FirebaseAnalytics } from '@/components/analytics/FirebaseAnalytics';
+import { FirebaseAuthProvider } from '@/contexts/FirebaseAuthContext';
 import { db } from '@/lib/db';
 
 const playfair = Playfair_Display({
@@ -101,18 +103,21 @@ export default async function RootLayout({
       className={`${playfair.variable} ${cormorant.variable} ${plusJakarta.variable}`}
     >
       <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
-        <PwaProvider>
-          <div>
-            <BreakingTicker
-              text={settings.breakingTickerText}
-              show={settings.showBreakingTicker}
-            />
-            <Navbar />
-            <div className="relative">{children}</div>
-          </div>
-          <Footer />
-          <InstallAppModal />
-        </PwaProvider>
+        <FirebaseAuthProvider>
+          <FirebaseAnalytics />
+          <PwaProvider>
+            <div>
+              <BreakingTicker
+                text={settings.breakingTickerText}
+                show={settings.showBreakingTicker}
+              />
+              <Navbar />
+              <div className="relative">{children}</div>
+            </div>
+            <Footer />
+            <InstallAppModal />
+          </PwaProvider>
+        </FirebaseAuthProvider>
       </body>
     </html>
   );

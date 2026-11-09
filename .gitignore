@@ -32,3 +32,8 @@ next-env.d.ts
 /data/
 /backups/
 /public/uploads/
+*serviceAccount*.json
+*firebase-admin*.json
+*service-account*.json
+firebase-debug.log*
+firestore-debug.log*

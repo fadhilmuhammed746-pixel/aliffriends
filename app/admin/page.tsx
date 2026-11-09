@@ -5,6 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { FirebaseStatusCard } from '@/components/admin/FirebaseStatusCard';
 import {
   BookOpen,
   Newspaper,
@@ -201,6 +202,9 @@ export default async function AdminDashboardPage() {
               </Link>
             </div>
           </Card>
+
+          {/* Firebase Cloud Services Integration Overview */}
+          <FirebaseStatusCard />
 
           {/* Two-Column Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

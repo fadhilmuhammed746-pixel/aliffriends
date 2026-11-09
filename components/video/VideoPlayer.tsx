@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Play } from 'lucide-react';
+import { trackVideoPlay } from '@/lib/firebase/analytics';
 
 interface VideoPlayerProps {
   videoType: 'youtube' | 'direct';
@@ -35,7 +36,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-forest-950 border border-editorial-border shadow-card group">
       {!isPlaying ? (
-        <div className="relative w-full h-full cursor-pointer" onClick={() => setIsPlaying(true)}>
+        <div
+          className="relative w-full h-full cursor-pointer"
+          onClick={() => {
+            trackVideoPlay(youtubeId || videoUrl || 'video', title);
+            setIsPlaying(true);
+          }}
+        >
           <img
             src={thumbnailUrl}
             alt={title}

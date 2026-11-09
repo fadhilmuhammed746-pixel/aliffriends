@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePwa } from './PwaContext';
 import { Download, Smartphone, Check, Sparkles } from 'lucide-react';
+import { trackAppDownloadClick } from '@/lib/firebase/analytics';
 
 interface DownloadAppButtonProps {
   variant?: 'header' | 'hero' | 'menu' | 'footer' | 'mobile-bar';
@@ -17,12 +18,17 @@ export const DownloadAppButton: React.FC<DownloadAppButtonProps> = ({
 }) => {
   const { openInstallModal, isInstalled } = usePwa();
 
+  const handleAction = () => {
+    trackAppDownloadClick(variant === 'mobile-bar' ? 'header' : variant);
+    openInstallModal();
+  };
+
   // Variant: Desktop Header
   if (variant === 'header') {
     return (
       <button
         type="button"
-        onClick={openInstallModal}
+        onClick={handleAction}
         className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-serif font-bold uppercase tracking-tag transition-all duration-300 border shadow-subtle ${
           isInstalled
             ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
@@ -51,7 +57,7 @@ export const DownloadAppButton: React.FC<DownloadAppButtonProps> = ({
     return (
       <button
         type="button"
-        onClick={openInstallModal}
+        onClick={handleAction}
         className={`inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-serif font-bold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 border shadow-md active:scale-[0.98] ${
           isInstalled
             ? 'bg-white/15 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm'
@@ -80,7 +86,7 @@ export const DownloadAppButton: React.FC<DownloadAppButtonProps> = ({
     return (
       <button
         type="button"
-        onClick={openInstallModal}
+        onClick={handleAction}
         className={`w-full p-3.5 rounded-xl text-left transition-all duration-200 border flex items-center justify-between group ${
           isInstalled
             ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
@@ -135,7 +141,7 @@ export const DownloadAppButton: React.FC<DownloadAppButtonProps> = ({
     return (
       <button
         type="button"
-        onClick={openInstallModal}
+        onClick={handleAction}
         className={`px-4 py-2.5 rounded-xl bg-forest-800 hover:bg-forest-700 border border-forest-700 text-xs font-serif uppercase tracking-wider font-semibold text-white flex items-center gap-2.5 transition-all group shadow-subtle ${className}`}
         aria-label="Install ALIF FRIENDS 12 Web Application"
       >
@@ -159,7 +165,7 @@ export const DownloadAppButton: React.FC<DownloadAppButtonProps> = ({
   return (
     <button
       type="button"
-      onClick={openInstallModal}
+      onClick={handleAction}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-serif font-bold uppercase tracking-wider transition-colors border shadow-xs ${
         isInstalled
           ? 'bg-emerald-50 text-emerald-800 border-emerald-200'

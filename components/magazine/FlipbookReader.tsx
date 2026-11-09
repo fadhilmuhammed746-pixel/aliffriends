@@ -16,6 +16,7 @@ import {
   Layers,
   ArrowLeft,
 } from 'lucide-react';
+import { trackMagazineView } from '@/lib/firebase/analytics';
 
 interface FlipbookReaderProps {
   pdfUrl: string;
@@ -49,6 +50,11 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
+
+  // Track magazine view in Firebase Analytics
+  useEffect(() => {
+    trackMagazineView(editionNumber, title);
+  }, [editionNumber, title]);
 
   // Fullscreen change listener
   useEffect(() => {

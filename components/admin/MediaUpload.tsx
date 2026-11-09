@@ -3,6 +3,13 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import * as tus from 'tus-js-client';
+import { storage as firebaseStorage, isFirebaseConfigured } from '@/lib/firebase/client';
+import {
+  ref as fbRef,
+  uploadBytesResumable,
+  getDownloadURL,
+  type UploadTask,
+} from 'firebase/storage';
 import {
   Upload,
   X,
@@ -80,9 +87,12 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [librarySearch, setLibrarySearch] = useState('');
 
+  const [storageProvider, setStorageProvider] = useState<'auto' | 'firebase' | 'supabase'>('auto');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
   const tusUploadRef = useRef<tus.Upload | null>(null);
+  const fbUploadTaskRef = useRef<UploadTask | null>(null);
 
   // Accept attribute string
   const acceptAttr =
@@ -137,7 +147,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   // Perform Direct Supabase Storage Upload
   // Large files stream directly to Supabase Storage and NEVER pass through Vercel Functions.
   const uploadFileDirect = async (file: File): Promise<string | null> => {
-    // 1. Client-side size check (250 MB limit)
+    // 1. Client-side size check (50 MB limit)
     if (file.size > effectiveLimitMB * 1024 * 1024) {
       throw new Error(`File '${file.name}' exceeds the maximum allowed limit of ${effectiveLimitMB} MB.`);
     }
@@ -149,7 +159,128 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
     setUploadSpeed('');
     setEstimatedTime('');
 
-    // 2. Obtain signed upload authorization from server (only JSON metadata, 0 file bytes)
+    // Pre-calculate PDF page count if applicable
+    let detectedPageCount: number | undefined = undefined;
+    if (file.name.toLowerCase().endsWith('.pdf')) {
+      try {
+        const slice = await file.slice(0, 512 * 1024).text();
+        const countMatch = slice.match(/\/Count\s+(\d+)/);
+        if (countMatch) {
+          detectedPageCount = parseInt(countMatch[1], 10);
+        }
+      } catch {
+        // Non-blocking
+      }
+    }
+
+    const isFinance = section === 'finance' || section === 'receipts';
+    const canUseFirebase = !isFinance && isFirebaseConfigured && Boolean(firebaseStorage);
+    const useFirebase = (storageProvider === 'firebase' || (storageProvider === 'auto' && canUseFirebase)) && canUseFirebase;
+
+    // Direct Firebase Cloud Storage upload pathway
+    if (useFirebase && firebaseStorage) {
+      try {
+        const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || 'bin');
+        const rawBase = file.name.replace(/\.[^/.]+$/, '').toLowerCase().replace(/[^a-z0-9_-]/g, '-').slice(0, 40) || 'asset';
+        const uniqueFileName = `${Date.now()}_${rawBase}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+        const storagePath = `media/${section}/${uniqueFileName}`;
+        const storageRef = fbRef(firebaseStorage, storagePath);
+
+        const uploadMime = getCanonicalMimeType(file.name, file.type);
+        const uploadTask = uploadBytesResumable(storageRef, file, {
+          contentType: uploadMime,
+        });
+        fbUploadTaskRef.current = uploadTask;
+
+        const startTime = Date.now();
+        let lastLoaded = 0;
+        let lastTime = startTime;
+
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              if (snapshot.totalBytes > 0) {
+                const percent = Math.min(99, Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
+                setProgress(percent);
+                setUploadedBytes(snapshot.bytesTransferred);
+                setTotalBytes(snapshot.totalBytes);
+
+                const now = Date.now();
+                const elapsedSec = (now - lastTime) / 1000;
+                if (elapsedSec >= 0.4) {
+                  const bytesPerSec = (snapshot.bytesTransferred - lastLoaded) / elapsedSec;
+                  if (bytesPerSec > 0) {
+                    const speedStr =
+                      bytesPerSec >= 1024 * 1024
+                        ? `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`
+                        : `${Math.round(bytesPerSec / 1024)} KB/s`;
+                    setUploadSpeed(speedStr);
+
+                    const remainingBytes = snapshot.totalBytes - snapshot.bytesTransferred;
+                    const remainingSec = Math.round(remainingBytes / bytesPerSec);
+                    if (remainingSec <= 1) {
+                      setEstimatedTime('Finalizing...');
+                    } else if (remainingSec < 60) {
+                      setEstimatedTime(`${remainingSec}s remaining`);
+                    } else {
+                      const mins = Math.floor(remainingSec / 60);
+                      const secs = remainingSec % 60;
+                      setEstimatedTime(`${mins}m ${secs}s remaining`);
+                    }
+                  }
+                  lastLoaded = snapshot.bytesTransferred;
+                  lastTime = now;
+                }
+              }
+            },
+            (error) => {
+              reject(new Error(`Firebase Storage transfer error: ${error.message}`));
+            },
+            () => {
+              setProgress(100);
+              resolve();
+            }
+          );
+        });
+
+        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+
+        // Record in Supabase PostgreSQL media_assets table
+        const completeRes = await fetch('/api/upload/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: uniqueFileName,
+            originalName: file.name,
+            url: downloadUrl,
+            mimeType: uploadMime,
+            size: file.size,
+            category: type === 'any' ? (ext === '.pdf' ? 'pdf' : 'other') : type,
+            section,
+            storageLocation: 'firebase',
+            pageCount: detectedPageCount,
+          }),
+        });
+
+        if (!completeRes.ok) {
+          const errData = await completeRes.json().catch(() => ({}));
+          throw new Error(errData.error || `Failed to catalog file metadata (${completeRes.status}).`);
+        }
+
+        const completeData = await completeRes.json();
+        return completeData.url;
+      } catch (fbErr: any) {
+        if (fbErr?.message?.includes('cancelled')) {
+          throw fbErr;
+        }
+        console.warn('Firebase Storage upload failed, falling back to Supabase Storage:', fbErr?.message);
+        // Fallback to Supabase below
+      }
+    }
+
+    // 2. Supabase Storage Direct Upload Pathway
+    // Obtain signed upload authorization from server (only JSON metadata, 0 file bytes)
     const signRes = await fetch('/api/upload/sign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -294,9 +425,8 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     }
 
-    // 4. Local fast PDF page-count extraction (non-blocking)
-    let detectedPageCount: number | undefined = undefined;
-    if (category === 'pdf' || file.name.endsWith('.pdf')) {
+    // 4. Local fast PDF page-count extraction fallback (if not already detected)
+    if (!detectedPageCount && (category === 'pdf' || file.name.endsWith('.pdf'))) {
       try {
         const slice = await file.slice(0, 512 * 1024).text();
         const countMatch = slice.match(/\/Count\s+(\d+)/);
@@ -382,6 +512,10 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
 
   // Cancel upload
   const cancelUpload = () => {
+    if (fbUploadTaskRef.current) {
+      fbUploadTaskRef.current.cancel();
+      fbUploadTaskRef.current = null;
+    }
     if (xhrRef.current) {
       xhrRef.current.abort();
       xhrRef.current = null;
@@ -558,13 +692,49 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       {/* Label & Description */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <label className="block font-serif text-xs uppercase tracking-wider font-bold text-forest">
           {label} {required && <span className="text-coral">*</span>}
         </label>
-        <span className="text-[10px] font-mono text-ink-muted">
-          Supported: Up to {effectiveLimitMB} MB • Direct Cloud Upload
-        </span>
+        <div className="flex items-center gap-2">
+          {isFirebaseConfigured && section !== 'finance' && section !== 'receipts' && (
+            <div className="inline-flex rounded-lg border border-editorial-border bg-canvas-warm p-0.5 text-[10px] font-mono">
+              <button
+                type="button"
+                onClick={() => setStorageProvider('auto')}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  storageProvider === 'auto' ? 'bg-forest text-white font-bold' : 'text-ink-muted hover:text-ink'
+                }`}
+                title="Automatically use Firebase Storage with Supabase fallback"
+              >
+                Auto
+              </button>
+              <button
+                type="button"
+                onClick={() => setStorageProvider('firebase')}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  storageProvider === 'firebase' ? 'bg-forest text-white font-bold' : 'text-ink-muted hover:text-ink'
+                }`}
+                title="Direct Firebase Cloud Storage"
+              >
+                Firebase
+              </button>
+              <button
+                type="button"
+                onClick={() => setStorageProvider('supabase')}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  storageProvider === 'supabase' ? 'bg-forest text-white font-bold' : 'text-ink-muted hover:text-ink'
+                }`}
+                title="Direct Supabase Storage"
+              >
+                Supabase
+              </button>
+            </div>
+          )}
+          <span className="text-[10px] font-mono text-ink-muted">
+            Up to {effectiveLimitMB} MB • Direct Cloud
+          </span>
+        </div>
       </div>
 
       {description && <p className="text-[11px] text-ink-muted">{description}</p>}

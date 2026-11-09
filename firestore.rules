@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Auth Helpers
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        request.auth.token.role == 'admin'
+      );
+    }
+    
+    // User Profiles:
+    // Any authenticated user can read profiles.
+    // Users can only create or update their own profile and cannot elevate their role to admin.
+    // Verified Admins have full access.
+    match /userProfiles/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) 
+        && request.resource.data.uid == userId
+        && (!request.resource.data.keys().hasAny(['role']) || request.resource.data.role == 'member' || isAdmin());
+      allow update: if (isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'role']) || isAdmin()))
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // User Preferences: Private to the owner and admin
+    match /userPreferences/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    
+    // User Activity Logs:
+    // Read: Owner or Admin
+    // Write: Owner appending their own activity
+    match /userActivity/{userId}/logs/{logId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) || isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

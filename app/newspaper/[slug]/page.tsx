@@ -17,6 +17,7 @@ import {
   Badge,
   Button,
 } from '@/components/ui';
+import { ArticleAnalyticsTracker } from '@/components/analytics/ArticleAnalyticsTracker';
 
 export const revalidate = 0;
 
@@ -43,6 +44,7 @@ export default async function ArticleDetailPage({
 
   return (
     <article className="py-12 sm:py-16 space-y-10 bg-canvas text-ink">
+      <ArticleAnalyticsTracker id={article.id} title={article.title} category={article.category} />
       <Container size="narrow">
         {/* Back navigation */}
         <div className="mb-6">
