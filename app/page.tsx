@@ -346,8 +346,8 @@ export default async function HomePage() {
                   </Button>
 
                   <a
-                    href={featuredMagazine.pdfUrl}
-                    download
+                    href={`/api/magazines/${featuredMagazine.id}/download`}
+                    download={`${featuredMagazine.title}.pdf`}
                     className="inline-flex items-center justify-center font-serif font-bold uppercase tracking-widest text-xs px-5 py-3 rounded-xl bg-forest-800 hover:bg-forest-700 text-white border border-white/20 transition-all gap-2 shadow-subtle"
                   >
                     <Download className="w-4 h-4 text-coral-light" />

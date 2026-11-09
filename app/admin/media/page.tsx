@@ -24,6 +24,10 @@ import {
   ShieldAlert,
   Calendar,
   Layers,
+  Cloud,
+  Database,
+  CheckCircle2,
+  HardDrive,
 } from 'lucide-react';
 
 interface MediaItemWithUsage {
@@ -36,6 +40,7 @@ interface MediaItemWithUsage {
   category: 'image' | 'video' | 'pdf' | 'other';
   section?: string;
   uploadedBy?: string;
+  storageLocation?: 'supabase' | 'firebase' | 'local';
   createdAt: string;
   isUsed?: boolean;
   usageCount?: number;
@@ -85,6 +90,26 @@ export default function AdminMediaPage() {
     e.preventDefault();
     fetchMedia();
   };
+
+  // Cloud Storage Metrics & Provider identification
+  const getProvider = (m: MediaItemWithUsage): 'firebase' | 'supabase' => {
+    if (
+      m.storageLocation === 'firebase' ||
+      m.url.includes('firebasestorage') ||
+      m.url.includes('storage.googleapis.com')
+    ) {
+      return 'firebase';
+    }
+    return 'supabase';
+  };
+
+  const targetStorageBytes = 1024 * 1024 * 1024; // 1.0 GB Target
+  const totalStorageBytes = mediaList.reduce((acc, m) => acc + (m.size || 0), 0);
+  const firebaseAssets = mediaList.filter((m) => getProvider(m) === 'firebase');
+  const firebaseBytes = firebaseAssets.reduce((acc, m) => acc + (m.size || 0), 0);
+  const supabaseAssets = mediaList.filter((m) => getProvider(m) === 'supabase');
+  const supabaseBytes = supabaseAssets.reduce((acc, m) => acc + (m.size || 0), 0);
+  const percentUsed = Math.min(100, (totalStorageBytes / targetStorageBytes) * 100);
 
   const handleCopy = (url: string, id: string) => {
     const fullUrl = `${window.location.origin}${url}`;
@@ -157,6 +182,111 @@ export default function AdminMediaPage() {
         />
 
         <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
+          {/* Storage Capacity & Multi-Cloud Provider Dashboard */}
+          <div className="bg-white border border-editorial-border rounded-2xl p-5 sm:p-6 shadow-subtle space-y-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-editorial-border">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full bg-forest/10 text-forest tracking-wider">
+                    Cloud Storage Metrics
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-700">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Storage Engines Online
+                  </span>
+                </div>
+                <h3 className="font-serif text-lg font-bold text-forest mt-1">
+                  Repository Capacity & Provider Breakdown
+                </h3>
+                <p className="text-xs text-ink-muted">
+                  Dual-cloud architecture active: Firebase Cloud Storage supports high-capacity assets up to 1 GB; Supabase Storage supports fast direct assets up to 50 MB.
+                </p>
+              </div>
+
+              {/* Total Storage Metric Pill */}
+              <div className="bg-canvas-warm border border-editorial-border rounded-xl px-4 py-2.5 flex items-center gap-4">
+                <div>
+                  <span className="text-[10px] uppercase font-mono tracking-tag text-ink-muted block">
+                    Total Storage Allocated
+                  </span>
+                  <span className="font-mono text-base font-bold text-forest">
+                    {formatBytes(totalStorageBytes)}
+                  </span>
+                  <span className="text-xs text-ink-muted font-mono ml-1">/ 1.0 GB Target</span>
+                </div>
+                <div className="text-right">
+                  <span className="font-mono text-sm font-bold text-coral">
+                    {percentUsed.toFixed(1)}%
+                  </span>
+                  <span className="text-[10px] block font-mono text-ink-muted">Used</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Global Progress Bar */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted">
+                <span>Storage Utilization ({percentUsed.toFixed(2)}% of 1.0 GB target)</span>
+                <span>{formatBytes(Math.max(0, targetStorageBytes - totalStorageBytes))} Free</span>
+              </div>
+              <div className="w-full h-2.5 bg-canvas-warm rounded-full overflow-hidden border border-editorial-border">
+                <div
+                  className="h-full bg-gradient-to-r from-forest via-emerald-600 to-coral transition-all duration-500 rounded-full"
+                  style={{ width: `${Math.max(1, percentUsed)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Multi-Cloud Provider Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              {/* Firebase Cloud Storage Card */}
+              <div className="p-4 rounded-xl border border-amber-200/80 bg-amber-50/40 flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Cloud className="w-4 h-4 text-amber-600" />
+                    <span className="font-serif font-bold text-xs uppercase tracking-wider text-amber-900">
+                      Firebase Cloud Storage
+                    </span>
+                    <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 font-bold">
+                      Up to 1 GB
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-amber-800/80 font-sans">
+                    Archival magazine PDFs, full-length 4K videos, and high-definition event recordings.
+                  </p>
+                  <div className="flex items-center gap-3 pt-2 text-xs font-mono">
+                    <span className="font-bold text-amber-950">{formatBytes(firebaseBytes)}</span>
+                    <span className="text-amber-700/80">•</span>
+                    <span className="text-amber-800">{firebaseAssets.length} file(s) hosted</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Supabase Storage Card */}
+              <div className="p-4 rounded-xl border border-emerald-200/80 bg-emerald-50/40 flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Database className="w-4 h-4 text-emerald-700" />
+                    <span className="font-serif font-bold text-xs uppercase tracking-wider text-emerald-950">
+                      Supabase Storage
+                    </span>
+                    <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-800 font-bold">
+                      Up to 50 MB
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-800/80 font-sans">
+                    Fast direct uploads, editorial articles, newspaper spreads, member portraits, and secure receipts.
+                  </p>
+                  <div className="flex items-center gap-3 pt-2 text-xs font-mono">
+                    <span className="font-bold text-emerald-950">{formatBytes(supabaseBytes)}</span>
+                    <span className="text-emerald-700/80">•</span>
+                    <span className="text-emerald-800">{supabaseAssets.length} file(s) hosted</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Controls: Search, Filters & View Toggle */}
           <div className="bg-white border border-editorial-border rounded-2xl p-4 sm:p-5 shadow-subtle space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -344,6 +474,18 @@ export default function AdminMediaPage() {
                           <span>{formatBytes(m.size)}</span>
                           <span>{formatDate(m.createdAt)}</span>
                         </div>
+                        <div className="flex items-center justify-between text-[9px] font-mono mt-1.5 pt-1.5 border-t border-editorial-border/60">
+                          <span className="text-ink-muted">Engine:</span>
+                          {getProvider(m) === 'firebase' ? (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                              Firebase (1GB)
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                              Supabase (50MB)
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="pt-2 border-t border-editorial-border flex items-center justify-between mt-3">
@@ -397,6 +539,7 @@ export default function AdminMediaPage() {
                       <th className="py-3 px-4">Asset</th>
                       <th className="py-3 px-4">Category</th>
                       <th className="py-3 px-4">Section</th>
+                      <th className="py-3 px-4">Engine</th>
                       <th className="py-3 px-4">Size</th>
                       <th className="py-3 px-4">Uploaded</th>
                       <th className="py-3 px-4">Usage Status</th>
@@ -433,6 +576,19 @@ export default function AdminMediaPage() {
                         </td>
                         <td className="py-3 px-4 capitalize font-sans text-xs text-ink">
                           {m.section || 'General'}
+                        </td>
+                        <td className="py-3 px-4">
+                          {getProvider(m) === 'firebase' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              <Cloud className="w-3 h-3 text-amber-600" />
+                              Firebase (1GB)
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              <Database className="w-3 h-3 text-emerald-600" />
+                              Supabase (50MB)
+                            </span>
+                          )}
                         </td>
                         <td className="py-3 px-4 font-mono text-xs text-ink">
                           {formatBytes(m.size)}

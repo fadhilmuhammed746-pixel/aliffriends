@@ -103,8 +103,8 @@ export default async function MagazineArchivePage() {
                     </Button>
 
                     <a
-                      href={mag.pdfUrl}
-                      download
+                      href={`/api/magazines/${mag.id}/download`}
+                      download={`${mag.title}.pdf`}
                       className="p-2.5 bg-white hover:bg-canvas-warm text-forest border border-editorial-border hover:border-forest rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral"
                       title="Download PDF"
                       aria-label={`Download ${mag.title} PDF`}

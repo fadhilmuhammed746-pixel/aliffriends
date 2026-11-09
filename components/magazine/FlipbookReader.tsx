@@ -19,6 +19,8 @@ import {
 import { trackMagazineView } from '@/lib/firebase/analytics';
 
 interface FlipbookReaderProps {
+  magazineId?: string;
+  downloadUrl?: string;
   pdfUrl: string;
   title: string;
   coverImage?: string;
@@ -29,6 +31,8 @@ interface FlipbookReaderProps {
 }
 
 export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
+  magazineId,
+  downloadUrl,
   pdfUrl,
   title,
   coverImage,
@@ -350,8 +354,8 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
 
           {/* Download Original PDF */}
           <a
-            href={pdfUrl}
-            download
+            href={downloadUrl || (magazineId ? `/api/magazines/${magazineId}/download` : pdfUrl)}
+            download={`${title}.pdf`}
             className="px-3.5 py-1.5 rounded-lg bg-coral hover:bg-coral-dark text-white text-xs font-sans font-semibold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all"
             title="Download Original PDF Publication"
           >

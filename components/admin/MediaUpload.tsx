@@ -104,9 +104,12 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       ? 'application/pdf,.pdf'
       : 'image/*,video/*,application/pdf';
 
-  // Global supported maximum size is 50 MB (Supabase project plan limit)
-  const defaultLimit = 50;
-  const effectiveLimitMB = maxSizeMB || defaultLimit;
+  const isFinance = section === 'finance' || section === 'receipts';
+  const canUseFirebase = !isFinance && isFirebaseConfigured && Boolean(firebaseStorage);
+
+  // Storage limits: Firebase Cloud Storage supports up to 1 GB (1024 MB); Supabase Free tier supports 50 MB
+  const providerLimitMB = (canUseFirebase && storageProvider !== 'supabase') ? 1024 : 50;
+  const effectiveLimitMB = maxSizeMB ? Math.min(maxSizeMB, 1024) : providerLimitMB;
 
   // Canonical MIME type resolver to prevent HTTP 400 from Supabase Storage
   const getCanonicalMimeType = (fileName: string, browserMime?: string, serverCanonical?: string): string => {
@@ -147,9 +150,18 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   // Perform Direct Supabase Storage Upload
   // Large files stream directly to Supabase Storage and NEVER pass through Vercel Functions.
   const uploadFileDirect = async (file: File): Promise<string | null> => {
-    // 1. Client-side size check (50 MB limit)
+    // 1. Client-side size check (Supports up to 1 GB)
+    if (file.size > 1024 * 1024 * 1024) {
+      throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds the maximum cloud storage limit of 1 GB.`);
+    }
+
     if (file.size > effectiveLimitMB * 1024 * 1024) {
-      throw new Error(`File '${file.name}' exceeds the maximum allowed limit of ${effectiveLimitMB} MB.`);
+      if (file.size <= 1024 * 1024 * 1024 && canUseFirebase && storageProvider === 'supabase') {
+        // Automatically route large files (> 50 MB) to Firebase Cloud Storage
+        setSuccessMessage(`File is ${formatBytes(file.size)} (> 50 MB). Automatically routing to Firebase Cloud Storage (up to 1 GB limit).`);
+      } else {
+        throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds the current limit of ${effectiveLimitMB} MB.`);
+      }
     }
 
     setLastSelectedFile(file);
@@ -173,9 +185,9 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     }
 
-    const isFinance = section === 'finance' || section === 'receipts';
-    const canUseFirebase = !isFinance && isFirebaseConfigured && Boolean(firebaseStorage);
-    const useFirebase = (storageProvider === 'firebase' || (storageProvider === 'auto' && canUseFirebase)) && canUseFirebase;
+    const isLargeFile = file.size > 50 * 1024 * 1024;
+    // For files > 50 MB, Firebase is required because Supabase Free tier strictly rejects files > 50 MB
+    const useFirebase = (canUseFirebase && (storageProvider === 'firebase' || storageProvider === 'auto' || isLargeFile));
 
     // Direct Firebase Cloud Storage upload pathway
     if (useFirebase && firebaseStorage) {
@@ -451,6 +463,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         category: category || 'other',
         section,
         pageCount: detectedPageCount,
+        storageLocation: 'supabase',
       }),
     });
 
@@ -732,7 +745,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
             </div>
           )}
           <span className="text-[10px] font-mono text-ink-muted">
-            Up to {effectiveLimitMB} MB • Direct Cloud
+            Up to {effectiveLimitMB >= 1024 ? '1 GB (Firebase)' : `${effectiveLimitMB} MB (Supabase)`} • Direct Cloud
           </span>
         </div>
       </div>
@@ -836,7 +849,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                   or drag and drop your file here
                 </p>
                 <p className="text-[10px] text-ink-muted mt-0.5">
-                  Direct cloud transfer • Large files supported up to {effectiveLimitMB} MB
+                  Direct cloud transfer • {effectiveLimitMB >= 1024 ? 'Up to 1 GB via Firebase Cloud Storage' : 'Up to 50 MB via Supabase Storage'}
                 </p>
               </div>
 

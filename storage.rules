@@ -14,8 +14,8 @@ service firebase.storage {
     }
     
     function isValidSize() {
-      // 50 MB max file size limit
-      return request.resource.size < 50 * 1024 * 1024;
+      // 1 GB (1,073,741,824 bytes) max file size limit for high-definition video, audio & archival magazines
+      return request.resource.size < 1024 * 1024 * 1024;
     }
     
     function isValidContentType() {

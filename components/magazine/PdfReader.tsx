@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 
 interface PdfReaderProps {
+  magazineId?: string;
+  downloadUrl?: string;
   pdfUrl: string;
   title: string;
   coverImage?: string;
@@ -20,6 +22,8 @@ interface PdfReaderProps {
 }
 
 export const PdfReader: React.FC<PdfReaderProps> = ({
+  magazineId,
+  downloadUrl,
   pdfUrl,
   title,
   coverImage,
@@ -110,8 +114,8 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
 
           {/* Download button */}
           <a
-            href={pdfUrl}
-            download
+            href={downloadUrl || (magazineId ? `/api/magazines/${magazineId}/download` : pdfUrl)}
+            download={`${title}.pdf`}
             className="px-3.5 py-1.5 bg-coral hover:bg-coral-dark text-white text-xs font-serif font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-coral"
           >
             <Download className="w-3.5 h-3.5 text-white" />
@@ -168,8 +172,8 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
                   <span>Open In New Window</span>
                 </a>
                 <a
-                  href={pdfUrl}
-                  download
+                  href={downloadUrl || (magazineId ? `/api/magazines/${magazineId}/download` : pdfUrl)}
+                  download={`${title}.pdf`}
                   className="px-5 py-2.5 bg-white hover:bg-canvas text-forest text-xs font-sans rounded-lg transition-colors border border-editorial-border flex items-center gap-2 font-medium"
                 >
                   <Download className="w-4 h-4 text-coral" />

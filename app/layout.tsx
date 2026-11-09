@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Playfair_Display, Cormorant_Garamond, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
@@ -68,6 +69,9 @@ export const metadata: Metadata = {
       { url: '/favicon.png', sizes: '128x128', type: 'image/png' },
     ],
   },
+  verification: {
+    google: 'Fk5_KlvlTAi-SSvdpUIleu6sY-Hn5UaAHXTGDxTg57E',
+  },
   openGraph: {
     title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
     description:
@@ -102,9 +106,14 @@ export default async function RootLayout({
       lang="en"
       className={`${playfair.variable} ${cormorant.variable} ${plusJakarta.variable}`}
     >
+      <head>
+        <meta name="google-site-verification" content="Fk5_KlvlTAi-SSvdpUIleu6sY-Hn5UaAHXTGDxTg57E" />
+      </head>
       <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
         <FirebaseAuthProvider>
-          <FirebaseAnalytics />
+          <Suspense fallback={null}>
+            <FirebaseAnalytics />
+          </Suspense>
           <PwaProvider>
             <div>
               <BreakingTicker

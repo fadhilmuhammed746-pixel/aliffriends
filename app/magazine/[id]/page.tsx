@@ -110,6 +110,8 @@ export default async function MagazineDetailPage({
           </div>
 
           <FlipbookReader
+            magazineId={magazine.id}
+            downloadUrl={`/api/magazines/${magazine.id}/download`}
             pdfUrl={magazine.pdfUrl}
             title={magazine.title}
             coverImage={magazine.coverImage}
