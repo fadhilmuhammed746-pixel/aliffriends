@@ -6,6 +6,7 @@ import { Navbar } from '@/components/navigation/Navbar';
 import { Footer } from '@/components/navigation/Footer';
 import { BreakingTicker } from '@/components/navigation/BreakingTicker';
 import { PwaProvider, InstallAppModal } from '@/components/pwa';
+import { SplashScreen } from '@/components/splash';
 import { FirebaseAnalytics } from '@/components/analytics/FirebaseAnalytics';
 import { FirebaseAuthProvider } from '@/contexts/FirebaseAuthContext';
 import { db } from '@/lib/db';
@@ -110,6 +111,7 @@ export default async function RootLayout({
         <meta name="google-site-verification" content="Fk5_KlvlTAi-SSvdpUIleu6sY-Hn5UaAHXTGDxTg57E" />
       </head>
       <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
+        <SplashScreen />
         <FirebaseAuthProvider>
           <Suspense fallback={null}>
             <FirebaseAnalytics />
