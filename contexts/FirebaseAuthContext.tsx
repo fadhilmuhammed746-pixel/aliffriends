@@ -152,3 +152,4 @@ export const useFirebaseAuth = (): FirebaseAuthContextValue => {
   }
   return context;
 };
+

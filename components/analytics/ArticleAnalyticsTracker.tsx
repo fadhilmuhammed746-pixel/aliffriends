@@ -16,3 +16,4 @@ export function ArticleAnalyticsTracker({ id, title, category }: ArticleAnalytic
 
   return null;
 }
+

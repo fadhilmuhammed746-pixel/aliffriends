@@ -190,3 +190,4 @@ export async function getUserActivities(uid: string, count: number = 10): Promis
     return [];
   }
 }
+
