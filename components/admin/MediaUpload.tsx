@@ -107,9 +107,9 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   const isFinance = section === 'finance' || section === 'receipts';
   const canUseFirebase = !isFinance && isFirebaseConfigured && Boolean(firebaseStorage);
 
-  // Storage limits: Firebase Cloud Storage supports up to 1 GB (1024 MB); Supabase Free tier supports 50 MB
-  const providerLimitMB = (canUseFirebase && storageProvider !== 'supabase') ? 1024 : 50;
-  const effectiveLimitMB = maxSizeMB ? Math.min(maxSizeMB, 1024) : providerLimitMB;
+  // Maximum allowed individual file upload limit is 1 GB (1,073,741,824 bytes)
+  const MAX_LIMIT_MB = 1024; // 1 GB
+  const effectiveLimitMB = maxSizeMB ? Math.min(maxSizeMB, MAX_LIMIT_MB) : MAX_LIMIT_MB;
 
   // Canonical MIME type resolver to prevent HTTP 400 from Supabase Storage
   const getCanonicalMimeType = (fileName: string, browserMime?: string, serverCanonical?: string): string => {
@@ -150,18 +150,21 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   // Perform Direct Supabase Storage Upload
   // Large files stream directly to Supabase Storage and NEVER pass through Vercel Functions.
   const uploadFileDirect = async (file: File): Promise<string | null> => {
-    // 1. Client-side size check (Supports up to 1 GB)
+    // 1. Client-side absolute size check (Supports up to 1 GB)
     if (file.size > 1024 * 1024 * 1024) {
-      throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds the maximum cloud storage limit of 1 GB.`);
+      throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds the maximum individual cloud upload limit of 1 GB (1,073,741,824 bytes).`);
     }
 
-    if (file.size > effectiveLimitMB * 1024 * 1024) {
-      if (file.size <= 1024 * 1024 * 1024 && canUseFirebase && storageProvider === 'supabase') {
-        // Automatically route large files (> 50 MB) to Firebase Cloud Storage
-        setSuccessMessage(`File is ${formatBytes(file.size)} (> 50 MB). Automatically routing to Firebase Cloud Storage (up to 1 GB limit).`);
-      } else {
-        throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds the current limit of ${effectiveLimitMB} MB.`);
+    const isLargeFile = file.size > 50 * 1024 * 1024;
+
+    // For files > 50 MB, Firebase Cloud Storage is required because Supabase Free tier strictly rejects files > 50 MB
+    if (isLargeFile) {
+      if (!canUseFirebase) {
+        throw new Error(
+          `File '${file.name}' (${formatBytes(file.size)}) requires Firebase Cloud Storage for uploads exceeding 50 MB. To upload files up to 1 GB, please configure your Firebase Storage environment variables in .env.local or Vercel Project Settings (NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_PROJECT_ID, NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, NEXT_PUBLIC_FIREBASE_APP_ID).`
+        );
       }
+      setSuccessMessage(`Large file detected (${formatBytes(file.size)}). Utilizing Firebase Cloud Storage for direct 1 GB transfer.`);
     }
 
     setLastSelectedFile(file);
@@ -185,7 +188,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       }
     }
 
-    const isLargeFile = file.size > 50 * 1024 * 1024;
     // For files > 50 MB, Firebase is required because Supabase Free tier strictly rejects files > 50 MB
     const useFirebase = (canUseFirebase && (storageProvider === 'firebase' || storageProvider === 'auto' || isLargeFile));
 
@@ -286,9 +288,17 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         if (fbErr?.message?.includes('cancelled')) {
           throw fbErr;
         }
-        console.warn('Firebase Storage upload failed, falling back to Supabase Storage:', fbErr?.message);
-        // Fallback to Supabase below
+        if (isLargeFile) {
+          throw new Error(`Firebase Cloud Storage upload failed: ${fbErr?.message || 'Transfer error'}. Large files (> 50 MB) cannot be routed to Supabase Free Tier.`);
+        }
+        console.warn('Firebase Storage upload failed for small file, falling back to Supabase Storage:', fbErr?.message);
+        // Fallback to Supabase below only for small files <= 50 MB
       }
+    }
+
+    // Guard against large files entering the Supabase pathway
+    if (file.size > 50 * 1024 * 1024) {
+      throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds Supabase Free plan's 50 MB limit. Please enable Firebase Cloud Storage to upload files up to 1 GB.`);
     }
 
     // 2. Supabase Storage Direct Upload Pathway
@@ -745,7 +755,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
             </div>
           )}
           <span className="text-[10px] font-mono text-ink-muted">
-            Up to {effectiveLimitMB >= 1024 ? '1 GB (Firebase)' : `${effectiveLimitMB} MB (Supabase)`} • Direct Cloud
+            Supported: Up to 1 GB per file
           </span>
         </div>
       </div>
@@ -849,7 +859,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                   or drag and drop your file here
                 </p>
                 <p className="text-[10px] text-ink-muted mt-0.5">
-                  Direct cloud transfer • {effectiveLimitMB >= 1024 ? 'Up to 1 GB via Firebase Cloud Storage' : 'Up to 50 MB via Supabase Storage'}
+                  Direct cloud transfer • Supported: Up to 1 GB per file (Firebase Cloud Storage)
                 </p>
               </div>
 
