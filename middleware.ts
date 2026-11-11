@@ -1,11 +1,7 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { type NextRequest } from 'next/server';
 import { updateSession } from '@/utils/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
-  // Pass API routes directly without Supabase SSR session interception
-  if (request.nextUrl.pathname.startsWith('/api')) {
-    return NextResponse.next();
-  }
   return await updateSession(request);
 }
 

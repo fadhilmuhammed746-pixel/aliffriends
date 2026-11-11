@@ -28,7 +28,8 @@
 *.tsbuildinfo
 next-env.d.ts
 
-# Security & Private credentials
+# Security & Local Database (Private content & credentials)
+/data/
 /backups/
 /public/uploads/
 *serviceAccount*.json

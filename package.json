@@ -7,8 +7,7 @@
     "dev:3000": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 8080",
-    "lint": "next lint",
-    "migrate:firebase": "node scripts/migrate_to_firestore.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

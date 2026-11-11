@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import fs from 'fs';
 import crypto from 'crypto';
 import { getAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { getAdminStorage } from '@/lib/firebase/admin';
+import { getSupabaseAdminClient } from '@/lib/supabase';
 
 // Security: Disallowed dangerous executable extensions
 const DISALLOWED_EXTENSIONS = new Set([
@@ -43,7 +42,8 @@ export async function POST(req: NextRequest) {
     // If client sends JSON metadata, recommend or route to direct upload
     if (contentType.includes('application/json')) {
       return NextResponse.json({
-        message: 'Direct Firebase Cloud Storage uploads are supported up to 1 GB via client SDK.',
+        message: 'For large files, please use /api/upload/sign to obtain a direct Supabase signed upload URL.',
+        signEndpoint: '/api/upload/sign',
         completeEndpoint: '/api/upload/complete',
       });
     }
@@ -80,59 +80,42 @@ export async function POST(req: NextRequest) {
     const randomHash = crypto.randomBytes(4).toString('hex');
     const uniqueFileName = `${Date.now()}_${safeBaseName}_${randomHash}${ext}`;
 
+    const supabase = getSupabaseAdminClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Cloud storage is not configured. Missing NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY.' },
+        { status: 500 }
+      );
+    }
+
     const isFinance = requestedSection === 'finance' || requestedSection === 'receipts';
+    const bucketName = isFinance ? 'af12-finance-receipts' : 'af12-media';
+
     const mimeType =
       file.type ||
       (category === 'pdf' ? 'application/pdf' : category === 'video' ? 'video/mp4' : 'image/jpeg');
 
-    const adminStorage = getAdminStorage();
-    let fileUrl = '';
-    let storageLocation: 'firebase' | 'local' = 'local';
+    const { error: uploadErr } = await supabase.storage
+      .from(bucketName)
+      .upload(uniqueFileName, buffer, {
+        contentType: mimeType,
+        upsert: false,
+      });
 
-    if (adminStorage) {
-      try {
-        const bucket = adminStorage.bucket();
-        const storagePath = isFinance ? `finance-receipts/${uniqueFileName}` : `media/${uniqueFileName}`;
-        const fileRef = bucket.file(storagePath);
-        await fileRef.save(buffer, {
-          metadata: {
-            contentType: mimeType,
-          },
-        });
-
-        if (isFinance) {
-          const [signedUrl] = await fileRef.getSignedUrl({
-            action: 'read',
-            expires: Date.now() + 24 * 60 * 60 * 1000,
-          });
-          fileUrl = signedUrl;
-        } else {
-          try {
-            await fileRef.makePublic();
-            fileUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
-          } catch {
-            const [signedUrl] = await fileRef.getSignedUrl({
-              action: 'read',
-              expires: Date.now() + 365 * 24 * 60 * 60 * 1000,
-            });
-            fileUrl = signedUrl;
-          }
-        }
-        storageLocation = 'firebase';
-      } catch (uploadErr) {
-        console.warn('Firebase Admin Storage upload notice, using local storage fallback:', uploadErr);
-      }
+    if (uploadErr) {
+      console.error('Supabase storage upload error:', uploadErr);
+      throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
     }
 
-    if (!fileUrl) {
-      // Local storage fallback
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      fs.writeFileSync(path.join(uploadDir, uniqueFileName), buffer);
-      fileUrl = `/uploads/${uniqueFileName}`;
-      storageLocation = 'local';
+    let fileUrl = '';
+    if (isFinance) {
+      const { data: signData } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(uniqueFileName, 60 * 60 * 24);
+      fileUrl = signData?.signedUrl || `/api/finance/receipt?file=${uniqueFileName}`;
+    } else {
+      const { data: pubData } = supabase.storage.from(bucketName).getPublicUrl(uniqueFileName);
+      fileUrl = pubData.publicUrl;
     }
 
     const mediaRecord = await db.createMedia({
@@ -145,14 +128,14 @@ export async function POST(req: NextRequest) {
       section: requestedSection,
       contentId,
       uploadedBy: session.username || 'admin',
-      storageLocation,
+      storageLocation: 'supabase',
     });
 
     return NextResponse.json({
       success: true,
       url: fileUrl,
       media: mediaRecord,
-      message: 'File uploaded and cataloged in Firebase Cloud Storage.',
+      message: 'File uploaded and cataloged in persistent cloud storage.',
     });
   } catch (error: any) {
     console.error('Upload processing error:', error);

@@ -50,7 +50,7 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({
 
         {/* Date and Quick Link */}
         <div className="hidden md:flex items-center gap-3 text-[11px] text-canvas-muted flex-shrink-0">
-          <span suppressHydrationWarning>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           <span className="text-forest-700">•</span>
           <Link
             href="/magazine"
