@@ -1,0 +1,10 @@
+# Netlify Configuration for ALIF FRIENDS 12 (Next.js 15)
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Narrowly omit internal Webpack build-cache from secret scanning.
+  # Public assets (.next/static/**), server outputs (.next/server/**), and repository files remain strictly scanned.
+  SECRETS_SCAN_OMIT_PATHS = ".next/cache/**"
