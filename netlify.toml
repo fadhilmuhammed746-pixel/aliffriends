@@ -8,3 +8,4 @@
   # Narrowly omit internal Webpack build-cache from secret scanning.
   # Public assets (.next/static/**), server outputs (.next/server/**), and repository files remain strictly scanned.
   SECRETS_SCAN_OMIT_PATHS = ".next/cache/**"
+

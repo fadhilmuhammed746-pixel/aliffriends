@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { trackArticleView } from '@/lib/firebase/analytics';
+import { trackArticleView } from '@/lib/analytics';
 
 interface ArticleAnalyticsTrackerProps {
   id: string;

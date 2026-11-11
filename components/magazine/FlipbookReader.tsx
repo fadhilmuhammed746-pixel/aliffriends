@@ -16,7 +16,7 @@ import {
   Layers,
   ArrowLeft,
 } from 'lucide-react';
-import { trackMagazineView } from '@/lib/firebase/analytics';
+import { trackMagazineView } from '@/lib/analytics';
 
 interface FlipbookReaderProps {
   magazineId?: string;
@@ -55,7 +55,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
   const [zoom, setZoom] = useState(100);
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
 
-  // Track magazine view in Firebase Analytics
+  // Track magazine view
   useEffect(() => {
     trackMagazineView(editionNumber, title);
   }, [editionNumber, title]);

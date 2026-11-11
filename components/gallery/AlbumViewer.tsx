@@ -5,7 +5,7 @@ import { GalleryAlbum } from '@/lib/types';
 import { Lightbox } from './Lightbox';
 import { Play, Maximize2, Video, FileText, Download } from 'lucide-react';
 import { Card, Button } from '@/components/ui';
-import { trackGalleryView } from '@/lib/firebase/analytics';
+import { trackGalleryView } from '@/lib/analytics';
 
 export const AlbumViewer: React.FC<{ album: GalleryAlbum }> = ({ album }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);

@@ -3,7 +3,7 @@
 import React from 'react';
 import { usePwa } from './PwaContext';
 import { Download, Smartphone, Check, Sparkles } from 'lucide-react';
-import { trackAppDownloadClick } from '@/lib/firebase/analytics';
+import { trackAppDownloadClick } from '@/lib/analytics';
 
 interface DownloadAppButtonProps {
   variant?: 'header' | 'hero' | 'menu' | 'footer' | 'mobile-bar';

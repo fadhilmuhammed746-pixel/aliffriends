@@ -24,7 +24,7 @@ export async function GET(
     const pdfUrl = magazine.pdfUrl;
 
     if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
-      // Remote PDF from Supabase Storage, Firebase Storage, or CDN
+      // Remote PDF from Supabase Storage or CDN
       const response = await fetch(pdfUrl, {
         headers: {
           'Accept': 'application/pdf,*/*',

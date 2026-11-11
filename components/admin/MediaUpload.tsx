@@ -3,13 +3,6 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import * as tus from 'tus-js-client';
-import { storage as firebaseStorage, isFirebaseConfigured } from '@/lib/firebase/client';
-import {
-  ref as fbRef,
-  uploadBytesResumable,
-  getDownloadURL,
-  type UploadTask,
-} from 'firebase/storage';
 import {
   Upload,
   X,
@@ -87,12 +80,9 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [librarySearch, setLibrarySearch] = useState('');
 
-  const [storageProvider, setStorageProvider] = useState<'auto' | 'firebase' | 'supabase'>('auto');
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
   const tusUploadRef = useRef<tus.Upload | null>(null);
-  const fbUploadTaskRef = useRef<UploadTask | null>(null);
 
   // Accept attribute string
   const acceptAttr =
@@ -105,10 +95,9 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       : 'image/*,video/*,application/pdf';
 
   const isFinance = section === 'finance' || section === 'receipts';
-  const canUseFirebase = !isFinance && isFirebaseConfigured && Boolean(firebaseStorage);
 
-  // Maximum allowed individual file upload limit is 1 GB (1,073,741,824 bytes)
-  const MAX_LIMIT_MB = 1024; // 1 GB
+  // Configured Supabase storage limit (50 MB on Free Tier; up to project setting)
+  const MAX_LIMIT_MB = 50;
   const effectiveLimitMB = maxSizeMB ? Math.min(maxSizeMB, MAX_LIMIT_MB) : MAX_LIMIT_MB;
 
   // Canonical MIME type resolver to prevent HTTP 400 from Supabase Storage
@@ -148,23 +137,13 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   };
 
   // Perform Direct Supabase Storage Upload
-  // Large files stream directly to Supabase Storage and NEVER pass through Vercel Functions.
+  // Files stream directly to Supabase Storage and NEVER pass through Vercel/Netlify Functions.
   const uploadFileDirect = async (file: File): Promise<string | null> => {
-    // 1. Client-side absolute size check (Supports up to 1 GB)
-    if (file.size > 1024 * 1024 * 1024) {
-      throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds the maximum individual cloud upload limit of 1 GB (1,073,741,824 bytes).`);
-    }
-
-    const isLargeFile = file.size > 50 * 1024 * 1024;
-
-    // For files > 50 MB, Firebase Cloud Storage is required because Supabase Free tier strictly rejects files > 50 MB
-    if (isLargeFile) {
-      if (!canUseFirebase) {
-        throw new Error(
-          `File '${file.name}' (${formatBytes(file.size)}) requires Firebase Cloud Storage for uploads exceeding 50 MB. To upload files up to 1 GB, please configure your Firebase Storage environment variables in .env.local or Vercel Project Settings (NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_PROJECT_ID, NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, NEXT_PUBLIC_FIREBASE_APP_ID).`
-        );
-      }
-      setSuccessMessage(`Large file detected (${formatBytes(file.size)}). Utilizing Firebase Cloud Storage for direct 1 GB transfer.`);
+    // 1. Client-side size check (Supabase Free tier allows up to 50 MB per file)
+    if (file.size > 50 * 1024 * 1024) {
+      throw new Error(
+        `File '${file.name}' (${formatBytes(file.size)}) exceeds the Supabase Storage limit of 50 MB per file. Please select a file within 50 MB or configure your Supabase bucket limit.`
+      );
     }
 
     setLastSelectedFile(file);
@@ -186,119 +165,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       } catch {
         // Non-blocking
       }
-    }
-
-    // For files > 50 MB, Firebase is required because Supabase Free tier strictly rejects files > 50 MB
-    const useFirebase = (canUseFirebase && (storageProvider === 'firebase' || storageProvider === 'auto' || isLargeFile));
-
-    // Direct Firebase Cloud Storage upload pathway
-    if (useFirebase && firebaseStorage) {
-      try {
-        const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || 'bin');
-        const rawBase = file.name.replace(/\.[^/.]+$/, '').toLowerCase().replace(/[^a-z0-9_-]/g, '-').slice(0, 40) || 'asset';
-        const uniqueFileName = `${Date.now()}_${rawBase}_${Math.random().toString(36).substring(2, 8)}${ext}`;
-        const storagePath = `media/${section}/${uniqueFileName}`;
-        const storageRef = fbRef(firebaseStorage, storagePath);
-
-        const uploadMime = getCanonicalMimeType(file.name, file.type);
-        const uploadTask = uploadBytesResumable(storageRef, file, {
-          contentType: uploadMime,
-        });
-        fbUploadTaskRef.current = uploadTask;
-
-        const startTime = Date.now();
-        let lastLoaded = 0;
-        let lastTime = startTime;
-
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              if (snapshot.totalBytes > 0) {
-                const percent = Math.min(99, Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
-                setProgress(percent);
-                setUploadedBytes(snapshot.bytesTransferred);
-                setTotalBytes(snapshot.totalBytes);
-
-                const now = Date.now();
-                const elapsedSec = (now - lastTime) / 1000;
-                if (elapsedSec >= 0.4) {
-                  const bytesPerSec = (snapshot.bytesTransferred - lastLoaded) / elapsedSec;
-                  if (bytesPerSec > 0) {
-                    const speedStr =
-                      bytesPerSec >= 1024 * 1024
-                        ? `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`
-                        : `${Math.round(bytesPerSec / 1024)} KB/s`;
-                    setUploadSpeed(speedStr);
-
-                    const remainingBytes = snapshot.totalBytes - snapshot.bytesTransferred;
-                    const remainingSec = Math.round(remainingBytes / bytesPerSec);
-                    if (remainingSec <= 1) {
-                      setEstimatedTime('Finalizing...');
-                    } else if (remainingSec < 60) {
-                      setEstimatedTime(`${remainingSec}s remaining`);
-                    } else {
-                      const mins = Math.floor(remainingSec / 60);
-                      const secs = remainingSec % 60;
-                      setEstimatedTime(`${mins}m ${secs}s remaining`);
-                    }
-                  }
-                  lastLoaded = snapshot.bytesTransferred;
-                  lastTime = now;
-                }
-              }
-            },
-            (error) => {
-              reject(new Error(`Firebase Storage transfer error: ${error.message}`));
-            },
-            () => {
-              setProgress(100);
-              resolve();
-            }
-          );
-        });
-
-        const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-
-        // Record in Supabase PostgreSQL media_assets table
-        const completeRes = await fetch('/api/upload/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: uniqueFileName,
-            originalName: file.name,
-            url: downloadUrl,
-            mimeType: uploadMime,
-            size: file.size,
-            category: type === 'any' ? (ext === '.pdf' ? 'pdf' : 'other') : type,
-            section,
-            storageLocation: 'firebase',
-            pageCount: detectedPageCount,
-          }),
-        });
-
-        if (!completeRes.ok) {
-          const errData = await completeRes.json().catch(() => ({}));
-          throw new Error(errData.error || `Failed to catalog file metadata (${completeRes.status}).`);
-        }
-
-        const completeData = await completeRes.json();
-        return completeData.url;
-      } catch (fbErr: any) {
-        if (fbErr?.message?.includes('cancelled')) {
-          throw fbErr;
-        }
-        if (isLargeFile) {
-          throw new Error(`Firebase Cloud Storage upload failed: ${fbErr?.message || 'Transfer error'}. Large files (> 50 MB) cannot be routed to Supabase Free Tier.`);
-        }
-        console.warn('Firebase Storage upload failed for small file, falling back to Supabase Storage:', fbErr?.message);
-        // Fallback to Supabase below only for small files <= 50 MB
-      }
-    }
-
-    // Guard against large files entering the Supabase pathway
-    if (file.size > 50 * 1024 * 1024) {
-      throw new Error(`File '${file.name}' (${formatBytes(file.size)}) exceeds Supabase Free plan's 50 MB limit. Please enable Firebase Cloud Storage to upload files up to 1 GB.`);
     }
 
     // 2. Supabase Storage Direct Upload Pathway
@@ -535,10 +401,6 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
 
   // Cancel upload
   const cancelUpload = () => {
-    if (fbUploadTaskRef.current) {
-      fbUploadTaskRef.current.cancel();
-      fbUploadTaskRef.current = null;
-    }
     if (xhrRef.current) {
       xhrRef.current.abort();
       xhrRef.current = null;
@@ -720,42 +582,8 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
           {label} {required && <span className="text-coral">*</span>}
         </label>
         <div className="flex items-center gap-2">
-          {isFirebaseConfigured && section !== 'finance' && section !== 'receipts' && (
-            <div className="inline-flex rounded-lg border border-editorial-border bg-canvas-warm p-0.5 text-[10px] font-mono">
-              <button
-                type="button"
-                onClick={() => setStorageProvider('auto')}
-                className={`px-2 py-0.5 rounded transition-colors ${
-                  storageProvider === 'auto' ? 'bg-forest text-white font-bold' : 'text-ink-muted hover:text-ink'
-                }`}
-                title="Automatically use Firebase Storage with Supabase fallback"
-              >
-                Auto
-              </button>
-              <button
-                type="button"
-                onClick={() => setStorageProvider('firebase')}
-                className={`px-2 py-0.5 rounded transition-colors ${
-                  storageProvider === 'firebase' ? 'bg-forest text-white font-bold' : 'text-ink-muted hover:text-ink'
-                }`}
-                title="Direct Firebase Cloud Storage"
-              >
-                Firebase
-              </button>
-              <button
-                type="button"
-                onClick={() => setStorageProvider('supabase')}
-                className={`px-2 py-0.5 rounded transition-colors ${
-                  storageProvider === 'supabase' ? 'bg-forest text-white font-bold' : 'text-ink-muted hover:text-ink'
-                }`}
-                title="Direct Supabase Storage"
-              >
-                Supabase
-              </button>
-            </div>
-          )}
           <span className="text-[10px] font-mono text-ink-muted">
-            Supported: Up to 1 GB per file
+            Direct Supabase Storage • Up to 50 MB
           </span>
         </div>
       </div>
@@ -859,7 +687,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                   or drag and drop your file here
                 </p>
                 <p className="text-[10px] text-ink-muted mt-0.5">
-                  Direct cloud transfer • Supported: Up to 1 GB per file (Firebase Cloud Storage)
+                  Direct cloud transfer • Supported: Up to 50 MB per file (Supabase Cloud Storage)
                 </p>
               </div>
 

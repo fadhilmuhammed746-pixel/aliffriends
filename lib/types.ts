@@ -205,7 +205,7 @@ export interface MediaAsset {
   section?: string;
   contentId?: string;
   uploadedBy?: string;
-  storageLocation?: 'local' | 'supabase' | 'firebase';
+  storageLocation?: 'local' | 'supabase';
   createdAt: string;
 }
 

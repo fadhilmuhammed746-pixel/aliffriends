@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { trackPageView } from '@/lib/firebase/analytics';
+import { trackPageView } from '@/lib/analytics';
 
 function AnalyticsTracker() {
   const pathname = usePathname();
@@ -32,7 +32,7 @@ function AnalyticsTracker() {
   return null;
 }
 
-export function FirebaseAnalytics() {
+export function PageAnalytics() {
   return (
     <Suspense fallback={null}>
       <AnalyticsTracker />

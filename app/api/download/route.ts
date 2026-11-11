@@ -12,11 +12,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Missing url parameter.' }, { status: 400 });
     }
 
-    // Security check: Only allow downloading from Supabase storage, Firebase storage, or same-origin
+    // Security check: Only allow downloading from Supabase storage or same-origin
     const allowedHosts = [
       'rdcztjtcticvybauejhk.supabase.co',
-      'firebasestorage.googleapis.com',
-      'storage.googleapis.com',
+      'supabase.co',
     ];
 
     let parsedUrl: URL;

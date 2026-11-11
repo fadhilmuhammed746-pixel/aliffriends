@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       section: section || 'general',
       contentId: contentId || undefined,
       uploadedBy: session.username || 'admin',
-      storageLocation: (body.storageLocation === 'firebase' ? 'firebase' : 'supabase') as 'supabase' | 'firebase',
+      storageLocation: 'supabase',
     });
 
     return NextResponse.json({

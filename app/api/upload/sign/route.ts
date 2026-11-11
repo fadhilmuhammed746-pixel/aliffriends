@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     if (fileSize && typeof fileSize === 'number' && fileSize > MAX_UPLOAD_SIZE) {
       return NextResponse.json(
         {
-          error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)} MB) exceeds Supabase Storage limit of 50 MB. For large files up to 1 GB, use Firebase Cloud Storage.`,
+          error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)} MB) exceeds the Supabase Storage limit of 50 MB per file. Please select a file within 50 MB.`,
         },
         { status: 400 }
       );

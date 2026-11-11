@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Play } from 'lucide-react';
-import { trackVideoPlay } from '@/lib/firebase/analytics';
+import { trackVideoPlay } from '@/lib/analytics';
 
 interface VideoPlayerProps {
   videoType: 'youtube' | 'direct';
