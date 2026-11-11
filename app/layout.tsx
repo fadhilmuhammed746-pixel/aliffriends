@@ -105,12 +105,16 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${playfair.variable} ${cormorant.variable} ${plusJakarta.variable}`}
     >
       <head>
         <meta name="google-site-verification" content="Fk5_KlvlTAi-SSvdpUIleu6sY-Hn5UaAHXTGDxTg57E" />
       </head>
-      <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
+      <body
+        suppressHydrationWarning
+        className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white"
+      >
         <SplashScreen />
         <FirebaseAuthProvider>
           <Suspense fallback={null}>

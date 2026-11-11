@@ -195,7 +195,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Hairline & Copyright */}
         <div className="mt-14 pt-6 border-t border-forest-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-canvas-muted">
           <div className="flex items-center gap-2 font-serif text-[11px] tracking-wider">
-            <span>&copy; {currentYear} ALIF FRIENDS 12.</span>
+            <span suppressHydrationWarning>&copy; {currentYear} ALIF FRIENDS 12.</span>
             <span>All rights reserved.</span>
           </div>
 
