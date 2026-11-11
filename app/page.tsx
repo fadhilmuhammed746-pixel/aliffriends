@@ -89,7 +89,7 @@ export default async function HomePage() {
               <div className="hidden sm:block italic font-cormorant text-sm text-canvas-muted">
                 The Official Digital Publication & Archival Record
               </div>
-              <div className="text-right text-[11px] font-mono text-canvas-muted">
+              <div suppressHydrationWarning className="text-right text-[11px] font-mono text-canvas-muted">
                 {new Date().toLocaleDateString('en-US', {
                   month: 'long',
                   year: 'numeric',

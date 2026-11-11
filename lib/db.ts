@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import defaultSeedData from '../data/af12_database.json';
 import {
   isFirestoreActive,
   getFirestoreSettings,
@@ -85,80 +86,51 @@ const DB_FILE = path.join(DATA_DIR, 'af12_database.json');
 let memoryCache: DatabaseSchema | null = null;
 
 function getInitialSeedData(): DatabaseSchema {
-  const salt = bcrypt.genSaltSync(10);
-  const adminPasswordHash = bcrypt.hashSync('alif12', salt);
-
-  return {
-    adminUsers: [
-      {
-        id: 'admin_001',
-        username: 'admin',
-        passwordHash: adminPasswordHash,
-        role: 'superadmin',
-        createdAt: '2026-03-01T00:00:00Z',
-      },
-    ],
-    settings: {
-      siteName: 'ALIF FRIENDS 12',
-      tagline: 'A Class. A Generation. A Thousand Memories.',
-      heroHeading: 'A Generation of Fellowship, Excellence & Creative Vision',
-      heroSubheading:
-        'The definitive digital publication and cinematic media archive of Alif Friends 12. Curating stories, magazine editions, photographic heritage, and shared milestones.',
-      heroBadge: 'Official Class Media Publication',
-      heroImage:
-        'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2000&q=80',
-      aboutStory:
-        'Alif Friends 12 represents more than an academic cohort; it is a collective bond forged through shared ambition, creative curiosity, and lasting brotherhood.',
-      aboutMission:
-        'To document, celebrate, and perpetuate the creative, intellectual, and personal milestones of our class through world-class editorial journalism and cinematic archives.',
-      aboutVision:
-        'To serve as an enduring beacon of camaraderie and mutual achievement that inspires future generations to cherish unity and strive for collective greatness.',
-      founderQuote:
-        '"We entered these halls as disparate individuals with personal aspirations; we graduate as a unified generation whose shared memories will illuminate every path we take."',
-      officialYoutube: 'https://www.youtube.com/@AlifCreations12',
-      officialInstagram: 'https://www.instagram.com/_alif_friends_/',
-      emailPrimary: 'aliffreinds12@gmail.com',
-      emailSecondary: 'aliffriends12@gmail.com',
-      membersSectionEnabled: true,
-      breakingTickerText:
-        'ALIF FRIENDS 12: Grand Reunion & Annual Magazine Edition XII is now officially live • Watch the new documentary on YouTube @AlifCreations12',
-      showBreakingTicker: true,
-      updatedAt: '2026-03-01T00:00:00Z',
-    },
-    magazines: [],
-    articles: [],
-    programs: [],
-    videos: [],
-    albums: [],
-    members: [],
-    achievements: [],
-    announcements: [],
-    media: [],
-    messages: [],
-    finance: {
-      openingBalance: 1100,
-      currency: 'INR',
-      currencySymbol: '₹',
-      currentBalance: 1100,
-      totalIncome: 0,
-      totalExpenses: 0,
-      setupDate: '2026-03-01T00:00:00Z',
-      lastUpdated: '2026-03-01T00:00:00Z',
-      transactions: [],
-      auditLogs: [],
-    },
-  };
+  return JSON.parse(JSON.stringify(defaultSeedData)) as unknown as DatabaseSchema;
 }
 
 function getLocalDatabase(): DatabaseSchema {
   if (memoryCache) return memoryCache;
 
+  // In serverless / Vercel, check /tmp/af12_database.json first if mutated
+  if (isServerless) {
+    try {
+      const tmpPath = '/tmp/af12_database.json';
+      if (fs.existsSync(tmpPath)) {
+        const raw = fs.readFileSync(tmpPath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.magazines)) {
+          memoryCache = parsed;
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   try {
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
-      memoryCache = parsed;
-      return parsed;
+      if (parsed && typeof parsed === 'object') {
+        const seed = defaultSeedData as unknown as DatabaseSchema;
+        parsed.settings = parsed.settings || seed.settings;
+        parsed.adminUsers = Array.isArray(parsed.adminUsers) && parsed.adminUsers.length > 0 ? parsed.adminUsers : seed.adminUsers;
+        parsed.magazines = Array.isArray(parsed.magazines) && parsed.magazines.length > 0 ? parsed.magazines : seed.magazines;
+        parsed.articles = Array.isArray(parsed.articles) && parsed.articles.length > 0 ? parsed.articles : seed.articles;
+        parsed.programs = Array.isArray(parsed.programs) && parsed.programs.length > 0 ? parsed.programs : seed.programs;
+        parsed.videos = Array.isArray(parsed.videos) && parsed.videos.length > 0 ? parsed.videos : seed.videos;
+        parsed.albums = Array.isArray(parsed.albums) && parsed.albums.length > 0 ? parsed.albums : seed.albums;
+        parsed.members = Array.isArray(parsed.members) && parsed.members.length > 0 ? parsed.members : seed.members;
+        parsed.achievements = Array.isArray(parsed.achievements) && parsed.achievements.length > 0 ? parsed.achievements : seed.achievements;
+        parsed.announcements = Array.isArray(parsed.announcements) && parsed.announcements.length > 0 ? parsed.announcements : seed.announcements;
+        parsed.media = Array.isArray(parsed.media) && parsed.media.length > 0 ? parsed.media : seed.media;
+        parsed.messages = Array.isArray(parsed.messages) ? parsed.messages : [];
+        parsed.finance = parsed.finance || seed.finance;
+        memoryCache = parsed;
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Local database read fallback notice:', err);
@@ -171,7 +143,14 @@ function getLocalDatabase(): DatabaseSchema {
 
 function saveLocalDatabase(data: DatabaseSchema): void {
   memoryCache = data;
-  if (isServerless) return;
+  if (isServerless) {
+    try {
+      fs.writeFileSync('/tmp/af12_database.json', JSON.stringify(data, null, 2), 'utf-8');
+    } catch {
+      // ignore in serverless
+    }
+    return;
+  }
 
   try {
     if (!fs.existsSync(DATA_DIR)) {
@@ -192,17 +171,26 @@ function saveLocalDatabase(data: DatabaseSchema): void {
 export const db = {
   // Settings
   async getSettings(): Promise<WebsiteSettings> {
-    if (isFirestoreActive()) {
-      const fsSettings = await getFirestoreSettings();
-      if (fsSettings) return fsSettings;
+    try {
+      if (isFirestoreActive()) {
+        const fsSettings = await getFirestoreSettings();
+        if (fsSettings && fsSettings.siteName) return fsSettings;
+      }
+    } catch (err) {
+      console.warn('getSettings Firestore fallback notice:', err);
     }
-    return getLocalDatabase().settings;
+    const local = getLocalDatabase();
+    return local.settings || (defaultSeedData as unknown as DatabaseSchema).settings;
   },
 
   async updateSettings(partial: Partial<WebsiteSettings>): Promise<WebsiteSettings> {
-    if (isFirestoreActive()) {
-      const saved = await saveFirestoreSettings(partial);
-      if (saved) return saved;
+    try {
+      if (isFirestoreActive()) {
+        const saved = await saveFirestoreSettings(partial);
+        if (saved) return saved;
+      }
+    } catch (err) {
+      console.warn('updateSettings Firestore fallback notice:', err);
     }
     const local = getLocalDatabase();
     local.settings = {
@@ -216,20 +204,28 @@ export const db = {
 
   // Admin Users
   async getAdminByUsername(username: string): Promise<AdminUser | null> {
-    if (isFirestoreActive()) {
-      const u = await getFirestoreAdminUser(username);
-      if (u) return u;
+    try {
+      if (isFirestoreActive()) {
+        const u = await getFirestoreAdminUser(username);
+        if (u) return u;
+      }
+    } catch (err) {
+      console.warn('getAdminByUsername Firestore fallback notice:', err);
     }
     const local = getLocalDatabase();
-    return local.adminUsers.find((u) => u.username.toLowerCase() === username.toLowerCase()) || null;
+    return local.adminUsers?.find((u) => u.username.toLowerCase() === username.toLowerCase()) || null;
   },
 
   async updateAdminPassword(userId: string, newPasswordHash: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await updateFirestoreAdminUser(userId, { passwordHash: newPasswordHash });
+    try {
+      if (isFirestoreActive()) {
+        await updateFirestoreAdminUser(userId, { passwordHash: newPasswordHash });
+      }
+    } catch (err) {
+      console.warn('updateAdminPassword Firestore fallback notice:', err);
     }
     const local = getLocalDatabase();
-    const admin = local.adminUsers.find((u) => u.id === userId);
+    const admin = local.adminUsers?.find((u) => u.id === userId);
     if (!admin) return false;
     admin.passwordHash = newPasswordHash;
     saveLocalDatabase(local);
@@ -238,23 +234,32 @@ export const db = {
 
   // Magazines
   async getMagazines(onlyPublished = true): Promise<Magazine[]> {
-    if (isFirestoreActive()) {
-      const items = await getFirestoreMagazines();
-      if (items.length > 0) {
-        const sorted = items.sort((a, b) => new Date(b.publicationDate || b.createdAt).getTime() - new Date(a.publicationDate || a.createdAt).getTime());
-        return onlyPublished ? sorted.filter((m) => m.isPublished) : sorted;
+    try {
+      if (isFirestoreActive()) {
+        const items = await getFirestoreMagazines();
+        if (items && items.length > 0) {
+          const sorted = items.sort((a, b) => new Date(b.publicationDate || b.createdAt).getTime() - new Date(a.publicationDate || a.createdAt).getTime());
+          return onlyPublished ? sorted.filter((m) => m.isPublished !== false) : sorted;
+        }
       }
+    } catch (err) {
+      console.warn('getMagazines Firestore fallback notice:', err);
     }
-    const items = getLocalDatabase().magazines;
-    return onlyPublished ? items.filter((m) => m.isPublished) : items;
+    const items = getLocalDatabase().magazines || [];
+    const sorted = [...items].sort((a, b) => new Date(b.publicationDate || b.createdAt).getTime() - new Date(a.publicationDate || a.createdAt).getTime());
+    return onlyPublished ? sorted.filter((m) => m.isPublished !== false) : sorted;
   },
 
   async getMagazineById(id: string): Promise<Magazine | null> {
-    if (isFirestoreActive()) {
-      const m = await getFirestoreMagazineById(id);
-      if (m) return m;
+    try {
+      if (isFirestoreActive()) {
+        const m = await getFirestoreMagazineById(id);
+        if (m) return m;
+      }
+    } catch (err) {
+      console.warn('getMagazineById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().magazines.find((m) => m.id === id) || null;
+    return getLocalDatabase().magazines?.find((m) => m.id === id) || null;
   },
 
   async createMagazine(magazine: Omit<Magazine, 'id' | 'createdAt' | 'updatedAt'>): Promise<Magazine> {
@@ -266,8 +271,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreMagazine(newMag);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreMagazine(newMag);
+      }
+    } catch (err) {
+      console.warn('createMagazine Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.magazines.unshift(newMag);
@@ -284,8 +293,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreMagazine(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreMagazine(updated);
+      }
+    } catch (err) {
+      console.warn('updateMagazine Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.magazines.findIndex((m) => m.id === id);
@@ -297,8 +310,12 @@ export const db = {
   },
 
   async deleteMagazine(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreMagazine(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreMagazine(id);
+      }
+    } catch (err) {
+      console.warn('deleteMagazine Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.magazines = local.magazines.filter((m) => m.id !== id);
@@ -308,31 +325,44 @@ export const db = {
 
   // Articles / Newspaper
   async getArticles(onlyPublished = true): Promise<Article[]> {
-    if (isFirestoreActive()) {
-      const items = await getFirestoreArticles();
-      if (items.length > 0) {
-        const sorted = items.sort((a, b) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime());
-        return onlyPublished ? sorted.filter((a) => a.isPublished) : sorted;
+    try {
+      if (isFirestoreActive()) {
+        const items = await getFirestoreArticles();
+        if (items && items.length > 0) {
+          const sorted = items.sort((a, b) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime());
+          return onlyPublished ? sorted.filter((a) => a.isPublished !== false) : sorted;
+        }
       }
+    } catch (err) {
+      console.warn('getArticles Firestore fallback notice:', err);
     }
-    const items = getLocalDatabase().articles;
-    return onlyPublished ? items.filter((a) => a.isPublished) : items;
+    const items = getLocalDatabase().articles || [];
+    const sorted = [...items].sort((a, b) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime());
+    return onlyPublished ? sorted.filter((a) => a.isPublished !== false) : sorted;
   },
 
   async getArticleById(id: string): Promise<Article | null> {
-    if (isFirestoreActive()) {
-      const a = await getFirestoreArticleById(id);
-      if (a) return a;
+    try {
+      if (isFirestoreActive()) {
+        const a = await getFirestoreArticleById(id);
+        if (a) return a;
+      }
+    } catch (err) {
+      console.warn('getArticleById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().articles.find((a) => a.id === id) || null;
+    return getLocalDatabase().articles?.find((a) => a.id === id) || null;
   },
 
   async getArticleBySlug(slug: string): Promise<Article | null> {
-    if (isFirestoreActive()) {
-      const a = await getFirestoreArticleBySlug(slug);
-      if (a) return a;
+    try {
+      if (isFirestoreActive()) {
+        const a = await getFirestoreArticleBySlug(slug);
+        if (a) return a;
+      }
+    } catch (err) {
+      console.warn('getArticleBySlug Firestore fallback notice:', err);
     }
-    return getLocalDatabase().articles.find((a) => a.slug === slug) || null;
+    return getLocalDatabase().articles?.find((a) => a.slug === slug) || null;
   },
 
   async getArticleBySlugOrId(idOrSlug: string): Promise<Article | null> {
@@ -357,8 +387,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreArticle(newArt);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreArticle(newArt);
+      }
+    } catch (err) {
+      console.warn('createArticle Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.articles.unshift(newArt);
@@ -375,8 +409,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreArticle(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreArticle(updated);
+      }
+    } catch (err) {
+      console.warn('updateArticle Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.articles.findIndex((a) => a.id === id);
@@ -388,8 +426,12 @@ export const db = {
   },
 
   async deleteArticle(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreArticle(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreArticle(id);
+      }
+    } catch (err) {
+      console.warn('deleteArticle Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.articles = local.articles.filter((a) => a.id !== id);
@@ -400,22 +442,30 @@ export const db = {
   // Programs
   async getPrograms(onlyPublished = false): Promise<Program[]> {
     let items: Program[] = [];
-    if (isFirestoreActive()) {
-      items = await getFirestorePrograms();
+    try {
+      if (isFirestoreActive()) {
+        items = await getFirestorePrograms();
+      }
+    } catch (err) {
+      console.warn('getPrograms Firestore fallback notice:', err);
     }
-    if (items.length === 0) {
-      items = getLocalDatabase().programs;
+    if (!items || items.length === 0) {
+      items = getLocalDatabase().programs || [];
     }
-    const sorted = items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return onlyPublished ? sorted.filter((p) => p.isPublished) : sorted;
+    const sorted = [...items].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return onlyPublished ? sorted.filter((p) => p.isPublished !== false) : sorted;
   },
 
   async getProgramById(id: string): Promise<Program | null> {
-    if (isFirestoreActive()) {
-      const p = await getFirestoreProgramById(id);
-      if (p) return p;
+    try {
+      if (isFirestoreActive()) {
+        const p = await getFirestoreProgramById(id);
+        if (p) return p;
+      }
+    } catch (err) {
+      console.warn('getProgramById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().programs.find((p) => p.id === id) || null;
+    return getLocalDatabase().programs?.find((p) => p.id === id) || null;
   },
 
   async createProgram(program: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>): Promise<Program> {
@@ -427,8 +477,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreProgram(newProg);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreProgram(newProg);
+      }
+    } catch (err) {
+      console.warn('createProgram Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.programs.unshift(newProg);
@@ -445,8 +499,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreProgram(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreProgram(updated);
+      }
+    } catch (err) {
+      console.warn('updateProgram Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.programs.findIndex((p) => p.id === id);
@@ -458,8 +516,12 @@ export const db = {
   },
 
   async deleteProgram(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreProgram(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreProgram(id);
+      }
+    } catch (err) {
+      console.warn('deleteProgram Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.programs = local.programs.filter((p) => p.id !== id);
@@ -470,22 +532,30 @@ export const db = {
   // Videos
   async getVideos(onlyPublished = false): Promise<VideoItem[]> {
     let items: VideoItem[] = [];
-    if (isFirestoreActive()) {
-      items = await getFirestoreVideos();
+    try {
+      if (isFirestoreActive()) {
+        items = await getFirestoreVideos();
+      }
+    } catch (err) {
+      console.warn('getVideos Firestore fallback notice:', err);
     }
-    if (items.length === 0) {
-      items = getLocalDatabase().videos;
+    if (!items || items.length === 0) {
+      items = getLocalDatabase().videos || [];
     }
-    const sorted = items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return onlyPublished ? sorted.filter((v) => v.isPublished) : sorted;
+    const sorted = [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return onlyPublished ? sorted.filter((v) => v.isPublished !== false) : sorted;
   },
 
   async getVideoById(id: string): Promise<VideoItem | null> {
-    if (isFirestoreActive()) {
-      const v = await getFirestoreVideoById(id);
-      if (v) return v;
+    try {
+      if (isFirestoreActive()) {
+        const v = await getFirestoreVideoById(id);
+        if (v) return v;
+      }
+    } catch (err) {
+      console.warn('getVideoById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().videos.find((v) => v.id === id) || null;
+    return getLocalDatabase().videos?.find((v) => v.id === id) || null;
   },
 
   async createVideo(video: Omit<VideoItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<VideoItem> {
@@ -497,8 +567,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreVideo(newVid);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreVideo(newVid);
+      }
+    } catch (err) {
+      console.warn('createVideo Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.videos.unshift(newVid);
@@ -515,8 +589,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreVideo(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreVideo(updated);
+      }
+    } catch (err) {
+      console.warn('updateVideo Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.videos.findIndex((v) => v.id === id);
@@ -528,8 +606,12 @@ export const db = {
   },
 
   async deleteVideo(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreVideo(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreVideo(id);
+      }
+    } catch (err) {
+      console.warn('deleteVideo Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.videos = local.videos.filter((v) => v.id !== id);
@@ -540,22 +622,30 @@ export const db = {
   // Gallery Albums
   async getAlbums(onlyPublished = false): Promise<GalleryAlbum[]> {
     let items: GalleryAlbum[] = [];
-    if (isFirestoreActive()) {
-      items = await getFirestoreAlbums();
+    try {
+      if (isFirestoreActive()) {
+        items = await getFirestoreAlbums();
+      }
+    } catch (err) {
+      console.warn('getAlbums Firestore fallback notice:', err);
     }
-    if (items.length === 0) {
-      items = getLocalDatabase().albums;
+    if (!items || items.length === 0) {
+      items = getLocalDatabase().albums || [];
     }
-    const sorted = items.sort((a, b) => new Date(b.eventDate || b.createdAt).getTime() - new Date(a.eventDate || a.createdAt).getTime());
-    return onlyPublished ? sorted.filter((a) => a.isPublished) : sorted;
+    const sorted = [...items].sort((a, b) => new Date(b.eventDate || b.createdAt).getTime() - new Date(a.eventDate || a.createdAt).getTime());
+    return onlyPublished ? sorted.filter((a) => a.isPublished !== false) : sorted;
   },
 
   async getAlbumById(id: string): Promise<GalleryAlbum | null> {
-    if (isFirestoreActive()) {
-      const a = await getFirestoreAlbumById(id);
-      if (a) return a;
+    try {
+      if (isFirestoreActive()) {
+        const a = await getFirestoreAlbumById(id);
+        if (a) return a;
+      }
+    } catch (err) {
+      console.warn('getAlbumById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().albums.find((a) => a.id === id) || null;
+    return getLocalDatabase().albums?.find((a) => a.id === id) || null;
   },
 
   async createAlbum(album: Omit<GalleryAlbum, 'id' | 'createdAt' | 'updatedAt'>): Promise<GalleryAlbum> {
@@ -567,8 +657,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreAlbum(newAlb);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreAlbum(newAlb);
+      }
+    } catch (err) {
+      console.warn('createAlbum Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.albums.unshift(newAlb);
@@ -585,8 +679,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreAlbum(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreAlbum(updated);
+      }
+    } catch (err) {
+      console.warn('updateAlbum Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.albums.findIndex((a) => a.id === id);
@@ -598,8 +696,12 @@ export const db = {
   },
 
   async deleteAlbum(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreAlbum(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreAlbum(id);
+      }
+    } catch (err) {
+      console.warn('deleteAlbum Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.albums = local.albums.filter((a) => a.id !== id);
@@ -610,22 +712,30 @@ export const db = {
   // Class Members
   async getMembers(onlyPublished = false): Promise<ClassMember[]> {
     let items: ClassMember[] = [];
-    if (isFirestoreActive()) {
-      items = await getFirestoreMembers();
+    try {
+      if (isFirestoreActive()) {
+        items = await getFirestoreMembers();
+      }
+    } catch (err) {
+      console.warn('getMembers Firestore fallback notice:', err);
     }
-    if (items.length === 0) {
-      items = getLocalDatabase().members;
+    if (!items || items.length === 0) {
+      items = getLocalDatabase().members || [];
     }
-    const sorted = items.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
-    return onlyPublished ? sorted.filter((m) => m.isPublished) : sorted;
+    const sorted = [...items].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+    return onlyPublished ? sorted.filter((m) => m.isPublished !== false) : sorted;
   },
 
   async getMemberById(id: string): Promise<ClassMember | null> {
-    if (isFirestoreActive()) {
-      const m = await getFirestoreMemberById(id);
-      if (m) return m;
+    try {
+      if (isFirestoreActive()) {
+        const m = await getFirestoreMemberById(id);
+        if (m) return m;
+      }
+    } catch (err) {
+      console.warn('getMemberById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().members.find((m) => m.id === id) || null;
+    return getLocalDatabase().members?.find((m) => m.id === id) || null;
   },
 
   async createMember(member: Omit<ClassMember, 'id' | 'createdAt' | 'updatedAt'>): Promise<ClassMember> {
@@ -637,8 +747,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreMember(newMem);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreMember(newMem);
+      }
+    } catch (err) {
+      console.warn('createMember Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.members.push(newMem);
@@ -655,8 +769,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreMember(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreMember(updated);
+      }
+    } catch (err) {
+      console.warn('updateMember Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.members.findIndex((m) => m.id === id);
@@ -668,8 +786,12 @@ export const db = {
   },
 
   async deleteMember(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreMember(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreMember(id);
+      }
+    } catch (err) {
+      console.warn('deleteMember Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.members = local.members.filter((m) => m.id !== id);
@@ -680,22 +802,30 @@ export const db = {
   // Achievements
   async getAchievements(onlyPublished = false): Promise<Achievement[]> {
     let items: Achievement[] = [];
-    if (isFirestoreActive()) {
-      items = await getFirestoreAchievements();
+    try {
+      if (isFirestoreActive()) {
+        items = await getFirestoreAchievements();
+      }
+    } catch (err) {
+      console.warn('getAchievements Firestore fallback notice:', err);
     }
-    if (items.length === 0) {
-      items = getLocalDatabase().achievements;
+    if (!items || items.length === 0) {
+      items = getLocalDatabase().achievements || [];
     }
-    const sorted = items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return onlyPublished ? sorted.filter((a) => a.isPublished) : sorted;
+    const sorted = [...items].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return onlyPublished ? sorted.filter((a) => a.isPublished !== false) : sorted;
   },
 
   async getAchievementById(id: string): Promise<Achievement | null> {
-    if (isFirestoreActive()) {
-      const a = await getFirestoreAchievementById(id);
-      if (a) return a;
+    try {
+      if (isFirestoreActive()) {
+        const a = await getFirestoreAchievementById(id);
+        if (a) return a;
+      }
+    } catch (err) {
+      console.warn('getAchievementById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().achievements.find((a) => a.id === id) || null;
+    return getLocalDatabase().achievements?.find((a) => a.id === id) || null;
   },
 
   async createAchievement(achievement: Omit<Achievement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Achievement> {
@@ -707,8 +837,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreAchievement(newAch);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreAchievement(newAch);
+      }
+    } catch (err) {
+      console.warn('createAchievement Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.achievements.unshift(newAch);
@@ -725,8 +859,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreAchievement(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreAchievement(updated);
+      }
+    } catch (err) {
+      console.warn('updateAchievement Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.achievements.findIndex((a) => a.id === id);
@@ -738,8 +876,12 @@ export const db = {
   },
 
   async deleteAchievement(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreAchievement(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreAchievement(id);
+      }
+    } catch (err) {
+      console.warn('deleteAchievement Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.achievements = local.achievements.filter((a) => a.id !== id);
@@ -750,22 +892,30 @@ export const db = {
   // Announcements
   async getAnnouncements(onlyPublished = false): Promise<Announcement[]> {
     let items: Announcement[] = [];
-    if (isFirestoreActive()) {
-      items = await getFirestoreAnnouncements();
+    try {
+      if (isFirestoreActive()) {
+        items = await getFirestoreAnnouncements();
+      }
+    } catch (err) {
+      console.warn('getAnnouncements Firestore fallback notice:', err);
     }
-    if (items.length === 0) {
-      items = getLocalDatabase().announcements;
+    if (!items || items.length === 0) {
+      items = getLocalDatabase().announcements || [];
     }
-    const sorted = items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return onlyPublished ? sorted.filter((a) => a.isPublished) : sorted;
+    const sorted = [...items].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return onlyPublished ? sorted.filter((a) => a.isPublished !== false) : sorted;
   },
 
   async getAnnouncementById(id: string): Promise<Announcement | null> {
-    if (isFirestoreActive()) {
-      const a = await getFirestoreAnnouncementById(id);
-      if (a) return a;
+    try {
+      if (isFirestoreActive()) {
+        const a = await getFirestoreAnnouncementById(id);
+        if (a) return a;
+      }
+    } catch (err) {
+      console.warn('getAnnouncementById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().announcements.find((a) => a.id === id) || null;
+    return getLocalDatabase().announcements?.find((a) => a.id === id) || null;
   },
 
   async createAnnouncement(announcement: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>): Promise<Announcement> {
@@ -777,8 +927,12 @@ export const db = {
       createdAt: now,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreAnnouncement(newAnn);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreAnnouncement(newAnn);
+      }
+    } catch (err) {
+      console.warn('createAnnouncement Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.announcements.unshift(newAnn);
@@ -795,8 +949,12 @@ export const db = {
       ...partial,
       updatedAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreAnnouncement(updated);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreAnnouncement(updated);
+      }
+    } catch (err) {
+      console.warn('updateAnnouncement Firestore notice:', err);
     }
     const local = getLocalDatabase();
     const idx = local.announcements.findIndex((a) => a.id === id);
@@ -808,8 +966,12 @@ export const db = {
   },
 
   async deleteAnnouncement(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreAnnouncement(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreAnnouncement(id);
+      }
+    } catch (err) {
+      console.warn('deleteAnnouncement Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.announcements = local.announcements.filter((a) => a.id !== id);
@@ -819,19 +981,28 @@ export const db = {
 
   // Media Assets
   async getMedia(): Promise<MediaAsset[]> {
-    if (isFirestoreActive()) {
-      const items = await getFirestoreMedia();
-      if (items.length > 0) return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    try {
+      if (isFirestoreActive()) {
+        const items = await getFirestoreMedia();
+        if (items && items.length > 0) return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      }
+    } catch (err) {
+      console.warn('getMedia Firestore fallback notice:', err);
     }
-    return getLocalDatabase().media;
+    const items = getLocalDatabase().media || [];
+    return [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
   async getMediaById(id: string): Promise<MediaAsset | null> {
-    if (isFirestoreActive()) {
-      const m = await getFirestoreMediaById(id);
-      if (m) return m;
+    try {
+      if (isFirestoreActive()) {
+        const m = await getFirestoreMediaById(id);
+        if (m) return m;
+      }
+    } catch (err) {
+      console.warn('getMediaById Firestore fallback notice:', err);
     }
-    return getLocalDatabase().media.find((m) => m.id === id) || null;
+    return getLocalDatabase().media?.find((m) => m.id === id) || null;
   },
 
   async createMedia(media: Omit<MediaAsset, 'id' | 'createdAt'>): Promise<MediaAsset> {
@@ -843,8 +1014,12 @@ export const db = {
       storageLocation: media.storageLocation || 'firebase',
       createdAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreMedia(newMed);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreMedia(newMed);
+      }
+    } catch (err) {
+      console.warn('createMedia Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.media.unshift(newMed);
@@ -853,8 +1028,12 @@ export const db = {
   },
 
   async deleteMedia(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreMedia(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreMedia(id);
+      }
+    } catch (err) {
+      console.warn('deleteMedia Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.media = local.media.filter((m) => m.id !== id);
@@ -951,11 +1130,16 @@ export const db = {
 
   // Contact Messages
   async getMessages(): Promise<ContactMessage[]> {
-    if (isFirestoreActive()) {
-      const items = await getFirestoreMessages();
-      if (items.length > 0) return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    try {
+      if (isFirestoreActive()) {
+        const items = await getFirestoreMessages();
+        if (items && items.length > 0) return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      }
+    } catch (err) {
+      console.warn('getMessages Firestore notice:', err);
     }
-    return getLocalDatabase().messages;
+    const items = getLocalDatabase().messages || [];
+    return [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
   async createMessage(msg: Omit<ContactMessage, 'id' | 'status' | 'createdAt'>): Promise<ContactMessage> {
@@ -967,8 +1151,12 @@ export const db = {
       status: 'unread',
       createdAt: now,
     };
-    if (isFirestoreActive()) {
-      await saveFirestoreMessage(newMsg);
+    try {
+      if (isFirestoreActive()) {
+        await saveFirestoreMessage(newMsg);
+      }
+    } catch (err) {
+      console.warn('createMessage Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.messages.unshift(newMsg);
@@ -977,8 +1165,12 @@ export const db = {
   },
 
   async deleteMessage(id: string): Promise<boolean> {
-    if (isFirestoreActive()) {
-      await deleteFirestoreMessage(id);
+    try {
+      if (isFirestoreActive()) {
+        await deleteFirestoreMessage(id);
+      }
+    } catch (err) {
+      console.warn('deleteMessage Firestore notice:', err);
     }
     const local = getLocalDatabase();
     local.messages = local.messages.filter((m) => m.id !== id);
@@ -988,27 +1180,32 @@ export const db = {
 
   // Finance System (Private & Administrator Controlled)
   async getFinanceSummary(): Promise<FinanceSummary> {
-    if (isFirestoreActive()) {
-      const summary = await getFirestoreFinanceSummary();
-      const txs = await getFirestoreFinanceTransactions();
-      if (summary) {
-        return {
-          ...summary,
-          transactionCount: txs.length,
-        };
+    try {
+      if (isFirestoreActive()) {
+        const summary = await getFirestoreFinanceSummary();
+        const txs = await getFirestoreFinanceTransactions();
+        if (summary) {
+          return {
+            ...summary,
+            transactionCount: txs?.length || 0,
+          };
+        }
       }
+    } catch (err) {
+      console.warn('getFinanceSummary Firestore notice:', err);
     }
     const local = getLocalDatabase();
+    const fin = local.finance || (defaultSeedData as unknown as DatabaseSchema).finance;
     return {
-      currency: local.finance.currency,
-      currencySymbol: local.finance.currencySymbol,
-      openingBalance: local.finance.openingBalance,
-      currentBalance: local.finance.currentBalance,
-      totalIncome: local.finance.totalIncome,
-      totalExpenses: local.finance.totalExpenses,
-      transactionCount: local.finance.transactions.length,
-      setupDate: local.finance.setupDate,
-      lastUpdated: local.finance.lastUpdated,
+      currency: fin?.currency || 'INR',
+      currencySymbol: fin?.currencySymbol || '₹',
+      openingBalance: fin?.openingBalance || 1100,
+      currentBalance: fin?.currentBalance || 1100,
+      totalIncome: fin?.totalIncome || 0,
+      totalExpenses: fin?.totalExpenses || 0,
+      transactionCount: fin?.transactions?.length || 0,
+      setupDate: fin?.setupDate || '2026-03-01T00:00:00Z',
+      lastUpdated: fin?.lastUpdated || new Date().toISOString(),
     };
   },
 
@@ -1020,11 +1217,15 @@ export const db = {
     endDate?: string;
   }): Promise<FinanceTransaction[]> {
     let txs: FinanceTransaction[] = [];
-    if (isFirestoreActive()) {
-      txs = await getFirestoreFinanceTransactions();
+    try {
+      if (isFirestoreActive()) {
+        txs = await getFirestoreFinanceTransactions();
+      }
+    } catch (err) {
+      console.warn('getFinanceTransactions Firestore notice:', err);
     }
-    if (txs.length === 0) {
-      txs = [...getLocalDatabase().finance.transactions];
+    if (!txs || txs.length === 0) {
+      txs = [...(getLocalDatabase().finance?.transactions || [])];
     }
     if (filters?.type) txs = txs.filter((t) => t.type === filters.type);
     if (filters?.category && filters.category !== 'all') txs = txs.filter((t) => t.category === filters.category);
@@ -1034,21 +1235,25 @@ export const db = {
       const q = filters.search.toLowerCase();
       txs = txs.filter(
         (t) =>
-          t.description.toLowerCase().includes(q) ||
+          t.description?.toLowerCase().includes(q) ||
           (t.counterparty && t.counterparty.toLowerCase().includes(q)) ||
-          t.category.toLowerCase().includes(q) ||
-          t.id.toLowerCase().includes(q)
+          t.category?.toLowerCase().includes(q) ||
+          t.id?.toLowerCase().includes(q)
       );
     }
     return txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   },
 
   async getFinanceTransactionById(id: string): Promise<FinanceTransaction | null> {
-    if (isFirestoreActive()) {
-      const t = await getFirestoreFinanceTransactionById(id);
-      if (t) return t;
+    try {
+      if (isFirestoreActive()) {
+        const t = await getFirestoreFinanceTransactionById(id);
+        if (t) return t;
+      }
+    } catch (err) {
+      console.warn('getFinanceTransactionById Firestore notice:', err);
     }
-    return getLocalDatabase().finance.transactions.find((t) => t.id === id) || null;
+    return getLocalDatabase().finance?.transactions?.find((t) => t.id === id) || null;
   },
 
   async addTransaction(
@@ -1093,11 +1298,15 @@ export const db = {
     local.finance.auditLogs.unshift(auditLog);
     saveLocalDatabase(local);
 
-    if (isFirestoreActive()) {
-      await saveFirestoreFinanceTransaction(newTx);
-      const { transactions, auditLogs, ...summary } = local.finance;
-      await saveFirestoreFinanceSummary(summary);
-      await saveFirestoreFinanceAuditLog(auditLog);
+    try {
+      if (isFirestoreActive() && local.finance) {
+        await saveFirestoreFinanceTransaction(newTx);
+        const { transactions, auditLogs, ...summary } = local.finance;
+        await saveFirestoreFinanceSummary(summary);
+        await saveFirestoreFinanceAuditLog(auditLog);
+      }
+    } catch (err) {
+      console.warn('addTransaction Firestore notice:', err);
     }
 
     return newTx;
@@ -1165,11 +1374,15 @@ export const db = {
     local.finance.auditLogs.unshift(auditLog);
     saveLocalDatabase(local);
 
-    if (isFirestoreActive()) {
-      await saveFirestoreFinanceTransaction(updated);
-      const { transactions, auditLogs, ...summary } = local.finance;
-      await saveFirestoreFinanceSummary(summary);
-      await saveFirestoreFinanceAuditLog(auditLog);
+    try {
+      if (isFirestoreActive() && local.finance) {
+        await saveFirestoreFinanceTransaction(updated);
+        const { transactions, auditLogs, ...summary } = local.finance;
+        await saveFirestoreFinanceSummary(summary);
+        await saveFirestoreFinanceAuditLog(auditLog);
+      }
+    } catch (err) {
+      console.warn('updateTransaction Firestore notice:', err);
     }
 
     return updated;
@@ -1227,11 +1440,15 @@ export const db = {
     local.finance.auditLogs.unshift(auditLog);
     saveLocalDatabase(local);
 
-    if (isFirestoreActive()) {
-      await deleteFirestoreFinanceTransaction(id);
-      const { transactions, auditLogs, ...summary } = local.finance;
-      await saveFirestoreFinanceSummary(summary);
-      await saveFirestoreFinanceAuditLog(auditLog);
+    try {
+      if (isFirestoreActive() && local.finance) {
+        await deleteFirestoreFinanceTransaction(id);
+        const { transactions, auditLogs, ...summary } = local.finance;
+        await saveFirestoreFinanceSummary(summary);
+        await saveFirestoreFinanceAuditLog(auditLog);
+      }
+    } catch (err) {
+      console.warn('deleteTransaction Firestore notice:', err);
     }
 
     return true;
@@ -1247,10 +1464,14 @@ export const db = {
   },
 
   async getFinanceAuditLogs(): Promise<FinanceAuditLog[]> {
-    if (isFirestoreActive()) {
-      const logs = await getFirestoreFinanceAuditLogs();
-      if (logs.length > 0) return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    try {
+      if (isFirestoreActive()) {
+        const logs = await getFirestoreFinanceAuditLogs();
+        if (logs && logs.length > 0) return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      }
+    } catch (err) {
+      console.warn('getFinanceAuditLogs Firestore notice:', err);
     }
-    return getLocalDatabase().finance.auditLogs;
+    return getLocalDatabase().finance?.auditLogs || [];
   },
 };

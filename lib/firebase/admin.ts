@@ -78,8 +78,8 @@ export function getFirebaseAdminApp(): App | null {
       return adminApp;
     }
 
-    // Option 3: Default Google Cloud credentials (if deployed to GCP/Firebase Functions)
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GCLOUD_PROJECT) {
+    // Option 3: Explicit Google Application Credentials path
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       adminApp = initializeApp({
         credential: applicationDefault(),
         projectId,
@@ -100,7 +100,8 @@ export function getFirebaseAdminApp(): App | null {
 export function isFirebaseAdminConfigured(): boolean {
   return Boolean(
     process.env.FIREBASE_SERVICE_ACCOUNT_KEY ||
-    (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY)
+    (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) ||
+    process.env.GOOGLE_APPLICATION_CREDENTIALS
   );
 }
 

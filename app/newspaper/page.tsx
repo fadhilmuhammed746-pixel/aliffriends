@@ -64,7 +64,7 @@ export default async function NewspaperIndexPage({
         <div className="border-b-2 border-forest pb-6 text-center space-y-3">
           <div className="flex items-center justify-between text-[11px] font-mono text-ink-muted border-b border-editorial-border pb-2">
             <span>AF12 PRESS & INTERNATIONAL DESK</span>
-            <span className="hidden sm:inline">
+            <span suppressHydrationWarning className="hidden sm:inline">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
             <span>EDITION NO. XII</span>

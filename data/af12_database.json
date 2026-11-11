@@ -1,0 +1,938 @@
+{
+  "adminUsers": [
+    {
+      "id": "admin_001",
+      "username": "admin",
+      "passwordHash": "$2a$10$Ylvpk0wBvwWXygTCrOBR0eF4.AxLq24Wz3XPqHXwm3HZuPxI24NKS",
+      "role": "superadmin",
+      "createdAt": "2026-11-06T04:49:47.971+00:00"
+    }
+  ],
+  "settings": {
+    "siteName": "ALIF FRIENDS 12",
+    "tagline": "A Class. A Generation. A Thousand Memories.",
+    "heroHeading": "A Generation of Fellowship, Excellence & Creative Vision",
+    "heroSubheading": "The definitive digital publication and cinematic media archive of Alif Friends 12. Curating stories, magazine editions, photographic heritage, and shared milestones.",
+    "heroBadge": "Official Class Media Publication",
+    "heroImage": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2000&q=80",
+    "aboutStory": "Alif Friends 12 represents more than an academic cohort; it is a collective bond forged through shared ambition, creative curiosity, and lasting brotherhood. From our earliest classroom debates to grand state-level accolades, our journey reflects a generation devoted to honor, intellect, and brotherhood.",
+    "aboutMission": "To document, celebrate, and perpetuate the creative, intellectual, and personal milestones of our class through world-class editorial journalism and cinematic archives.",
+    "aboutVision": "To serve as an enduring beacon of camaraderie and mutual achievement that inspires future generations to cherish unity and strive for collective greatness.",
+    "founderQuote": "\"We entered these halls as disparate individuals with personal aspirations; we graduate as a unified generation whose shared memories will illuminate every path we take.\"",
+    "officialYoutube": "https://www.youtube.com/@AlifCreations12",
+    "officialInstagram": "https://www.instagram.com/_alif_friends_/",
+    "emailPrimary": "aliffriends12@gmail.com",
+    "emailSecondary": "aliffreinds12@gmail.com",
+    "membersSectionEnabled": true,
+    "breakingTickerText": "ALIF FRIENDS 12: Grand Reunion & Annual Magazine Edition XII is now officially live • Watch the new documentary on YouTube @AlifCreations12",
+    "showBreakingTicker": true,
+    "updatedAt": "2026-11-06T06:14:17.421+00:00"
+  },
+  "magazines": [
+    {
+      "id": "mag_12",
+      "title": "The Golden Epoch: Edition XII",
+      "editionNumber": "Edition XII",
+      "publicationDate": "2026-03-15",
+      "description": "Our flagship 68-page annual publication featuring exclusive retrospective memoirs, teacher tributes, poetic anthologies, investigative student journalism, and a cinematic retrospective of the 2025–2026 academic calendar.",
+      "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80",
+      "pdfUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/sample-magazine-af12.pdf",
+      "author": "Editorial Directorate",
+      "editor": "Zayd M. & Farhan Ali",
+      "pageCount": 68,
+      "fileSize": "14.2 MB",
+      "isFeatured": false,
+      "isPublished": true,
+      "tags": [
+        "Annual",
+        "Special Edition",
+        "Memoirs",
+        "Creative Arts"
+      ],
+      "createdAt": "2026-03-15T08:00:00+00:00",
+      "updatedAt": "2026-11-08T11:26:16.213+00:00"
+    },
+    {
+      "id": "mag_11",
+      "title": "Chronicles of Grit & Grace: Edition XI",
+      "editionNumber": "Edition XI",
+      "publicationDate": "2025-09-10",
+      "description": "A rich literary and photographic exploration chronicling our transition into senior leadership, scientific innovations, sports championships, and reflections on character.",
+      "coverImage": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80",
+      "pdfUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/sample-magazine-af12.pdf",
+      "author": "Literary Society AF12",
+      "editor": "Tariq Rahman",
+      "pageCount": 52,
+      "fileSize": "11.8 MB",
+      "isFeatured": false,
+      "isPublished": true,
+      "tags": [
+        "Literary",
+        "Autumn Issue",
+        "Leadership"
+      ],
+      "createdAt": "2025-09-10T08:00:00+00:00",
+      "updatedAt": "2025-09-10T08:00:00+00:00"
+    },
+    {
+      "id": "mag_10",
+      "title": "Inception: The Class of Visionaries: Edition X",
+      "editionNumber": "Edition X",
+      "publicationDate": "2025-02-01",
+      "description": "The commemorative maiden issue that laid down the founding philosophy of Alif Friends 12, featuring original artwork, introductory essays, and historic inaugural group photographs.",
+      "coverImage": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80",
+      "pdfUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/sample-magazine-af12.pdf",
+      "author": "Founding Committee",
+      "editor": "Editorial Board",
+      "pageCount": 44,
+      "fileSize": "9.4 MB",
+      "isFeatured": false,
+      "isPublished": true,
+      "tags": [
+        "Foundational",
+        "Inaugural",
+        "Class History"
+      ],
+      "createdAt": "2025-02-01T08:00:00+00:00",
+      "updatedAt": "2025-02-01T08:00:00+00:00"
+    },
+    {
+      "id": "mag_1794137111511",
+      "title": "khavarikhul adaath ",
+      "editionNumber": "EDITION I",
+      "publicationDate": "2026-10-08",
+      "description": "",
+      "coverImage": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794136982817_1_page-0001_e78a29e0.jpg",
+      "pdfUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794368825323_binshad_a24d7f0f.pdf",
+      "author": "Editorial Board",
+      "editor": "AF12 Editors",
+      "pageCount": 4,
+      "fileSize": "325.8 KB",
+      "isFeatured": true,
+      "isPublished": true,
+      "tags": [],
+      "createdAt": "2026-11-08T11:25:11.511+00:00",
+      "updatedAt": "2026-11-11T11:46:20.543Z"
+    }
+  ],
+  "articles": [
+    {
+      "id": "art_001",
+      "title": "Alif Friends 12 Triumphs in Inter-Collegiate Literary & Cultural Conclave",
+      "slug": "alif-friends-12-triumphs-in-inter-collegiate-literary-conclave",
+      "subtitle": "Securing top honours in parliamentary debate, creative writing, and dramatic monologue.",
+      "category": "Class News",
+      "author": "Zayd M.",
+      "authorRole": "Editorial Secretary",
+      "coverImage": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1400&q=80",
+      "galleryImages": [
+        "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "content": "\n          <p class=\"lead\">In an unprecedented demonstration of intellectual rigor and oratorical prowess, the student delegation of Alif Friends 12 clinched the coveted Championship Trophy at the 2026 Inter-Collegiate Literary Conclave.</p>\n          <p>Held over three demanding days of parliamentary debating, extempore analysis, and theatrical monologue, the event witnessed participation from over thirty top regional institutions. The AF12 delegation stood out for its commanding articulation, depth of research, and exemplary sportsmanship.</p>\n          <h3>A Defining Victory for the Class</h3>\n          <p>\"This triumph is not merely an institutional accolade; it is the culmination of months of rigorous preparation, late-night mock sessions in the media lab, and the unbreakable trust between our team members,\" remarked our head delegate during the post-valedictory press briefing.</p>\n          <p>The judges unanimously praised the AF12 presentation on <em>'The Ethical Dimensions of Algorithmic Governance'</em>, emphasizing the depth of historical context and ethical clarity brought to the floor.</p>\n          <blockquote>\"True leadership is not the volume of your speech, but the clarity of your conviction and the dignity with which you respect opposing arguments.\"</blockquote>\n          <p>As the trophy returns to our campus exhibition hall, the class celebrates not only the victory but the collective pride that unites every member of Alif Friends 12.</p>\n        ",
+      "excerpt": "",
+      "readTimeMinutes": 5,
+      "isFeatured": false,
+      "isPublished": true,
+      "tags": [],
+      "createdAt": "2026-03-20T10:00:00+00:00",
+      "updatedAt": "2026-03-20T10:00:00+00:00"
+    },
+    {
+      "id": "art_002",
+      "title": "A Decade of Fellowship: The Story Behind Our Class Digital Archive",
+      "slug": "a-decade-of-fellowship-the-story-behind-our-class-digital-archive",
+      "subtitle": "How an ambitious student initiative transformed classroom memories into an international-grade publication platform.",
+      "category": "Editorial",
+      "author": "Farhan Ali",
+      "authorRole": "Editor-in-Chief",
+      "coverImage": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1400&q=80",
+      "galleryImages": [],
+      "content": "\n          <p class=\"lead\">Every classroom experiences laughter, ambition, moments of pressure before examinations, and quiet breakthroughs that reshape lives. Yet, all too often, these invaluable human moments dissolve into faded photographs and forgotten text threads.</p>\n          <p>When the Alif Friends 12 digital initiative was conceptualized, our guiding mandate was uncompromising: create a digital monument that honors our time together with the aesthetic reverence of a global publication.</p>\n          <h3>Elevating Student Journalism</h3>\n          <p>Rather than relying on generic social feeds, we designed a comprehensive ecosystem incorporating digital magazine reading, rich investigative reports, full-resolution photographic archives, and high-definition video archives.</p>\n          <p>The result is what you see today: a living, breathing testament to what a class can achieve when creative discipline meets unwavering loyalty.</p>\n        ",
+      "excerpt": "",
+      "readTimeMinutes": 5,
+      "isFeatured": false,
+      "isPublished": true,
+      "tags": [],
+      "createdAt": "2026-03-18T14:30:00+00:00",
+      "updatedAt": "2026-03-18T14:30:00+00:00"
+    },
+    {
+      "id": "art_003",
+      "title": "Special Report: The Creative Revolution in Student-Led Journalism",
+      "slug": "special-report-the-creative-revolution-in-student-led-journalism",
+      "subtitle": "Exploring how modern typography, documentary media, and editorial ethics define the new standard.",
+      "category": "Special Reports",
+      "author": "Media Board",
+      "authorRole": "Investigative Desk",
+      "coverImage": "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1400&q=80",
+      "galleryImages": [],
+      "content": "\n          <p class=\"lead\">The landscape of institutional publications is undergoing a profound paradigm shift. No longer content with mimeographed newsletters or static PDF flyers, student editorial teams are operating with the sophistication of modern newsrooms.</p>\n          <p>At Alif Friends 12, our editorial room operates on strict journalistic principles: factual precision, peer review, refined visual curation, and accessible storytelling.</p>\n          <p>Through our YouTube productions under Alif Creations 12 and our quarterly print-to-digital journals, we provide each student contributor a premier platform to express their voice.</p>\n        ",
+      "excerpt": "",
+      "readTimeMinutes": 5,
+      "isFeatured": false,
+      "isPublished": true,
+      "tags": [],
+      "createdAt": "2026-03-12T09:15:00+00:00",
+      "updatedAt": "2026-03-12T09:15:00+00:00"
+    },
+    {
+      "id": "art_004",
+      "title": "Grand Alif Annual Assembly 2026: Schedule, Keynotes & Live Broadcast Details",
+      "slug": "grand-alif-annual-assembly-2026-schedule-and-broadcast",
+      "subtitle": "All proceedings, guest lectures, and commemorative honours will be broadcast live via Alif Creations 12.",
+      "category": "Events",
+      "author": "Event Committee",
+      "authorRole": "Organizing Secretary",
+      "coverImage": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1400&q=80",
+      "galleryImages": [],
+      "content": "\n          <p class=\"lead\">Preparations for the flagship event of our academic year, the Grand Alif Annual Assembly 2026, have entered their final phase.</p>\n          <p>Featuring keynote addresses by esteemed alumni mentors, ceremonial unveiling of the class yearbook, and musical performances by the AF12 Cultural Ensemble, this year's assembly promises to be our most memorable gathering yet.</p>\n          <p>For class members and well-wishers attending remotely, the full four-hour ceremony will stream in 4K resolution on our official YouTube channel.</p>\n        ",
+      "excerpt": "",
+      "readTimeMinutes": 5,
+      "isFeatured": false,
+      "isPublished": true,
+      "tags": [],
+      "createdAt": "2026-03-05T11:00:00+00:00",
+      "updatedAt": "2026-03-05T11:00:00+00:00"
+    }
+  ],
+  "programs": [
+    {
+      "id": "prog_001",
+      "title": "Grand Class Conclave & Cultural Gala 2026",
+      "category": "Gala & Conclave",
+      "date": "2026-04-12",
+      "time": "",
+      "venue": "",
+      "description": "The premier formal gathering celebrating our collective accomplishments, featuring distinguished guest lectures, cultural recitals, award distributions, and the official release ceremony of Edition XII Magazine.",
+      "coverImage": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80",
+      "photos": [
+        "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "attendeesCount": 0,
+      "highlights": [],
+      "createdAt": "2026-03-01T10:00:00+00:00",
+      "updatedAt": "2026-03-01T10:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "prog_002",
+      "title": "Annual Class Expedition: The Nilgiris Highlands Journey",
+      "category": "Expedition & Trip",
+      "date": "2026-01-20",
+      "time": "",
+      "venue": "",
+      "description": "A transformative four-day wilderness expedition and leadership retreat in the misty Nilgiri hills. Trekking through pine forests, lakeside bonfires, and team-building summits under starry skies.",
+      "coverImage": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1400&q=80",
+      "photos": [
+        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "attendeesCount": 0,
+      "highlights": [],
+      "createdAt": "2026-01-25T10:00:00+00:00",
+      "updatedAt": "2026-01-25T10:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "prog_003",
+      "title": "Alif Community Outreach & Educational Drive",
+      "category": "Community Service",
+      "date": "2025-11-15",
+      "time": "",
+      "venue": "",
+      "description": "A student-led philanthropic initiative delivering over 500 academic books, digital literacy kits, and science workshop sessions to underprivileged middle school students.",
+      "coverImage": "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1400&q=80",
+      "photos": [
+        "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "attendeesCount": 0,
+      "highlights": [],
+      "createdAt": "2025-11-20T10:00:00+00:00",
+      "updatedAt": "2025-11-20T10:00:00+00:00",
+      "isPublished": true
+    }
+  ],
+  "videos": [
+    {
+      "id": "vid_001",
+      "title": "Alif Friends 12: The Official Cinematic Documentary",
+      "description": "A masterfully crafted 15-minute documentary tracing the journey, struggles, camaraderie, and triumphs of the class of Alif Friends 12. Directed and edited by our in-house media team.",
+      "category": "Documentary",
+      "videoType": "youtube",
+      "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1400&q=80",
+      "duration": "14:48",
+      "isFeatured": true,
+      "isPublished": true,
+      "collectionName": "Cinematic Archive",
+      "createdAt": "2026-03-01T12:00:00Z",
+      "updatedAt": "2026-03-01T12:00:00Z"
+    },
+    {
+      "id": "vid_002",
+      "title": "Cultural Night 2026: Live Musical & Stage Highlights",
+      "description": "Electrifying musical ensemble performances, dramatic theatre plays, and spoken word tributes performed live on stage during the Annual Cultural Night.",
+      "videoUrl": null,
+      "thumbnailUrl": "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=1400&q=80",
+      "duration": "09:22",
+      "category": "Performances",
+      "isFeatured": false,
+      "viewsCount": 0,
+      "tags": [],
+      "createdAt": "2026-02-18T10:00:00+00:00",
+      "updatedAt": "2026-02-18T10:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "vid_003",
+      "title": "Behind The Scenes: Crafting Edition XII Magazine",
+      "description": "Step inside the editing suite and print press room as our student designers and editors bring the 68-page Edition XII from rough concept to finished gold-foil hardcover.",
+      "videoUrl": null,
+      "thumbnailUrl": "https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=1400&q=80",
+      "duration": "06:35",
+      "category": "Behind The Scenes",
+      "isFeatured": false,
+      "viewsCount": 0,
+      "tags": [],
+      "createdAt": "2026-03-10T15:00:00+00:00",
+      "updatedAt": "2026-03-10T15:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "vid_1794137944170",
+      "title": "anzil and muhammed vp",
+      "description": "",
+      "videoUrl": "",
+      "thumbnailUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794138862084_background_9d352c95.png",
+      "duration": "12:30",
+      "category": "Documentary",
+      "isFeatured": true,
+      "viewsCount": 0,
+      "tags": [],
+      "createdAt": "2026-11-08T11:39:04.17+00:00",
+      "updatedAt": "2026-11-08T11:54:27.953+00:00",
+      "isPublished": true
+    }
+  ],
+  "albums": [
+    {
+      "id": "alb_001",
+      "title": "The Class Heritage & Milestone Portraiture",
+      "description": "Formal and candid studio portraits capturing the faces, dignity, and individuality of every member of Alif Friends 12.",
+      "eventDate": null,
+      "coverImage": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
+      "photos": [
+        {
+          "id": "ph_101",
+          "alt": "Group portrait",
+          "url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80",
+          "caption": "The Executive Council & Class Leadership 2026"
+        },
+        {
+          "id": "ph_102",
+          "alt": "Courtyard memories",
+          "url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Candid laughter in the central courtyard during lunch recess"
+        },
+        {
+          "id": "ph_103",
+          "alt": "Laboratory session",
+          "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Collaborative workshop in the computer research laboratory"
+        },
+        {
+          "id": "ph_104",
+          "alt": "Editorial review",
+          "url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Editorial board reviewing first printed proofs of Edition XII"
+        }
+      ],
+      "videos": [],
+      "category": "Special Moment",
+      "tags": [],
+      "createdAt": "2026-03-01T10:00:00+00:00",
+      "updatedAt": "2026-03-01T10:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "alb_002",
+      "title": "Highland Expedition: The Nilgiris Trek",
+      "description": "Sunrises over mountain ridges, campfire stories, and unforgettable trails through tea plantations during our senior trip.",
+      "eventDate": null,
+      "coverImage": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
+      "photos": [
+        {
+          "id": "ph_201",
+          "alt": "Mountain summit",
+          "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Ascending the peak at dawn under golden skies"
+        },
+        {
+          "id": "ph_202",
+          "alt": "River valley",
+          "url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Resting by the emerald mountain river"
+        },
+        {
+          "id": "ph_203",
+          "alt": "Campfire",
+          "url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Starry night vigil around the highland campfire"
+        }
+      ],
+      "videos": [],
+      "category": "Trip",
+      "tags": [],
+      "createdAt": "2026-01-28T12:00:00+00:00",
+      "updatedAt": "2026-01-28T12:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "alb_003",
+      "title": "Athletics & Sports Championship Day",
+      "description": "The energy, sweat, and glory of our athletes sweeping the podium in track & field and the football tournament.",
+      "eventDate": null,
+      "coverImage": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80",
+      "photos": [
+        {
+          "id": "ph_301",
+          "alt": "Sprint finish",
+          "url": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Sprint relay finals: the baton exchange that clinched gold"
+        },
+        {
+          "id": "ph_302",
+          "alt": "Trophy celebration",
+          "url": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
+          "caption": "Football team lifting the championship shield"
+        }
+      ],
+      "videos": [],
+      "category": "Competition",
+      "tags": [],
+      "createdAt": "2025-12-10T14:00:00+00:00",
+      "updatedAt": "2025-12-10T14:00:00+00:00",
+      "isPublished": true
+    }
+  ],
+  "members": [
+    {
+      "id": "mem_1794225586760",
+      "name": "fadhil muhammed",
+      "admissionNumber": "",
+      "role": "",
+      "bio": " manages an organization's public image, builds goodwill, and handles communication between the entity and the media, stakeholders, and general public",
+      "photoUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225510520_441_a04af791.jpeg",
+      "bloodGroup": "",
+      "contactNumber": "",
+      "email": "",
+      "city": "",
+      "currentStatus": "",
+      "achievementsCount": 0,
+      "socialLinks": {},
+      "createdAt": "2026-11-09T11:59:46.76+00:00",
+      "updatedAt": "2026-11-09T11:59:46.76+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "mem_002",
+      "name": "Farhan Ali",
+      "position": "Editor-in-Chief & Creative Director",
+      "bio": "Spearheads the publication layout, typography, and journalistic curation of the AF12 digital magazine and newspaper publications.",
+      "photoUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
+      "quote": "Words have the power to freeze time and immortalize shared moments.",
+      "orderIndex": 2,
+      "isPublished": true,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "mem_003",
+      "name": "Rayyan Siddiqui",
+      "position": "Head of Media & Cinematography",
+      "bio": "Directs the cinematic documentaries and visual storytelling for Alif Creations 12. Enthusiast of 35mm photography and color grading.",
+      "photoUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+      "quote": "Through the lens, even fleeting moments become enduring works of art.",
+      "orderIndex": 3,
+      "isPublished": true,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "mem_004",
+      "name": "Bilal Khan",
+      "position": "Sports Captain & Athletic Lead",
+      "bio": "State-level sprinter and captain of the class football squad. Champions relentless discipline, physical fitness, and unyielding team spirit.",
+      "photoUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80",
+      "quote": "Victories are built on the cold mornings when no one is watching.",
+      "orderIndex": 4,
+      "isPublished": true,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "mem_005",
+      "name": "Amaan Shaikh",
+      "position": "Cultural Secretary & Event Curator",
+      "bio": "Organizes our stage dramas, musical evenings, and cultural symposia. Passionate about classical poetry and contemporary theatre.",
+      "photoUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80",
+      "quote": "Art is the heartbeat that breathes soul into our academic years.",
+      "orderIndex": 5,
+      "isPublished": true,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "mem_006",
+      "name": "Hamza Tariq",
+      "position": "Academic Lead & Research Coordinator",
+      "bio": "Top scorer in mathematics and computer sciences. Mentors peers in programming, debate research, and academic symposiums.",
+      "photoUrl": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=800&q=80",
+      "quote": "Curiosity is the true engine of progress and discovery.",
+      "orderIndex": 6,
+      "isPublished": true,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "mem_001",
+      "name": "muhammed vp",
+      "admissionNumber": "",
+      "role": "",
+      "bio": "Passionate about public debate, student governance, and archival literature. Believes that every classmate possesses a unique spark that elevates the collective whole.",
+      "photoUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225157144_459_884ff4f2.webp",
+      "bloodGroup": "",
+      "contactNumber": "",
+      "email": "",
+      "city": "",
+      "currentStatus": "",
+      "achievementsCount": 0,
+      "socialLinks": {},
+      "createdAt": "2026-01-01T00:00:00+00:00",
+      "updatedAt": "2026-11-09T11:52:47.549+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "mem_1794225426222",
+      "name": "abdu razik kk",
+      "admissionNumber": "",
+      "role": "",
+      "bio": "a student elected or appointed to manage administrative tasks, documentation, and communication for their class or student council",
+      "photoUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225356584_449_5f382b4e.webp",
+      "bloodGroup": "",
+      "contactNumber": "",
+      "email": "",
+      "city": "",
+      "currentStatus": "",
+      "achievementsCount": 0,
+      "socialLinks": {},
+      "createdAt": "2026-11-09T11:57:06.222+00:00",
+      "updatedAt": "2026-11-09T11:57:06.222+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "mem_1794225495134",
+      "name": "razal o ",
+      "admissionNumber": "",
+      "role": "",
+      "bio": "the student officer responsible for managing a class's money, keeping accurate financial records, and budgeting for events like field trips, proms, and graduation",
+      "photoUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225456266_448_f4f0dcf7.webp",
+      "bloodGroup": "",
+      "contactNumber": "",
+      "email": "",
+      "city": "",
+      "currentStatus": "",
+      "achievementsCount": 0,
+      "socialLinks": {},
+      "createdAt": "2026-11-09T11:58:15.134+00:00",
+      "updatedAt": "2026-11-09T11:58:15.134+00:00",
+      "isPublished": true
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach_001",
+      "title": "Grand Champions – State Youth Parliamentary Conclave",
+      "category": "Competition",
+      "date": "2026-02-14",
+      "description": "The AF12 debating caucus out-argued 32 institutions over five rounds to win the prestigious rolling trophy for parliamentary excellence.",
+      "imageUrl": "https://images.unsplash.com/photo-1578269174936-2709b6aeb913?auto=format&fit=crop&w=1000&q=80",
+      "photos": [],
+      "isFeatured": true,
+      "createdAt": "2026-02-15T00:00:00+00:00",
+      "updatedAt": "2026-02-15T00:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "ach_002",
+      "title": "Best Student Editorial Publication 2025–2026",
+      "category": "Award",
+      "date": "2026-01-10",
+      "description": "Honoured for outstanding design aesthetics, ethical student reporting, and editorial maturity across the state education circle.",
+      "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1000&q=80",
+      "photos": [],
+      "isFeatured": true,
+      "createdAt": "2026-01-12T00:00:00+00:00",
+      "updatedAt": "2026-01-12T00:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "ach_003",
+      "title": "Inter-District Football Championship Winners",
+      "category": "Competition",
+      "date": "2025-11-28",
+      "description": "An undefeated tournament streak culminating in a dramatic 2-1 victory in the championship final against the defending champions.",
+      "imageUrl": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&q=80",
+      "photos": [],
+      "isFeatured": false,
+      "createdAt": "2025-11-30T00:00:00+00:00",
+      "updatedAt": "2025-11-30T00:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "ach_004",
+      "title": "Distinguished Citation in Community Outreach & Literacy",
+      "category": "Special Recognition",
+      "date": "2025-10-18",
+      "description": "Commended for spearheading educational material distribution and computer literacy workshops across municipal schools.",
+      "imageUrl": "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=80",
+      "photos": [],
+      "isFeatured": false,
+      "createdAt": "2025-10-20T00:00:00+00:00",
+      "updatedAt": "2025-10-20T00:00:00+00:00",
+      "isPublished": true
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann_001",
+      "title": "Official Worldwide Release of Digital Magazine Edition XII",
+      "content": "The digital edition of our flagship publication \"The Golden Epoch\" is now accessible on all devices. High-resolution PDF downloads and the full-screen online reader are available in the Magazine section.",
+      "priority": "high",
+      "photos": [],
+      "isPinned": false,
+      "isActive": false,
+      "createdAt": "2026-03-15T09:00:00+00:00",
+      "updatedAt": "2026-03-15T09:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "ann_002",
+      "title": "Call for Literary Submissions: Special Monsoon Supplement",
+      "content": "The editorial board invites essays, original poetry, photo essays, and scientific op-eds for the upcoming supplement. Submissions close on April 15th via our official editorial email.",
+      "priority": "medium",
+      "photos": [],
+      "isPinned": false,
+      "isActive": false,
+      "createdAt": "2026-03-25T10:00:00+00:00",
+      "updatedAt": "2026-03-25T10:00:00+00:00",
+      "isPublished": true
+    },
+    {
+      "id": "ann_003",
+      "title": "Grand Annual Assembly 2026 – Venue & Seating Guidelines",
+      "content": "All attendees are requested to be seated by 09:30 AM at the Royal Grand Convention Auditorium. Formal attire is requested. Live stream links will be shared on our YouTube channel.",
+      "priority": "high",
+      "photos": [],
+      "isPinned": false,
+      "isActive": false,
+      "createdAt": "2026-04-01T08:00:00+00:00",
+      "updatedAt": "2026-04-01T08:00:00+00:00",
+      "isPublished": true
+    }
+  ],
+  "media": [
+    {
+      "id": "med_1794013868348",
+      "filename": "1794013868326_video-2025-07-21-22-01-34--1-_c2ca22a0.mp4",
+      "originalName": "VIDEO-2025-07-21-22-01-34 (1).mp4",
+      "url": "/uploads/1794013868326_video-2025-07-21-22-01-34--1-_c2ca22a0.mp4",
+      "mimeType": "video/mp4",
+      "size": 10703339,
+      "category": "video",
+      "section": "video",
+      "uploadedBy": "admin",
+      "storageLocation": "local",
+      "createdAt": "2026-11-07T01:11:08.348+00:00"
+    },
+    {
+      "id": "med_001",
+      "filename": "af12-magazine-edition-12-cover.jpg",
+      "originalName": "cover_edition_12.jpg",
+      "url": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80",
+      "mimeType": "image/jpeg",
+      "size": 2450000,
+      "category": "image",
+      "section": "general",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-03-15T08:00:00+00:00"
+    },
+    {
+      "id": "med_002",
+      "filename": "af12-assembly-banner.jpg",
+      "originalName": "assembly_2026.jpg",
+      "url": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80",
+      "mimeType": "image/jpeg",
+      "size": 3200000,
+      "category": "image",
+      "section": "general",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-03-01T10:00:00+00:00"
+    },
+    {
+      "id": "med_1794136984840",
+      "filename": "1794136982817_1_page-0001_e78a29e0.jpg",
+      "originalName": "1_page-0001.jpg",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794136982817_1_page-0001_e78a29e0.jpg",
+      "mimeType": "image/jpeg",
+      "size": 2424078,
+      "category": "image",
+      "section": "magazine",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-08T11:23:04.84+00:00"
+    },
+    {
+      "id": "med_1794137591568",
+      "filename": "1794137591003_aliflogo_8722b5ff.png",
+      "originalName": "aliflogo.png",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794137591003_aliflogo_8722b5ff.png",
+      "mimeType": "image/png",
+      "size": 25770,
+      "category": "image",
+      "section": "video",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-08T11:33:11.568+00:00"
+    },
+    {
+      "id": "med_1794138794608",
+      "filename": "1794138794030_-----_36a7f4b9.png",
+      "originalName": "ഹിജ്റ.png",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794138794030_-----_36a7f4b9.png",
+      "mimeType": "image/png",
+      "size": 15947,
+      "category": "image",
+      "section": "video",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-08T11:53:14.608+00:00"
+    },
+    {
+      "id": "med_1794138863691",
+      "filename": "1794138862084_background_9d352c95.png",
+      "originalName": "Background.png",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794138862084_background_9d352c95.png",
+      "mimeType": "image/png",
+      "size": 4365453,
+      "category": "image",
+      "section": "video",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-08T11:54:23.691+00:00"
+    },
+    {
+      "id": "med_1794224808634",
+      "filename": "1794224806252_bio-vision_sslc-geo-3-notemm_1c45d97a.pdf",
+      "originalName": "BIO-VISION_SSLC Geo 3 noteMM.pdf",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794224806252_bio-vision_sslc-geo-3-notemm_1c45d97a.pdf",
+      "mimeType": "application/pdf",
+      "size": 567337,
+      "category": "pdf",
+      "section": "magazine",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-09T11:46:48.634+00:00"
+    },
+    {
+      "id": "med_1794225142121",
+      "filename": "1794225139460_441_2527c134.jpeg",
+      "originalName": "441.jpeg",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225139460_441_2527c134.jpeg",
+      "mimeType": "image/jpeg",
+      "size": 379280,
+      "category": "image",
+      "section": "member",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-09T11:52:22.121+00:00"
+    },
+    {
+      "id": "med_1794225158483",
+      "filename": "1794225157144_459_884ff4f2.webp",
+      "originalName": "459.webp",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225157144_459_884ff4f2.webp",
+      "mimeType": "image/webp",
+      "size": 44586,
+      "category": "image",
+      "section": "member",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-09T11:52:38.483+00:00"
+    },
+    {
+      "id": "med_1794225358086",
+      "filename": "1794225356584_449_5f382b4e.webp",
+      "originalName": "449.webp",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225356584_449_5f382b4e.webp",
+      "mimeType": "image/webp",
+      "size": 44720,
+      "category": "image",
+      "section": "member",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-09T11:55:58.086+00:00"
+    },
+    {
+      "id": "med_1794225457629",
+      "filename": "1794225456266_448_f4f0dcf7.webp",
+      "originalName": "448.webp",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225456266_448_f4f0dcf7.webp",
+      "mimeType": "image/webp",
+      "size": 37842,
+      "category": "image",
+      "section": "member",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-09T11:57:37.629+00:00"
+    },
+    {
+      "id": "med_1794225512496",
+      "filename": "1794225510520_441_a04af791.jpeg",
+      "originalName": "441.jpeg",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794225510520_441_a04af791.jpeg",
+      "mimeType": "image/jpeg",
+      "size": 379280,
+      "category": "image",
+      "section": "member",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-09T11:58:32.496+00:00"
+    },
+    {
+      "id": "med_1794358519227",
+      "filename": "1794358517356_thajweed-for-primary_cb34d19d.pdf",
+      "originalName": "Thajweed for Primary.pdf",
+      "url": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794358517356_thajweed-for-primary_cb34d19d.pdf",
+      "mimeType": "application/pdf",
+      "size": 642073,
+      "category": "pdf",
+      "section": "magazine",
+      "uploadedBy": "admin",
+      "storageLocation": "supabase",
+      "createdAt": "2026-11-11T00:55:19.227+00:00"
+    }
+  ],
+  "messages": [],
+  "finance": {
+    "openingBalance": 1100,
+    "currency": "INR",
+    "currencySymbol": "₹",
+    "currentBalance": 1100,
+    "totalIncome": 0,
+    "totalExpenses": 0,
+    "setupDate": "2026-03-01T00:00:00+00:00",
+    "lastUpdated": "2026-11-06T09:21:56.94+00:00",
+    "transactions": [],
+    "auditLogs": [
+      {
+        "id": "audit_1793956916940",
+        "action": "delete",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:21:56.94+00:00",
+        "details": "Deleted transaction TXN-004 (was income of ₹250)"
+      },
+      {
+        "id": "audit_1793956915810",
+        "action": "delete",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:21:55.81+00:00",
+        "details": "Deleted transaction TXN-001 (was income of ₹5,000)"
+      },
+      {
+        "id": "audit_1793956914406",
+        "action": "delete",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:21:54.406+00:00",
+        "details": "Deleted transaction TXN-003 (was expense of ₹750)"
+      },
+      {
+        "id": "audit_1793956912880",
+        "action": "delete",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:21:52.88+00:00",
+        "details": "Deleted transaction TXN-002 (was expense of ₹2,500)"
+      },
+      {
+        "id": "audit_1793956911659",
+        "action": "delete",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:21:51.659+00:00",
+        "details": "Deleted transaction TXN-005 (was expense of ₹6,600)"
+      },
+      {
+        "id": "audit_1793956819646",
+        "action": "create",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:20:19.646+00:00",
+        "details": "Recorded EXPENSE: ₹6,600 (Other Expenses) - free"
+      },
+      {
+        "id": "audit_1793956792287",
+        "action": "create",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:19:52.287+00:00",
+        "details": "Recorded INCOME: ₹250 (Event Collections) - free"
+      },
+      {
+        "id": "audit_1793956750910",
+        "action": "create",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:19:10.91+00:00",
+        "details": "Recorded EXPENSE: ₹750 (Travel) - auditorium set up"
+      },
+      {
+        "id": "audit_1793956716570",
+        "action": "create",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:18:36.57+00:00",
+        "details": "Recorded EXPENSE: ₹2,500 (Program Expenses) - muttayi"
+      },
+      {
+        "id": "audit_1793956689840",
+        "action": "create",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T09:18:09.84+00:00",
+        "details": "Recorded INCOME: ₹5,000 (Member Contributions) - free"
+      },
+      {
+        "id": "audit_1793946123689",
+        "action": "delete",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T06:22:03.689+00:00",
+        "details": "Deleted transaction TXN-001 (was expense of ₹100)"
+      },
+      {
+        "id": "audit_1793946109324",
+        "action": "create",
+        "performedBy": "admin",
+        "timestamp": "2026-11-06T06:21:49.323+00:00",
+        "details": "Recorded EXPENSE: ₹100 (Printing) - magazin shakuna"
+      },
+      {
+        "id": "log_init",
+        "action": "setup",
+        "performedBy": "admin",
+        "timestamp": "2026-03-01T00:00:00+00:00",
+        "details": "Class treasury established with initial opening balance of ₹1,100"
+      }
+    ]
+  }
+}
