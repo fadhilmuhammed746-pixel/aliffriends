@@ -89,32 +89,88 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
     async function loadPdfPages() {
       try {
         setLoading(true);
-        setLoadingProgress(20);
-        setLoadingStatus('Loading PDF document...');
+        setLoadingProgress(15);
+        setLoadingStatus('Initializing publication engine...');
 
-        const pdfjs: any = await import('pdfjs-dist/build/pdf.min.mjs' as any);
+        // Use legacy PDF.js build to avoid crypto hash bugs in bundlers
+        const pdfjs: any = await import('pdfjs-dist/legacy/build/pdf.mjs' as any);
         if (typeof window !== 'undefined') {
           pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         }
 
-        const loadingTask = pdfjs.getDocument(pdfUrl);
+        setLoadingProgress(25);
+        setLoadingStatus('Fetching publication document...');
+
+        let pdfData: Uint8Array | null = null;
+
+        // Step 1: Attempt direct fetch of PDF URL
+        try {
+          const resp = await fetch(pdfUrl);
+          if (resp.ok) {
+            const ab = await resp.arrayBuffer();
+            pdfData = new Uint8Array(ab);
+          }
+        } catch (fetchErr) {
+          console.warn('Direct PDF fetch failed, attempting download proxy...', fetchErr);
+        }
+
+        // Step 2: Fallback to magazine download API proxy to circumvent CORS
+        if (!pdfData && magazineId) {
+          try {
+            const proxyResp = await fetch(`/api/magazines/${magazineId}/download`);
+            if (proxyResp.ok) {
+              const ab = await proxyResp.arrayBuffer();
+              pdfData = new Uint8Array(ab);
+            }
+          } catch (proxyErr) {
+            console.warn('Proxy download failed:', proxyErr);
+          }
+        }
+
+        // Step 3: Fallback to downloadUrl prop
+        if (!pdfData && downloadUrl) {
+          try {
+            const dlResp = await fetch(downloadUrl);
+            if (dlResp.ok) {
+              const ab = await dlResp.arrayBuffer();
+              pdfData = new Uint8Array(ab);
+            }
+          } catch (dlErr) {
+            console.warn('DownloadUrl fetch failed:', dlErr);
+          }
+        }
+
+        const loadingTask = pdfjs.getDocument(
+          pdfData
+            ? {
+                data: pdfData,
+                cMapUrl: 'https://unpkg.com/pdfjs-dist@legacy/cmaps/',
+                cMapPacked: true,
+              }
+            : {
+                url: pdfUrl,
+                cMapUrl: 'https://unpkg.com/pdfjs-dist@legacy/cmaps/',
+                cMapPacked: true,
+              }
+        );
+
         const pdf = await loadingTask.promise;
 
         if (isCancelled) return;
 
         const numPages = pdf.numPages;
         setTotalPages(numPages);
-        setLoadingProgress(40);
+        setLoadingProgress(35);
         setLoadingStatus(`Rendering ${numPages} editorial pages...`);
 
         const images: string[] = [];
 
-        // Render each page to an offscreen canvas
+        // Render each page to an offscreen high-resolution canvas
         for (let i = 1; i <= numPages; i++) {
           if (isCancelled) return;
 
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 1.5 });
+          const viewport = page.getViewport({ scale: 2.0 });
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
 
@@ -131,24 +187,23 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
               viewport,
             }).promise;
 
-            images.push(canvas.toDataURL('image/jpeg', 0.9));
+            images.push(canvas.toDataURL('image/jpeg', 0.95));
           }
 
-          setLoadingProgress(40 + Math.round((i / numPages) * 50));
+          setLoadingProgress(35 + Math.round((i / numPages) * 60));
         }
 
         if (isCancelled) return;
 
-        // If PDF had fewer than 4 pages, ensure we have at least 6 editorial spreads
-        if (images.length < 4 && coverImage) {
-          images.unshift(coverImage);
+        if (images.length > 0) {
+          setPageImages(images);
+          setTotalPages(images.length);
+          setLoadingProgress(100);
+        } else {
+          throw new Error('No pages rendered from the PDF.');
         }
-
-        setPageImages(images);
-        setTotalPages(images.length);
-        setLoadingProgress(100);
       } catch (err) {
-        console.warn('PDF.js client render note:', err);
+        console.error('PDF.js client render note:', err);
         // Fallback: use cover image and generated high-res editorial spreads
         const fallbackPages: string[] = [];
         if (coverImage) fallbackPages.push(coverImage);
@@ -171,7 +226,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [pdfUrl, coverImage]);
+  }, [pdfUrl, coverImage, magazineId, downloadUrl]);
 
   // Initialize PageFlip instance once pages are ready
   useEffect(() => {

@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       author: author || 'Editorial Desk',
       authorRole: body.authorRole || 'Class Correspondent',
       publishedAt: body.publishedAt || new Date().toISOString(),
+      viewCount: 0,
       isPublished: body.isPublished !== undefined ? Boolean(body.isPublished) : true,
       galleryImages: body.galleryImages || [],
       videoUrl: body.videoUrl || undefined,

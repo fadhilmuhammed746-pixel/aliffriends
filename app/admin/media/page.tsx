@@ -92,23 +92,22 @@ export default function AdminMediaPage() {
   };
 
   // Cloud Storage Metrics & Provider identification
-  const getProvider = (m: MediaItemWithUsage): 'firebase' | 'supabase' => {
+  const getProvider = (m: MediaItemWithUsage): 'firebase' | 'local' => {
     if (
       m.storageLocation === 'firebase' ||
       m.url.includes('firebasestorage') ||
-      m.url.includes('storage.googleapis.com')
+      m.url.includes('storage.googleapis.com') ||
+      m.url.startsWith('http')
     ) {
       return 'firebase';
     }
-    return 'supabase';
+    return 'local';
   };
 
   const targetStorageBytes = 1024 * 1024 * 1024; // 1.0 GB Target
   const totalStorageBytes = mediaList.reduce((acc, m) => acc + (m.size || 0), 0);
   const firebaseAssets = mediaList.filter((m) => getProvider(m) === 'firebase');
   const firebaseBytes = firebaseAssets.reduce((acc, m) => acc + (m.size || 0), 0);
-  const supabaseAssets = mediaList.filter((m) => getProvider(m) === 'supabase');
-  const supabaseBytes = supabaseAssets.reduce((acc, m) => acc + (m.size || 0), 0);
   const percentUsed = Math.min(100, (totalStorageBytes / targetStorageBytes) * 100);
 
   const handleCopy = (url: string, id: string) => {
@@ -199,7 +198,7 @@ export default function AdminMediaPage() {
                   Repository Capacity & Provider Breakdown
                 </h3>
                 <p className="text-xs text-ink-muted">
-                  Dual-cloud architecture active: Firebase Cloud Storage supports high-capacity assets up to 1 GB; Supabase Storage supports fast direct assets up to 50 MB.
+                  Powered by Firebase Cloud Storage with direct resumable uploads up to 1 GB.
                 </p>
               </div>
 
@@ -237,9 +236,8 @@ export default function AdminMediaPage() {
               </div>
             </div>
 
-            {/* Multi-Cloud Provider Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-              {/* Firebase Cloud Storage Card */}
+            {/* Firebase Cloud Storage Card */}
+            <div className="pt-1">
               <div className="p-4 rounded-xl border border-amber-200/80 bg-amber-50/40 flex items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5">
@@ -248,39 +246,16 @@ export default function AdminMediaPage() {
                       Firebase Cloud Storage
                     </span>
                     <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 font-bold">
-                      Up to 1 GB
+                      Up to 1 GB Per File
                     </span>
                   </div>
                   <p className="text-[11px] text-amber-800/80 font-sans">
-                    Archival magazine PDFs, full-length 4K videos, and high-definition event recordings.
+                    Archival magazine PDFs, full-length 4K videos, editorial publications, and high-definition event recordings.
                   </p>
                   <div className="flex items-center gap-3 pt-2 text-xs font-mono">
-                    <span className="font-bold text-amber-950">{formatBytes(firebaseBytes)}</span>
+                    <span className="font-bold text-amber-950">{formatBytes(totalStorageBytes)}</span>
                     <span className="text-amber-700/80">•</span>
-                    <span className="text-amber-800">{firebaseAssets.length} file(s) hosted</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Supabase Storage Card */}
-              <div className="p-4 rounded-xl border border-emerald-200/80 bg-emerald-50/40 flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <Database className="w-4 h-4 text-emerald-700" />
-                    <span className="font-serif font-bold text-xs uppercase tracking-wider text-emerald-950">
-                      Supabase Storage
-                    </span>
-                    <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-800 font-bold">
-                      Up to 50 MB
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-emerald-800/80 font-sans">
-                    Fast direct uploads, editorial articles, newspaper spreads, member portraits, and secure receipts.
-                  </p>
-                  <div className="flex items-center gap-3 pt-2 text-xs font-mono">
-                    <span className="font-bold text-emerald-950">{formatBytes(supabaseBytes)}</span>
-                    <span className="text-emerald-700/80">•</span>
-                    <span className="text-emerald-800">{supabaseAssets.length} file(s) hosted</span>
+                    <span className="text-amber-800">{mediaList.length} file(s) hosted</span>
                   </div>
                 </div>
               </div>
@@ -476,15 +451,9 @@ export default function AdminMediaPage() {
                         </div>
                         <div className="flex items-center justify-between text-[9px] font-mono mt-1.5 pt-1.5 border-t border-editorial-border/60">
                           <span className="text-ink-muted">Engine:</span>
-                          {getProvider(m) === 'firebase' ? (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 font-bold border border-amber-200">
-                              Firebase (1GB)
-                            </span>
-                          ) : (
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
-                              Supabase (50MB)
-                            </span>
-                          )}
+                          <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                            Firebase Cloud Storage
+                          </span>
                         </div>
                       </div>
 
@@ -578,17 +547,10 @@ export default function AdminMediaPage() {
                           {m.section || 'General'}
                         </td>
                         <td className="py-3 px-4">
-                          {getProvider(m) === 'firebase' ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                              <Cloud className="w-3 h-3 text-amber-600" />
-                              Firebase (1GB)
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                              <Database className="w-3 h-3 text-emerald-600" />
-                              Supabase (50MB)
-                            </span>
-                          )}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <Cloud className="w-3 h-3 text-amber-600" />
+                            Firebase Cloud Storage
+                          </span>
                         </td>
                         <td className="py-3 px-4 font-mono text-xs text-ink">
                           {formatBytes(m.size)}

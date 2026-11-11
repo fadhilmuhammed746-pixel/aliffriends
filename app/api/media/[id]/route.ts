@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { db } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
-import { getSupabaseAdminClient } from '@/lib/supabase';
+import { getAdminStorage } from '@/lib/firebase/admin';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -68,20 +68,22 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       );
     }
 
-    // Attempt to remove physical file from Supabase storage if cloud stored
-    const isCloudStorage = media.storageLocation === 'supabase' || media.url.includes('supabase.co');
+    // Attempt to remove physical file from Firebase Cloud Storage
+    const isCloudStorage = media.storageLocation === 'firebase' || media.url.includes('firebasestorage') || media.url.includes('storage.googleapis.com');
     if (isCloudStorage) {
-      const client = getSupabaseAdminClient();
-      if (client) {
-        const bucket = (media.section === 'finance' || media.section === 'receipts') ? 'af12-finance-receipts' : 'af12-media';
+      const adminStorage = getAdminStorage();
+      if (adminStorage) {
         try {
-          await client.storage.from(bucket).remove([media.filename]);
+          const bucket = adminStorage.bucket();
+          const storagePath = (media.section === 'finance' || media.section === 'receipts')
+            ? `finance-receipts/${media.filename}`
+            : `media/${media.filename}`;
+          await bucket.file(storagePath).delete({ ignoreNotFound: true });
         } catch (err) {
-          console.warn('Supabase storage file deletion warning:', err);
+          console.warn('Firebase Storage file deletion warning:', err);
         }
       }
     } else if (media.url && media.url.startsWith('/uploads/')) {
-      // Attempt to remove physical file from public/uploads if it exists locally
       const fileName = media.url.replace('/uploads/', '');
       const filePath = path.join(process.cwd(), 'public', 'uploads', fileName);
       if (fs.existsSync(filePath)) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { getSupabaseAdminClient } from '@/lib/supabase';
+import { getAdminStorage } from '@/lib/firebase/admin';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,24 +32,29 @@ export async function POST(req: NextRequest) {
     }
 
     const isFinance = section === 'finance' || section === 'receipts';
-    const bucketName = isFinance ? 'af12-finance-receipts' : 'af12-media';
-
     let finalUrl = url;
 
-    // For private finance receipts, generate signed URL valid for 24 hours
+    // For private finance receipts, generate signed URL if needed
     if (isFinance) {
-      const supabase = getSupabaseAdminClient();
-      if (supabase) {
-        const { data: signData } = await supabase.storage
-          .from(bucketName)
-          .createSignedUrl(filename, 60 * 60 * 24);
-        finalUrl = signData?.signedUrl || `/api/finance/receipt?file=${filename}`;
+      const adminStorage = getAdminStorage();
+      if (adminStorage) {
+        try {
+          const bucket = adminStorage.bucket();
+          const fileRef = bucket.file(`finance-receipts/${filename}`);
+          const [signedUrl] = await fileRef.getSignedUrl({
+            action: 'read',
+            expires: Date.now() + 24 * 60 * 60 * 1000,
+          });
+          finalUrl = signedUrl;
+        } catch {
+          finalUrl = `/api/finance/receipt?file=${filename}`;
+        }
       } else {
         finalUrl = `/api/finance/receipt?file=${filename}`;
       }
     }
 
-    // 2. Record media asset in PostgreSQL media_assets table
+    // 2. Record media asset in Firebase / local database
     const mediaRecord = await db.createMedia({
       filename,
       originalName: originalName || filename,
@@ -60,7 +65,7 @@ export async function POST(req: NextRequest) {
       section: section || 'general',
       contentId: contentId || undefined,
       uploadedBy: session.username || 'admin',
-      storageLocation: (body.storageLocation === 'firebase' ? 'firebase' : 'supabase') as 'supabase' | 'firebase',
+      storageLocation: 'firebase',
     });
 
     return NextResponse.json({
@@ -68,12 +73,12 @@ export async function POST(req: NextRequest) {
       url: finalUrl,
       media: mediaRecord,
       pageCount: pageCount || undefined,
-      message: 'File metadata recorded successfully.',
+      message: 'Upload completed and cataloged in Firebase Cloud Storage.',
     });
   } catch (error: any) {
-    console.error('Record upload completion error:', error);
+    console.error('Upload complete error:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to record upload metadata in database.' },
+      { error: error?.message || 'Failed to complete upload registration.' },
       { status: 500 }
     );
   }
