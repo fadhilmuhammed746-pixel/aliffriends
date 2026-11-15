@@ -78,10 +78,10 @@ export default function ContactPage() {
         {/* Header Masthead */}
         <SectionHeader
           centered={true}
-          eyebrow="Editorial Communication Desk"
+          eyebrow="Editorial & Batch Communication Desk"
           eyebrowColor="coral"
-          title="Contact Alif Friends 12"
-          subtitle="Direct inquiries, media releases, alumni notes, and submission drafts to our official editorial correspondents."
+          title="Contact ALIF FRIENDS 12"
+          subtitle="Connect with the editorial and communications desk of the 12th batch. Direct all queries, publication contributions, and letters through our official channels."
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">

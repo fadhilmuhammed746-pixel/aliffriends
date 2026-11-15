@@ -2,7 +2,6 @@
 
 /**
  * Lightweight, privacy-respecting client analytics helper for ALIF FRIENDS 12.
- * Completely independent of Firebase SDK.
  */
 
 export async function trackCustomEvent(eventName: string, params: Record<string, any> = {}) {

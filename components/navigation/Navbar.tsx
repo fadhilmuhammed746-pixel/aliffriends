@@ -34,17 +34,17 @@ const rightNavLinks = [
 ];
 
 const allMenuItems = [
-  { index: '01', name: 'Home', href: '/', description: 'Signature Frontpage' },
+  { index: '01', name: 'Home', href: '/', description: 'Frontpage & Highlights' },
   { index: '02', name: 'Magazine', href: '/magazine', badge: 'Edition XII', description: 'Digital Editions & Flipbook Archive' },
-  { index: '03', name: 'Newspaper', href: '/newspaper', description: 'Broadsheet Dispatches & News' },
-  { index: '04', name: 'Programs', href: '/programs', description: 'Conclaves & Official Events' },
-  { index: '05', name: 'Videos', href: '/videos', description: 'Cinematic Archive & Documentaries' },
-  { index: '06', name: 'Gallery', href: '/gallery', description: 'Photographic Heritage & Memories' },
-  { index: '07', name: 'Members', href: '/members', description: 'Class Directory & Leadership' },
-  { index: '08', name: 'Achievements', href: '/achievements', description: 'Honors, Laurels & Distinctions' },
-  { index: '09', name: 'Announcements', href: '/announcements', description: 'Official Bulletins & Notices' },
-  { index: '10', name: 'About Us', href: '/about', description: 'Mission, History & Retrospective' },
-  { index: '11', name: 'Contact Us', href: '/contact', description: 'Inquiries, Letters & Directorate' },
+  { index: '03', name: 'Newspaper', href: '/newspaper', description: 'Stories, Updates & Highlights' },
+  { index: '04', name: 'Programs', href: '/programs', description: 'Educational & Cultural Programmes' },
+  { index: '05', name: 'Videos', href: '/videos', description: 'Alif Creations 12 Channel' },
+  { index: '06', name: 'Gallery', href: '/gallery', description: 'Campus Life & Unforgettable Memories' },
+  { index: '07', name: 'Members', href: '/members', description: 'Classmates & Fellowship' },
+  { index: '08', name: 'Achievements', href: '/achievements', description: 'Accolades & SAAF Super League' },
+  { index: '09', name: 'Announcements', href: '/announcements', description: 'Official Updates & Notices' },
+  { index: '10', name: 'About Us', href: '/about', description: '12th Batch & Darul Falah Heritage' },
+  { index: '11', name: 'Contact Us', href: '/contact', description: 'Editorial & Inquiries Desk' },
 ];
 
 export const Navbar: React.FC = () => {

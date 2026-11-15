@@ -22,10 +22,10 @@ export default async function ProgramsArchivePage() {
         {/* Masthead */}
         <SectionHeader
           centered={true}
-          eyebrow="Cinematic Event Archive"
+          eyebrow="Educational & Cultural Programmes"
           eyebrowColor="coral"
-          title="Programs, Conclaves & Expeditions"
-          subtitle="A visual record of our class gatherings, academic symposia, mountain retreats, and cultural galas. Each event is preserved with high-resolution photography and video documentation."
+          title="Programs & Conclaves"
+          subtitle="Relive the educational, cultural, literary and social programmes that brought our batch together."
         />
 
         {programs.length === 0 ? (

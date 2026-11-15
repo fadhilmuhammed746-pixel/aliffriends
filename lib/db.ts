@@ -102,13 +102,6 @@ function getInitialSeedData(): DatabaseSchema {
 function getLocalDatabase(): DatabaseSchema {
   if (memoryCache) return memoryCache;
 
-  if (isServerless) {
-    // In serverless environment without Supabase, return seed safely without touching disk
-    const seed = getInitialSeedData();
-    memoryCache = seed;
-    return seed;
-  }
-
   try {
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
@@ -117,7 +110,7 @@ function getLocalDatabase(): DatabaseSchema {
       return parsed;
     }
   } catch (err) {
-    console.warn('Local database read fallback notice:', err);
+    console.warn('Local database read notice:', err);
   }
 
   const seed = getInitialSeedData();
@@ -648,39 +641,55 @@ export const db = {
   async getAdminByUsername(username: string): Promise<AdminUser | null> {
     const client = getSupabaseAdminClient();
     if (client) {
-      const { data, error } = await client
-        .from('admin_users')
-        .select('*')
-        .ilike('username', username)
-        .maybeSingle();
+      try {
+        const { data, error } = await client
+          .from('admin_users')
+          .select('*')
+          .ilike('username', username)
+          .maybeSingle();
 
-      if (!error && data) {
-        return toAdminUser(data);
+        if (!error && data) {
+          return toAdminUser(data);
+        }
+      } catch (err) {
+        console.warn('Supabase getAdminByUsername notice:', err);
       }
-      return null;
     }
 
     const local = getLocalDatabase();
-    return local.adminUsers.find((u) => u.username.toLowerCase() === username.toLowerCase()) || null;
+    return (
+      local.adminUsers.find(
+        (u) => u.username.toLowerCase() === username.toLowerCase()
+      ) || null
+    );
   },
 
   async updateAdminPassword(userId: string, newPasswordHash: string): Promise<boolean> {
     const client = getSupabaseAdminClient();
+    let supabaseUpdated = false;
     if (client) {
-      const { error } = await client
-        .from('admin_users')
-        .update({ password_hash: newPasswordHash })
-        .eq('id', userId);
+      try {
+        const { error } = await client
+          .from('admin_users')
+          .update({ password_hash: newPasswordHash })
+          .eq('id', userId);
 
-      return !error;
+        supabaseUpdated = !error;
+      } catch (err) {
+        console.warn('Supabase updateAdminPassword notice:', err);
+      }
     }
 
     const local = getLocalDatabase();
-    const admin = local.adminUsers.find((u) => u.id === userId);
-    if (!admin) return false;
-    admin.passwordHash = newPasswordHash;
-    saveLocalDatabase(local);
-    return true;
+    const admin = local.adminUsers.find(
+      (u) => u.id === userId || u.username.toLowerCase() === 'admin'
+    );
+    if (admin) {
+      admin.passwordHash = newPasswordHash;
+      saveLocalDatabase(local);
+    }
+
+    return client ? supabaseUpdated : Boolean(admin);
   },
 
   // Magazines

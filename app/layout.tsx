@@ -31,21 +31,26 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'ALIF FRIENDS 12 | The International Digital Publication',
+    default: 'ALIF FRIENDS 12 | 12th Batch, Darul Falah Islamic Academy',
     template: '%s | ALIF FRIENDS 12',
   },
   description:
-    'A Class. A Generation. A Thousand Memories. The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
+    'ALIF FRIENDS 12 – The digital home of the 12th batch of Darul Falah Islamic Academy, Taliparamba, Kannur, Kerala. A Class. A Generation. A Thousand Memories. Preserving our friendship, learning experiences, publications, achievements, and unforgettable memories.',
   keywords: [
-    'Alif Friends 12',
-    'AF12',
-    'Editorial Publication',
-    'Digital Magazine',
-    'International Newsroom',
-    'Class Heritage',
+    'ALIF FRIENDS 12',
+    'Darul Falah Islamic Academy',
+    'DFIA',
+    'Taliparamba',
+    'Kannur',
+    'Kerala',
+    '12th Batch',
+    'Darul Huda Islamic University',
+    'DHIU',
+    'SAAF Super League',
     'Alif Creations 12',
+    'Class Magazine',
   ],
-  authors: [{ name: 'Alif Friends 12 Editorial Directorate' }],
+  authors: [{ name: 'ALIF FRIENDS 12 Editorial & Class Council' }],
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

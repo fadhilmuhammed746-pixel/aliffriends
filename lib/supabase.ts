@@ -27,9 +27,9 @@ let cachedAdminClient: SupabaseClient | null = null;
 
 export function getSupabaseAdminClient(): SupabaseClient | null {
   if (cachedAdminClient) return cachedAdminClient;
-  const key = supabaseSecretKey || supabasePublicKey;
-  if (!supabaseUrl || !key) return null;
-  cachedAdminClient = createClient(supabaseUrl, key, {
+  // A privileged admin client MUST have the service role secret key to bypass RLS on admin tables
+  if (!supabaseUrl || !supabaseSecretKey) return null;
+  cachedAdminClient = createClient(supabaseUrl, supabaseSecretKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,

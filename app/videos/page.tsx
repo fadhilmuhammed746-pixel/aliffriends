@@ -32,7 +32,7 @@ export default async function VideosArchivePage() {
           eyebrow="Alif Creations 12 Channel"
           eyebrowColor="coral"
           title="Cinematic Video Center"
-          subtitle="The definitive motion picture and broadcast archive of Alif Friends 12. Experience our full-length class documentary, live stage productions, and behind-the-scenes chronicles."
+          subtitle="Watch the videos, creative productions and memorable moments of ALIF FRIENDS 12."
         />
 
         <div className="flex justify-center -mt-6 mb-12">

@@ -21,10 +21,10 @@ export default async function AnnouncementsPage() {
         {/* Masthead */}
         <SectionHeader
           centered={true}
-          eyebrow="Official Dispatch Desk"
+          eyebrow="Official Bulletins & Notices"
           eyebrowColor="coral"
           title="Notices & Announcements"
-          subtitle="The verified communication board for Alif Friends 12. Check here for official press releases, event timetables, literary deadlines, and assembly directives."
+          subtitle="Stay connected with important updates, notices and news from our batch."
         />
 
         {announcements.length === 0 ? (

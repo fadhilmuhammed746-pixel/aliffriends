@@ -22,10 +22,10 @@ export default async function MagazineArchivePage() {
         {/* Header */}
         <SectionHeader
           centered={true}
-          eyebrow="Archival Publication Library"
+          eyebrow="Creative Thoughts & Publications"
           eyebrowColor="coral"
           title="Digital Magazine Archive"
-          subtitle="Immerse yourself in our premier annual printed-magazine-inspired publications. Browse comprehensive retrospective memoirs, essays, photographic spreads, and realistic interactive flipbooks."
+          subtitle="Explore the creative thoughts, literary contributions and publications of ALIF FRIENDS 12 through our digital magazine collection. Read each edition in an immersive page-flip experience."
         />
 
         {magazines.length === 0 ? (

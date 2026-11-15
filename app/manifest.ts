@@ -4,7 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'ALIF FRIENDS 12',
     short_name: 'ALIF 12',
-    description: 'The definitive digital publication and cinematic media archive of Alif Friends 12.',
+    description:
+      'The digital home and archive of the 12th batch of Darul Falah Islamic Academy, Taliparamba, Kannur, Kerala.',
     start_url: '/',
     scope: '/',
     display: 'standalone',

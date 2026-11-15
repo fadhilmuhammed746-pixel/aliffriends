@@ -75,7 +75,7 @@ export default async function NewspaperIndexPage({
           </h1>
 
           <p className="font-cormorant italic text-coral text-base sm:text-xl max-w-xl mx-auto">
-            &ldquo;Independent student journalism, cultural critique, and authentic class records.&rdquo;
+            &ldquo;Discover stories, updates, articles and highlights from our class community.&rdquo;
           </p>
         </div>
 

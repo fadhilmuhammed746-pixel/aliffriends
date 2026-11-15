@@ -3,7 +3,7 @@
     {
       "id": "admin_001",
       "username": "admin",
-      "passwordHash": "$2a$10$Ylvpk0wBvwWXygTCrOBR0eF4.AxLq24Wz3XPqHXwm3HZuPxI24NKS",
+      "passwordHash": "$2a$10$EvvSbS/v9i0r.KW/9t01hOmv6YgV4PZqtjUG0I5.sEMbBUc0s/yHq",
       "role": "superadmin",
       "createdAt": "2026-11-06T04:49:47.971+00:00"
     }
@@ -11,20 +11,20 @@
   "settings": {
     "siteName": "ALIF FRIENDS 12",
     "tagline": "A Class. A Generation. A Thousand Memories.",
-    "heroHeading": "A Generation of Fellowship, Excellence & Creative Vision",
-    "heroSubheading": "The definitive digital publication and cinematic media archive of Alif Friends 12. Curating stories, magazine editions, photographic heritage, and shared milestones.",
-    "heroBadge": "Official Class Media Publication",
+    "heroHeading": "The 12th Batch of Darul Falah Islamic Academy",
+    "heroSubheading": "The digital home and archive of ALIF FRIENDS 12, preserving our friendship, learning experiences, publications, achievements, and unforgettable memories in Taliparamba, Kannur, Kerala.",
+    "heroBadge": "12th Batch · Darul Falah Islamic Academy",
     "heroImage": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2000&q=80",
-    "aboutStory": "Alif Friends 12 represents more than an academic cohort; it is a collective bond forged through shared ambition, creative curiosity, and lasting brotherhood. From our earliest classroom debates to grand state-level accolades, our journey reflects a generation devoted to honor, intellect, and brotherhood.",
-    "aboutMission": "To document, celebrate, and perpetuate the creative, intellectual, and personal milestones of our class through world-class editorial journalism and cinematic archives.",
-    "aboutVision": "To serve as an enduring beacon of camaraderie and mutual achievement that inspires future generations to cherish unity and strive for collective greatness.",
-    "founderQuote": "\"We entered these halls as disparate individuals with personal aspirations; we graduate as a unified generation whose shared memories will illuminate every path we take.\"",
+    "aboutStory": "ALIF FRIENDS 12 is the digital home of the 12th batch of Darul Falah Islamic Academy, located in Taliparamba, Kannur, Kerala. It is a digital archive created to preserve the friendship, learning experiences, publications, achievements, creative activities, competitions, events and unforgettable memories of our batch. The platform represents the identity and collective journey of our classmates.",
+    "aboutMission": "To preserve and celebrate the identity, scholarly pursuit, creative expressions, and shared journey of the 12th batch of Darul Falah Islamic Academy through authentic storytelling, digital publishing, and archival excellence.",
+    "aboutVision": "To serve as a lasting beacon of brotherhood, knowledge, and mutual achievement that keeps our classmates connected and inspires future generations to cherish unity and strive for collective growth.",
+    "founderQuote": "\"ALIF FRIENDS 12 is more than a class website. It is the digital home of the 12th batch of Darul Falah Islamic Academy, a place where friendship, knowledge, creativity and countless memories come together.\"",
     "officialYoutube": "https://www.youtube.com/@AlifCreations12",
     "officialInstagram": "https://www.instagram.com/_alif_friends_/",
     "emailPrimary": "aliffriends12@gmail.com",
     "emailSecondary": "aliffreinds12@gmail.com",
     "membersSectionEnabled": true,
-    "breakingTickerText": "ALIF FRIENDS 12: Grand Reunion & Annual Magazine Edition XII is now officially live • Watch the new documentary on YouTube @AlifCreations12",
+    "breakingTickerText": "ALIF FRIENDS 12: Digital home of the 12th batch of Darul Falah Islamic Academy, Taliparamba • SAAF Super League Runner-up & Second Runner-up",
     "showBreakingTicker": true,
     "updatedAt": "2026-11-06T06:14:17.421+00:00"
   },

@@ -55,16 +55,32 @@ export const Footer: React.FC = () => {
                   </span>
                 </div>
                 <span className="font-sans text-[10px] uppercase tracking-tag text-canvas-muted font-semibold mt-1">
-                  12th Batch, Darul Falah Islamic Academy
+                  12th Batch · Darul Falah Islamic Academy
+                </span>
+                <span className="font-sans text-[9px] text-canvas-muted/80 tracking-wider">
+                  Taliparamba · Kannur · Kerala
                 </span>
               </div>
             </div>
 
-            <p className="text-sm text-canvas-muted leading-relaxed font-sans max-w-md pt-2">
-              The premier digital publication, literary archive, and cinematic media platform
-              dedicated to preserving the milestones, creativity, and enduring fellowship
-              of <span className="text-coral-light font-medium">Alif Friends 12</span>.
+            <p className="text-sm text-canvas-muted leading-relaxed font-sans max-w-md pt-1">
+              The digital archive and creative home of the 12th batch of{' '}
+              <strong className="text-white font-medium">Darul Falah Islamic Academy</strong>. Preserving our friendship, learning experiences, publications, achievements, and unforgettable memories.
             </p>
+
+            {/* Official Academy Reference Link */}
+            <div className="pt-1">
+              <a
+                href="https://darulfalah.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-forest-900 border border-forest-800 hover:border-coral/40 text-canvas-muted hover:text-white text-[11px] font-sans transition-colors"
+              >
+                <span>Official Academy:</span>
+                <span className="text-coral-light font-medium underline">darulfalah.in</span>
+                <ArrowUpRight className="w-3 h-3 text-coral" />
+              </a>
+            </div>
 
             <div className="pt-2">
               <span className="text-[11px] font-mono uppercase tracking-tag text-canvas-muted block mb-3 font-semibold">
@@ -134,8 +150,14 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/achievements" className="hover:text-coral-light transition-colors">
-                  Honours & Class Accolades
+                <Link href="/achievements" className="hover:text-coral-light transition-colors flex items-center justify-between">
+                  <span>Achievements & SAAF League</span>
+                  <span className="text-[10px] text-coral-light font-mono">SPL Laurels</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="hover:text-coral-light transition-colors">
+                  About Batch 12 & Darul Falah
                 </Link>
               </li>
               <li>

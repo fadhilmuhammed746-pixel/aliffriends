@@ -32,10 +32,10 @@ export default async function GalleryArchivePage({
         {/* Header */}
         <SectionHeader
           centered={true}
-          eyebrow="Visual Heritage Archive"
+          eyebrow="Photographic Heritage & Memories"
           eyebrowColor="coral"
           title="Class Photo Gallery"
-          subtitle="Curated photographic albums chronicling our shared milestones, expedition treks, sports championships, and candid moments of joy."
+          subtitle="A collection of photographs preserving our friendships, campus life, celebrations, journeys and unforgettable experiences."
         />
 
         {/* Category Pills */}

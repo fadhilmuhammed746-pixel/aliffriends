@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const admin = await db.getAdminByUsername(username);
+    const trimmedUser = String(username).trim();
+    const admin = await db.getAdminByUsername(trimmedUser);
+
     if (!admin) {
       return NextResponse.json(
         { error: 'Invalid administrator credentials.' },
@@ -22,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isValid = await comparePassword(password, admin.passwordHash);
+    const isValid = await comparePassword(String(password), admin.passwordHash);
     if (!isValid) {
       return NextResponse.json(
         { error: 'Invalid administrator credentials.' },
@@ -46,7 +48,10 @@ export async function POST(req: NextRequest) {
     });
 
     // Set secure HTTP-only cookie
-    const isHttps = req.nextUrl.protocol === 'https:' || req.headers.get('x-forwarded-proto') === 'https';
+    const isHttps =
+      req.nextUrl.protocol === 'https:' ||
+      req.headers.get('x-forwarded-proto') === 'https';
+
     response.cookies.set({
       name: COOKIE_NAME,
       value: token,
@@ -58,10 +63,9 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    console.error('Login error:', error);
+  } catch (error: any) {
     return NextResponse.json(
-      { error: 'Internal authentication server error.' },
+      { error: 'Authentication service encountered an unexpected error.' },
       { status: 500 }
     );
   }

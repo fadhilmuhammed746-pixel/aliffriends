@@ -235,3 +235,4 @@ export const SupabaseStatusCard: React.FC = () => {
     </Card>
   );
 };
+

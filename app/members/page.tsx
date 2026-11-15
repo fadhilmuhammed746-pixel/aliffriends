@@ -41,10 +41,10 @@ export default async function ClassMembersPage() {
         {/* Masthead */}
         <SectionHeader
           centered={true}
-          eyebrow="Class Roster & Leadership"
+          eyebrow="Class Cohort & Fellowship"
           eyebrowColor="coral"
-          title="The Cohort of Alif Friends 12"
-          subtitle="A generation bound by intellect, loyalty, and artistic expression. Meet the executive council, editorial directors, and fellows who define the spirit of our class."
+          title="The Classmates of Batch 12"
+          subtitle="Meet the classmates who make ALIF FRIENDS 12 a unique community. Celebrate the people and friendships behind our shared journey."
         />
 
         {members.length === 0 ? (

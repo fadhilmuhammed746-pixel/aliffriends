@@ -83,17 +83,14 @@ export default async function HomePage() {
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-coral animate-pulse" />
                 <span className="font-semibold text-white uppercase tracking-tag">
-                  Vol. XII • Issue 2026
+                  THE 12TH BATCH · DARUL FALAH ISLAMIC ACADEMY
                 </span>
               </div>
-              <div className="hidden sm:block italic font-cormorant text-sm text-canvas-muted">
-                The Official Digital Publication & Archival Record
+              <div className="hidden sm:block font-serif tracking-widest text-xs uppercase text-coral-light">
+                Taliparamba · Kannur · Kerala
               </div>
               <div className="text-right text-[11px] font-mono text-canvas-muted">
-                {new Date().toLocaleDateString('en-US', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                Official Digital Archive
               </div>
             </div>
 
@@ -101,7 +98,7 @@ export default async function HomePage() {
             <div className="max-w-4xl space-y-6 sm:space-y-8 animate-fade-in">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-serif uppercase tracking-tag backdrop-blur-sm">
                 <Sparkles className="w-3.5 h-3.5 text-coral-light" />
-                <span>Modern Editorial Luxury</span>
+                <span>The 12th Batch of Darul Falah Islamic Academy</span>
               </div>
 
               <h1 className="font-serif font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-white leading-[0.95]">
@@ -113,10 +110,10 @@ export default async function HomePage() {
 
               <div className="space-y-3 max-w-2xl">
                 <p className="font-cormorant italic text-xl sm:text-2xl md:text-3xl text-coral-light leading-snug">
-                  &ldquo;{settings.tagline}&rdquo;
+                  &ldquo;A Class. A Generation. A Thousand Memories.&rdquo;
                 </p>
-                <p className="font-sans text-sm sm:text-base text-canvas-warm/85 leading-relaxed">
-                  {settings.heroSubheading}
+                <p className="font-sans text-sm sm:text-base text-canvas-warm/90 leading-relaxed">
+                  ALIF FRIENDS 12 is the digital home of the 12th batch of Darul Falah Islamic Academy, located in Taliparamba, Kannur, Kerala. It is a digital archive created to preserve the friendship, learning experiences, publications, achievements, creative activities, competitions, events and unforgettable memories of our batch.
                 </p>
               </div>
 
@@ -171,7 +168,7 @@ export default async function HomePage() {
           eyebrow="The Digital Newsroom"
           eyebrowColor="coral"
           title="Latest Dispatches & Headlines"
-          subtitle="Investigative journalism, event coverage, and editorial commentary from our student press."
+          subtitle="Discover stories, updates, articles and highlights from our class community."
           actionHref="/newspaper"
           actionLabel="Visit Full Newsroom"
         />
@@ -303,14 +300,18 @@ export default async function HomePage() {
               <div className="lg:col-span-7 space-y-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-coral/20 border border-coral/30 text-coral-light text-xs font-serif uppercase tracking-tag font-bold">
                   <BookOpen className="w-3.5 h-3.5" />
-                  <span>Flagship Archival Publication</span>
+                  <span>Digital Magazine Collection</span>
                 </div>
 
                 <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
                   {featuredMagazine.title}
                 </h2>
 
-                <p className="font-cormorant italic text-canvas-warm/95 text-lg sm:text-xl leading-relaxed">
+                <p className="font-sans text-sm sm:text-base text-canvas-warm/90 leading-relaxed">
+                  Explore the creative thoughts, literary contributions and publications of ALIF FRIENDS 12 through our digital magazine collection. Read each edition in an immersive page-flip experience.
+                </p>
+
+                <p className="font-cormorant italic text-coral-light text-lg sm:text-xl leading-relaxed">
                   {featuredMagazine.description}
                 </p>
 
@@ -373,10 +374,10 @@ export default async function HomePage() {
           <Container>
             <SectionHeader
               dark={true}
-              eyebrow="Cinematic Video Center"
+              eyebrow="Alif Creations 12 Channel"
               eyebrowColor="coral"
-              title="Reels, Documentaries & Broadcasts"
-              subtitle="Immersive visual retrospectives, high-definition captures, and student cinematic productions."
+              title="Cinematic Video Center"
+              subtitle="Watch the videos, creative productions and memorable moments of ALIF FRIENDS 12."
               actionHref="/videos"
               actionLabel="View All Videos"
             />
@@ -440,10 +441,10 @@ export default async function HomePage() {
       {/* 5. PROGRAMS & CONCLAVES */}
       <Container>
         <SectionHeader
-          eyebrow="Calendar of Class Conclaves"
+          eyebrow="Educational & Cultural Programmes"
           eyebrowColor="forest"
-          title="Programs & Expeditions"
-          subtitle="Official ceremonies, academic convocations, and collective travels commemorated."
+          title="Programs & Conclaves"
+          subtitle="Relive the educational, cultural, literary and social programmes that brought our batch together."
           actionHref="/programs"
           actionLabel="View All Programs"
         />
@@ -506,10 +507,10 @@ export default async function HomePage() {
       <section className="bg-canvas-warm border-y border-editorial-border py-20">
         <Container>
           <SectionHeader
-            eyebrow="Photographic Heritage"
+            eyebrow="Photographic Heritage & Memories"
             eyebrowColor="coral"
-            title="Selected Class Memories"
-            subtitle="Curated albums capturing spontaneous fellowship, landmark ceremonies, and shared milestones."
+            title="Class Photo Gallery"
+            subtitle="A collection of photographs preserving our friendships, campus life, celebrations, journeys and unforgettable experiences."
             actionHref="/gallery"
             actionLabel="Open Photo Archive"
           />
@@ -552,7 +553,7 @@ export default async function HomePage() {
               <div>
                 <span className="text-xs uppercase font-mono tracking-tag text-coral flex items-center gap-1.5 font-bold">
                   <Trophy className="w-4 h-4" />
-                  Honours & Accolades
+                  Sports & Accolades
                 </span>
                 <h3 className="font-serif text-2xl sm:text-3xl font-bold text-forest mt-1">
                   Class Achievements
@@ -563,8 +564,55 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="space-y-4">
-              {achievements.slice(0, 3).map((ach) => (
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed font-sans">
+              Our journey in the SAAF Super League reflects the spirit of teamwork, determination, healthy competition and sportsmanship. Across two appearances, our batch secured the Runner-up position once and the Second Runner-up position once.
+            </p>
+
+            {/* SAAF Super League Highlight Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-forest-900 to-forest-950 text-white border border-forest-800 shadow-card space-y-3 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-coral-light font-bold">
+                    One-time achievement
+                  </span>
+                  <Trophy className="w-4 h-4 text-coral" />
+                </div>
+                <div>
+                  <h4 className="font-mono text-xs uppercase tracking-wider text-canvas-muted">
+                    SAAF SUPER LEAGUE
+                  </h4>
+                  <p className="font-serif text-xl font-black text-white tracking-wide mt-0.5">
+                    RUNNER-UP
+                  </p>
+                </div>
+                <p className="text-[11px] text-canvas-muted/90 font-sans leading-relaxed">
+                  Secured through outstanding team coordination, competitive grit, and sportsmanship.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-forest-900 to-forest-950 text-white border border-forest-800 shadow-card space-y-3 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-coral-light font-bold">
+                    One-time achievement
+                  </span>
+                  <Trophy className="w-4 h-4 text-coral" />
+                </div>
+                <div>
+                  <h4 className="font-mono text-xs uppercase tracking-wider text-canvas-muted">
+                    SAAF SUPER LEAGUE
+                  </h4>
+                  <p className="font-serif text-xl font-black text-white tracking-wide mt-0.5">
+                    SECOND RUNNER-UP
+                  </p>
+                </div>
+                <p className="text-[11px] text-canvas-muted/90 font-sans leading-relaxed">
+                  Achieved through spirited athletic effort, determination, and class unity.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              {achievements.slice(0, 2).map((ach) => (
                 <div
                   key={ach.id}
                   className="p-4 rounded-xl bg-white border border-editorial-border flex items-center gap-4 hover:border-forest/40 transition-colors shadow-card"
