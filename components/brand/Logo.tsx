@@ -85,7 +85,7 @@ export const Logo: React.FC<LogoProps> = ({
           alt="Alif Friends 12 Calligraphic Emblem"
           width={emblemWidth}
           height={emblemHeight}
-          className="object-contain drop-shadow-sm filter transition-all duration-300 group-hover:drop-shadow-md"
+          className="object-contain drop-shadow-sm filter transition-all duration-300 group-hover:drop-shadow-[0_4px_12px_rgba(230,107,78,0.35)] group-hover:scale-105"
           priority
         />
       </div>
@@ -96,7 +96,7 @@ export const Logo: React.FC<LogoProps> = ({
           <span className={`font-serif font-black ${titleColor} ${titleSize} leading-none tracking-widest transition-colors`}>
             ALIF FRIENDS
           </span>
-          <span className="font-serif font-black text-white text-[11px] sm:text-xs bg-coral px-1.5 py-0.5 rounded leading-none shadow-sm flex-shrink-0">
+          <span className="font-serif font-black text-white text-[11px] sm:text-xs bg-coral px-1.5 py-0.5 rounded leading-none shadow-sm flex-shrink-0 group-hover:scale-110 group-hover:bg-coral-dark transition-all duration-300">
             12
           </span>
         </div>

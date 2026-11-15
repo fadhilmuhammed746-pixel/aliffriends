@@ -5,4 +5,5 @@ export * from './Card';
 export * from './SectionHeader';
 export * from './EmptyState';
 export * from './Skeleton';
+export * from './ScrollReveal';
 

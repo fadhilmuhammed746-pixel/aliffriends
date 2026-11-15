@@ -119,11 +119,83 @@ body {
 .magazine-cover-3-4 {
   aspect-ratio: 3 / 4;
   box-shadow: 0 16px 36px -10px rgba(18, 60, 50, 0.18), 0 4px 12px -2px rgba(18, 60, 50, 0.08);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
 }
 .magazine-cover-3-4:hover {
-  transform: translateY(-4px) rotate(-0.5deg) scale(1.015);
-  box-shadow: 0 24px 48px -12px rgba(18, 60, 50, 0.24), 0 8px 16px -4px rgba(18, 60, 50, 0.12);
+  transform: translateY(-8px) rotate(-0.75deg) scale(1.025);
+  box-shadow: 0 30px 60px -14px rgba(18, 60, 50, 0.32), 0 12px 24px -4px rgba(230, 107, 78, 0.18);
+}
+
+/* Card Interactive Lift & Glow */
+.card-interactive {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease;
+}
+.card-interactive:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -12px rgba(18, 60, 50, 0.14), 0 6px 16px -4px rgba(18, 60, 50, 0.06);
+}
+
+/* Button Light Ray Sweep */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -70%;
+  width: 45%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.32) 50%,
+    transparent 100%
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+  transition: all 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+}
+.btn-shine:hover::after {
+  left: 140%;
+  opacity: 1;
+}
+
+/* News Marquee Pause on Hover */
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
+}
+
+/* Pulsing Glow Ring */
+.glow-ring-coral {
+  box-shadow: 0 0 0 0 rgba(230, 107, 78, 0.6);
+  animation: pulse-ring 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(230, 107, 78, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(230, 107, 78, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(230, 107, 78, 0);
+  }
+}
+
+/* Smooth Gradient Shimmer Text */
+.text-gradient-shimmer {
+  background: linear-gradient(90deg, #E66B4E 0%, #F0876E 30%, #FFF3EC 50%, #F0876E 70%, #E66B4E 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
 }
 
 /* Reduced motion accessibility */

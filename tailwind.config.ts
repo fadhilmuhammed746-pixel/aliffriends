@@ -81,6 +81,16 @@ const config: Config = {
         "fade-up": "fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         fadeIn: "fadeIn 0.25s ease-out forwards",
         slideInRight: "slideInRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "float": "float 4s ease-in-out infinite",
+        "float-slow": "floatSlow 8s ease-in-out infinite",
+        "pulse-slow": "pulseSlow 5s ease-in-out infinite",
+        "glow-pulse": "glowPulse 3s ease-in-out infinite",
+        "shimmer": "shimmer 2.5s linear infinite",
+        "marquee": "marquee 28s linear infinite",
+        "marquee-slow": "marquee 45s linear infinite",
+        "scale-in": "scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "aurora": "aurora 15s ease infinite alternate",
+        "shine": "shine 1.5s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -88,12 +98,49 @@ const config: Config = {
           "100%": { opacity: "1" },
         },
         fadeUp: {
-          "0%": { opacity: "0", transform: "translateY(14px)" },
+          "0%": { opacity: "0", transform: "translateY(18px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         slideInRight: {
           "0%": { transform: "translateX(100%)" },
           "100%": { transform: "translateX(0)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
+        },
+        floatSlow: {
+          "0%, 100%": { transform: "translateY(0px) rotate(0deg)" },
+          "50%": { transform: "translateY(-14px) rotate(1deg)" },
+        },
+        pulseSlow: {
+          "0%, 100%": { opacity: "0.25", transform: "scale(1)" },
+          "50%": { opacity: "0.55", transform: "scale(1.08)" },
+        },
+        glowPulse: {
+          "0%, 100%": { boxShadow: "0 0 16px rgba(230, 107, 78, 0.2)" },
+          "50%": { boxShadow: "0 0 32px rgba(230, 107, 78, 0.55)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.94)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        aurora: {
+          "0%": { filter: "hue-rotate(0deg) blur(80px)", transform: "scale(1) translate(0, 0)" },
+          "50%": { filter: "hue-rotate(30deg) blur(100px)", transform: "scale(1.15) translate(20px, -20px)" },
+          "100%": { filter: "hue-rotate(-20deg) blur(80px)", transform: "scale(1) translate(-15px, 15px)" },
+        },
+        shine: {
+          "0%": { left: "-100%" },
+          "100%": { left: "200%" },
         },
       },
     },

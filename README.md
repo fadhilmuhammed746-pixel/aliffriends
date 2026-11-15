@@ -101,7 +101,9 @@ npm install
 \`\`\`bash
 npm run dev
 \`\`\`
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:8080](http://localhost:8080) in your browser (or run pm run dev:3000 for port 3000).
+
+On Windows, you can also double-click un.bat to launch the server and automatically open the application in your browser.
 
 ### 4. Build for Production
 \`\`\`bash

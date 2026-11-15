@@ -38,14 +38,24 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({
         </div>
 
         {/* Marquee / Headline */}
-        <div className="flex-1 overflow-hidden whitespace-nowrap text-xs text-canvas-warm/90 font-sans tracking-wide">
-          <Link
-            href="/newspaper"
-            className="hover:text-coral-light transition-colors inline-flex items-center gap-2 group"
-          >
-            <span>{text}</span>
-            <ChevronRight className="w-3 h-3 text-coral-light opacity-0 group-hover:opacity-100 transition-opacity" />
-          </Link>
+        <div className="flex-1 overflow-hidden whitespace-nowrap text-xs text-canvas-warm/90 font-sans tracking-wide marquee-container relative mask-linear">
+          <div className="inline-flex items-center gap-12 animate-marquee marquee-content hover:cursor-pointer">
+            <Link
+              href="/newspaper"
+              className="hover:text-coral-light transition-colors inline-flex items-center gap-2 group"
+            >
+              <span>{text}</span>
+              <ChevronRight className="w-3.5 h-3.5 text-coral-light opacity-75 group-hover:translate-x-1 transition-all" />
+            </Link>
+            <span className="text-forest-700 select-none">•</span>
+            <Link
+              href="/newspaper"
+              className="hover:text-coral-light transition-colors inline-flex items-center gap-2 group"
+            >
+              <span>{text}</span>
+              <ChevronRight className="w-3.5 h-3.5 text-coral-light opacity-75 group-hover:translate-x-1 transition-all" />
+            </Link>
+          </div>
         </div>
 
         {/* Date and Quick Link */}

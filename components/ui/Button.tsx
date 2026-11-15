@@ -33,13 +33,13 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantClasses = {
     coral:
-      'bg-coral hover:bg-coral-dark text-white shadow-subtle hover:shadow-coral',
+      'bg-coral hover:bg-coral-dark text-white shadow-subtle hover:shadow-coral btn-shine hover:-translate-y-0.5 active:translate-y-0',
     forest:
-      'bg-forest hover:bg-forest-800 text-white shadow-subtle hover:shadow-editorial',
+      'bg-forest hover:bg-forest-800 text-white shadow-subtle hover:shadow-editorial btn-shine hover:-translate-y-0.5 active:translate-y-0',
     ghost:
-      'bg-white hover:bg-canvas-warm text-forest border border-editorial-border hover:border-forest/40 shadow-subtle',
+      'bg-white hover:bg-canvas-warm text-forest border border-editorial-border hover:border-forest/40 shadow-subtle hover:-translate-y-0.5',
     'ghost-light':
-      'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40 backdrop-blur-sm',
+      'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40 backdrop-blur-sm hover:-translate-y-0.5',
     link:
       'bg-transparent text-forest hover:text-coral p-0 tracking-widest underline underline-offset-4 shadow-none hover:shadow-none',
   }[variant];
