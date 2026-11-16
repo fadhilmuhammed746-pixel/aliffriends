@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     ],
   },
   verification: {
-    google: 'Fk5_KlvlTAi-SSvdpUIleu6sY-Hn5UaAHXTGDxTg57E',
+    google: '_QTASR8F-fJBxpNrUetvnAjdPD89YSO5UgLtsicynMw',
   },
   openGraph: {
     title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
