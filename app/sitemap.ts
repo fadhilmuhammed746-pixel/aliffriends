@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    '',
+    '/',
     '/magazine',
     '/newspaper',
     '/programs',
@@ -33,10 +33,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/about',
     '/contact',
   ].map((route) => ({
-    url: `${baseUrl}${route}`,
+    url: route === '/' ? `${baseUrl}/` : `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily',
-    priority: route === '' ? 1.0 : 0.8,
+    priority: route === '/' ? 1.0 : 0.8,
   }));
 
   const articleRoutes: MetadataRoute.Sitemap = articles.map((art) => ({
