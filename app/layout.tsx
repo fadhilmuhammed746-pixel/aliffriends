@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'ALIF FRIENDS 12 Editorial & Class Council' }],
   manifest: '/manifest.json',
   alternates: {
-    canonical: '/',
+    canonical: 'https://aliffriends.vercel.app/',
   },
   robots: {
     index: true,

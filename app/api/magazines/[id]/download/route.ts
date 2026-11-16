@@ -13,88 +13,57 @@ export async function GET(
     const { id } = await params;
     const magazine = await db.getMagazineById(id);
 
-    if (!magazine || !magazine.pdfUrl) {
+    if (!magazine) {
       return NextResponse.json(
-        { error: 'Magazine or PDF publication not found.' },
+        { error: 'Magazine publication not found.' },
         { status: 404 }
       );
     }
 
-    let pdfBuffer: Buffer | null = null;
-    const pdfUrl = magazine.pdfUrl;
+    let pdfUrl = magazine.pdfUrl;
 
+    // Special fallback for Khavarikhul Adaath if not set or pointing to legacy path
+    if (
+      !pdfUrl ||
+      pdfUrl.includes('sample-magazine') ||
+      pdfUrl.includes('khavarikhul-adaath-edition-1.pdf')
+    ) {
+      if (magazine.id === 'mag_1794137111511' || magazine.title?.toLowerCase().includes('khavarikhul')) {
+        pdfUrl = 'https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/magazines/khavarikhul_adaath_official.pdf';
+      }
+    }
+
+    if (!pdfUrl) {
+      return NextResponse.json(
+        { error: 'No downloadable PDF publication associated with this edition.' },
+        { status: 404 }
+      );
+    }
+
+    // Remote PDF: Redirect directly with HTTP 307 to avoid Vercel 4.5MB serverless payload limit
     if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
-      // Remote PDF from Supabase Storage or CDN
-      const response = await fetch(pdfUrl, {
-        headers: {
-          'Accept': 'application/pdf,*/*',
-          'User-Agent': 'ALIF-FRIENDS-12-Magazine-Downloader/1.0',
-        },
-        cache: 'no-store',
-      });
-
-      if (!response.ok) {
-        console.error(`[Download Error] Remote fetch failed with HTTP ${response.status} for ${pdfUrl}`);
-        return NextResponse.json(
-          { error: `Failed to retrieve magazine PDF from storage (HTTP ${response.status}).` },
-          { status: 502 }
-        );
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      pdfBuffer = Buffer.from(arrayBuffer);
-    } else {
-      // Local file fallback
-      const cleanRelativePath = pdfUrl.startsWith('/') ? pdfUrl.slice(1) : pdfUrl;
-      const candidates = [
-        path.join(process.cwd(), 'public', cleanRelativePath),
-        path.join(process.cwd(), cleanRelativePath),
-        path.join(process.cwd(), 'public', 'sample-magazine-af12.pdf'),
-      ];
-
-      for (const candidate of candidates) {
-        if (fs.existsSync(candidate)) {
-          pdfBuffer = await fs.promises.readFile(candidate);
-          break;
-        }
-      }
+      return NextResponse.redirect(pdfUrl, 307);
     }
 
-    if (!pdfBuffer || pdfBuffer.length === 0) {
-      return NextResponse.json(
-        { error: 'Magazine PDF content is empty or unavailable.' },
-        { status: 404 }
-      );
+    // Local static PDF: If present in public directory, redirect to static asset
+    const cleanRelativePath = pdfUrl.startsWith('/') ? pdfUrl.slice(1) : pdfUrl;
+    const localFile = path.join(process.cwd(), 'public', cleanRelativePath);
+
+    if (fs.existsSync(localFile)) {
+      return NextResponse.redirect(new URL(pdfUrl, req.url), 307);
     }
 
-    // Verify valid PDF signature (%PDF-)
-    const signature = pdfBuffer.slice(0, 5).toString('ascii');
-    if (!signature.startsWith('%PDF-')) {
-      console.error(`[Download Error] Invalid PDF header detected: "${signature}". Received non-PDF data.`);
-      return NextResponse.json(
-        { error: 'Invalid document signature. The retrieved file is not a valid PDF publication.' },
-        { status: 502 }
-      );
+    // Fallback: Check public/magazines/khavarikhul-adaath-official.pdf
+    const defaultLocalPdf = path.join(process.cwd(), 'public', 'magazines', 'khavarikhul-adaath-official.pdf');
+    if (fs.existsSync(defaultLocalPdf)) {
+      return NextResponse.redirect(new URL('/magazines/khavarikhul-adaath-official.pdf', req.url), 307);
     }
 
-    // Generate safe, descriptive filename
-    const safeBaseName = (magazine.title || 'alif-friends-12-magazine')
-      .replace(/[<>:"/\\|?*]+/g, '')
-      .replace(/\s+/g, '_')
-      .trim();
-    const finalFilename = `${safeBaseName}.pdf`;
-
-    return new NextResponse(new Uint8Array(pdfBuffer), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${finalFilename}"; filename*=UTF-8''${encodeURIComponent(finalFilename)}`,
-        'Content-Length': pdfBuffer.length.toString(),
-        'Accept-Ranges': 'bytes',
-        'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    });
+    // Remote official storage fallback
+    return NextResponse.redirect(
+      'https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/magazines/khavarikhul_adaath_official.pdf',
+      307
+    );
   } catch (error: any) {
     console.error('[Download Error] Unexpected error serving magazine PDF:', error);
     return NextResponse.json(
@@ -103,4 +72,3 @@ export async function GET(
     );
   }
 }
-

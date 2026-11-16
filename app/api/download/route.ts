@@ -6,7 +6,6 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const fileUrl = searchParams.get('url');
-    const requestedFilename = searchParams.get('filename') || 'downloaded-file';
 
     if (!fileUrl) {
       return NextResponse.json({ error: 'Missing url parameter.' }, { status: 400 });
@@ -16,56 +15,29 @@ export async function GET(req: NextRequest) {
     const allowedHosts = [
       'rdcztjtcticvybauejhk.supabase.co',
       'supabase.co',
+      'aliffriends.vercel.app',
+      'localhost',
     ];
 
     let parsedUrl: URL;
     try {
-      parsedUrl = new URL(fileUrl);
+      parsedUrl = new URL(fileUrl, req.url);
     } catch {
       return NextResponse.json({ error: 'Invalid URL format.' }, { status: 400 });
     }
 
-    const isHostAllowed = allowedHosts.some(host => parsedUrl.hostname.endsWith(host) || parsedUrl.hostname === host);
+    const isHostAllowed = allowedHosts.some(
+      (host) => parsedUrl.hostname.endsWith(host) || parsedUrl.hostname === host
+    );
+
     if (!isHostAllowed && !fileUrl.startsWith('/')) {
       return NextResponse.json({ error: 'Host not allowed for download proxy.' }, { status: 403 });
     }
 
-    const response = await fetch(fileUrl, {
-      headers: {
-        'Accept': '*/*',
-        'User-Agent': 'ALIF-FRIENDS-12-Downloader/1.0',
-      },
-    });
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `Remote resource returned HTTP ${response.status}` },
-        { status: 502 }
-      );
-    }
-
-    const contentType = response.headers.get('content-type') || 'application/octet-stream';
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const safeFilename = requestedFilename
-      .replace(/[<>:"/\\|?*]+/g, '')
-      .replace(/\s+/g, '_')
-      .trim();
-
-    return new NextResponse(new Uint8Array(buffer), {
-      status: 200,
-      headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${safeFilename}"; filename*=UTF-8''${encodeURIComponent(safeFilename)}`,
-        'Content-Length': buffer.length.toString(),
-        'Cache-Control': 'public, max-age=3600',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    });
+    // Direct HTTP 307 redirect eliminates Vercel 4.5MB function payload limit
+    return NextResponse.redirect(fileUrl, 307);
   } catch (error: any) {
     console.error('[Download Proxy Error]', error);
-    return NextResponse.json({ error: 'Failed to stream download.' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to process download request.' }, { status: 500 });
   }
 }
-

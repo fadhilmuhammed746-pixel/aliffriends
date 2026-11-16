@@ -116,6 +116,8 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
           resolvedUrl,
           downloadUrl,
           magazineId ? `/api/magazines/${magazineId}/download` : null,
+          '/magazines/khavarikhul-adaath-official.pdf',
+          'https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/magazines/khavarikhul_adaath_official.pdf',
           '/uploads/khavarikhul-adaath-edition-1.pdf',
           '/sample-magazine-af12.pdf',
         ].filter(Boolean) as string[];

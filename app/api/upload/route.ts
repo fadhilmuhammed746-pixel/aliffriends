@@ -107,15 +107,22 @@ export async function POST(req: NextRequest) {
     let storageLocation: 'supabase' | 'local' = 'supabase';
 
     if (uploadErr) {
-      console.warn('Supabase storage upload failed, saving to local persistent storage:', uploadErr.message);
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+      console.warn('Supabase storage upload failed:', uploadErr.message);
+      if (process.env.NODE_ENV === 'development') {
+        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const localFilePath = path.join(uploadsDir, uniqueFileName);
+        await fs.promises.writeFile(localFilePath, buffer);
+        fileUrl = `/uploads/${uniqueFileName}`;
+        storageLocation = 'local';
+      } else {
+        return NextResponse.json(
+          { error: `Cloud storage upload failed: ${uploadErr.message}. Note that Supabase Free Tier limit is 50 MB.` },
+          { status: 502 }
+        );
       }
-      const localFilePath = path.join(uploadsDir, uniqueFileName);
-      await fs.promises.writeFile(localFilePath, buffer);
-      fileUrl = `/uploads/${uniqueFileName}`;
-      storageLocation = 'local';
     } else {
       if (isFinance) {
         const { data: signData } = await supabase.storage

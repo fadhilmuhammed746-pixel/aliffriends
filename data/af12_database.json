@@ -102,17 +102,17 @@
       "editionNumber": "EDITION I",
       "publicationDate": "2026-10-08",
       "description": "",
-      "coverImage": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794136982817_1_page-0001_e78a29e0.jpg",
-      "pdfUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/1794368825323_binshad_a24d7f0f.pdf",
+      "coverImage": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/magazines/khavarikhul_adaath_cover.jpg",
+      "pdfUrl": "https://rdcztjtcticvybauejhk.supabase.co/storage/v1/object/public/af12-media/magazines/khavarikhul_adaath_official.pdf",
       "author": "Editorial Board",
       "editor": "AF12 Editors",
-      "pageCount": 4,
-      "fileSize": "325.8 KB",
+      "pageCount": 83,
+      "fileSize": "27.2 MB",
       "isFeatured": true,
       "isPublished": true,
       "tags": [],
       "createdAt": "2026-11-08T11:25:11.511+00:00",
-      "updatedAt": "2026-11-11T11:46:20.543Z"
+      "updatedAt": "2026-11-16T12:10:49.809Z"
     }
   ],
   "articles": [

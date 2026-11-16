@@ -98,8 +98,8 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
 
   const isFinance = section === 'finance' || section === 'receipts';
 
-  // Configured Supabase storage limit (100 MB limit)
-  const MAX_LIMIT_MB = 100;
+  // Configured Supabase storage limit (50 MB Free Tier limit)
+  const MAX_LIMIT_MB = 50;
   const effectiveLimitMB = maxSizeMB ? Math.min(maxSizeMB, MAX_LIMIT_MB) : MAX_LIMIT_MB;
 
   // Canonical MIME type resolver to prevent HTTP 400 from Supabase Storage

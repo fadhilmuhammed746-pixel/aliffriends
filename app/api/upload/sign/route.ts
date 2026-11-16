@@ -45,8 +45,8 @@ const EXTENSION_MIME_MAP: Record<string, string> = {
   '.pdf': 'application/pdf',
 };
 
-// Maximum permitted upload limit (100 MB - Supabase project plan limit)
-const MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
+// Maximum permitted upload limit (50 MB - Supabase Free Tier limit)
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,11 +87,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. File size check (up to 100 MB Supabase plan limit)
+    // 4. File size check (up to 50 MB Supabase Free Tier limit)
     if (fileSize && typeof fileSize === 'number' && fileSize > MAX_UPLOAD_SIZE) {
       return NextResponse.json(
         {
-          error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)} MB) exceeds the Supabase Storage limit of 100 MB per file. Please select a file within 100 MB.`,
+          error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)} MB) exceeds the Supabase Free Tier limit of 50 MB per file. Please compress or optimize the file (under 50 MB) before uploading.`,
         },
         { status: 400 }
       );
