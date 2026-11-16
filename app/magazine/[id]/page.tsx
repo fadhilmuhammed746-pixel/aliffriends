@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
@@ -7,6 +8,33 @@ import { ArrowLeft, BookOpen, Download, Sparkles } from 'lucide-react';
 import { Container, Badge, Card } from '@/components/ui';
 
 export const revalidate = 0;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const magazine = await db.getMagazineById(id);
+  if (!magazine) return {};
+
+  const cleanDescription = (magazine.description || `${magazine.title} - Official Publication of Alif Friends 12`).replace(/<[^>]*>/g, '');
+
+  return {
+    title: `${magazine.title} (${magazine.editionNumber})`,
+    description: cleanDescription,
+    alternates: {
+      canonical: `/magazine/${magazine.id}`,
+    },
+    openGraph: {
+      title: `${magazine.title} — Digital Magazine Archive`,
+      description: cleanDescription,
+      url: `https://aliffriends.vercel.app/magazine/${magazine.id}`,
+      type: 'book',
+      images: magazine.coverImage ? [{ url: magazine.coverImage }] : undefined,
+    },
+  };
+}
 
 export default async function MagazineDetailPage({
   params,

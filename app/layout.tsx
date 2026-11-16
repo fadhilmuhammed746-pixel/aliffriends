@@ -31,6 +31,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://aliffriends.vercel.app'),
   title: {
     default: 'ALIF FRIENDS 12 | 12th Batch, Darul Falah Islamic Academy',
     template: '%s | ALIF FRIENDS 12',
@@ -53,6 +54,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'ALIF FRIENDS 12 Editorial & Class Council' }],
   manifest: '/manifest.json',
+  alternates: {
+    canonical: '/',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -78,7 +82,10 @@ export const metadata: Metadata = {
     title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
     description:
       'The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
+    url: 'https://aliffriends.vercel.app',
     siteName: 'ALIF FRIENDS 12',
+    locale: 'en_US',
+    type: 'website',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
@@ -86,6 +93,15 @@ export const metadata: Metadata = {
         height: 630,
         alt: 'ALIF FRIENDS 12 Digital Publication',
       },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
+    description:
+      'The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
+    images: [
+      'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
     ],
   },
 };
@@ -109,6 +125,33 @@ export default async function RootLayout({
       className={`${playfair.variable} ${cormorant.variable} ${plusJakarta.variable}`}
     >
       <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://aliffriends.vercel.app/#website',
+                  url: 'https://aliffriends.vercel.app',
+                  name: 'ALIF FRIENDS 12',
+                  description:
+                    'The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
+                  inLanguage: 'en-US',
+                },
+                {
+                  '@type': 'Organization',
+                  '@id': 'https://aliffriends.vercel.app/#organization',
+                  name: 'ALIF FRIENDS 12',
+                  url: 'https://aliffriends.vercel.app',
+                  logo: 'https://aliffriends.vercel.app/logo-emblem.png',
+                  email: 'aliffriends12@gmail.com',
+                },
+              ],
+            }),
+          }}
+        />
         <ScrollProgressBar />
         <SplashScreen />
         <Suspense fallback={null}>

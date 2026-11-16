@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
@@ -20,6 +21,36 @@ import {
 import { ArticleAnalyticsTracker } from '@/components/analytics/ArticleAnalyticsTracker';
 
 export const revalidate = 0;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const article = await db.getArticleBySlugOrId(slug);
+  if (!article) return {};
+
+  const cleanDescription = (article.subtitle || article.content?.slice(0, 160) || article.title).replace(/<[^>]*>/g, '');
+
+  return {
+    title: article.title,
+    description: cleanDescription,
+    alternates: {
+      canonical: `/newspaper/${article.slug}`,
+    },
+    openGraph: {
+      title: article.title,
+      description: cleanDescription,
+      url: `https://aliffriends.vercel.app/newspaper/${article.slug}`,
+      type: 'article',
+      publishedTime: article.publishedAt,
+      modifiedTime: article.updatedAt,
+      authors: [article.author],
+      images: article.coverImage ? [{ url: article.coverImage }] : undefined,
+    },
+  };
+}
 
 export default async function ArticleDetailPage({
   params,
