@@ -45,8 +45,8 @@ const EXTENSION_MIME_MAP: Record<string, string> = {
   '.pdf': 'application/pdf',
 };
 
-// Maximum permitted upload limit (50 MB - Supabase project plan limit)
-const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
+// Maximum permitted upload limit (100 MB - Supabase project plan limit)
+const MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,11 +87,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. File size check (up to 50 MB Supabase plan limit)
+    // 4. File size check (up to 100 MB Supabase plan limit)
     if (fileSize && typeof fileSize === 'number' && fileSize > MAX_UPLOAD_SIZE) {
       return NextResponse.json(
         {
-          error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)} MB) exceeds the Supabase Storage limit of 50 MB per file. Please select a file within 50 MB.`,
+          error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)} MB) exceeds the Supabase Storage limit of 100 MB per file. Please select a file within 100 MB.`,
         },
         { status: 400 }
       );
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     // 7. Compute URLs
     const { data: pubData } = supabase.storage.from(bucketName).getPublicUrl(uniqueFileName);
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    
+
     // Direct storage hostname for TUS resumable uploads (recommended by Supabase)
     let directStorageEndpoint = `${supabaseUrl}/storage/v1/upload/resumable`;
     try {
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
       isFinance,
       category,
       canonicalMimeType,
-      maxSizeMB: 50,
+      maxSizeMB: 100,
     });
   } catch (error: any) {
     console.error('Sign upload authorization error:', error);

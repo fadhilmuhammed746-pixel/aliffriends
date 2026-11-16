@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import crypto from 'crypto';
+import fs from 'fs';
 import { getAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { getSupabaseAdminClient } from '@/lib/supabase';
@@ -102,20 +103,29 @@ export async function POST(req: NextRequest) {
         upsert: false,
       });
 
-    if (uploadErr) {
-      console.error('Supabase storage upload error:', uploadErr);
-      throw new Error(`Cloud storage upload failed: ${uploadErr.message}`);
-    }
-
     let fileUrl = '';
-    if (isFinance) {
-      const { data: signData } = await supabase.storage
-        .from(bucketName)
-        .createSignedUrl(uniqueFileName, 60 * 60 * 24);
-      fileUrl = signData?.signedUrl || `/api/finance/receipt?file=${uniqueFileName}`;
+    let storageLocation: 'supabase' | 'local' = 'supabase';
+
+    if (uploadErr) {
+      console.warn('Supabase storage upload failed, saving to local persistent storage:', uploadErr.message);
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      const localFilePath = path.join(uploadsDir, uniqueFileName);
+      await fs.promises.writeFile(localFilePath, buffer);
+      fileUrl = `/uploads/${uniqueFileName}`;
+      storageLocation = 'local';
     } else {
-      const { data: pubData } = supabase.storage.from(bucketName).getPublicUrl(uniqueFileName);
-      fileUrl = pubData.publicUrl;
+      if (isFinance) {
+        const { data: signData } = await supabase.storage
+          .from(bucketName)
+          .createSignedUrl(uniqueFileName, 60 * 60 * 24);
+        fileUrl = signData?.signedUrl || `/api/finance/receipt?file=${uniqueFileName}`;
+      } else {
+        const { data: pubData } = supabase.storage.from(bucketName).getPublicUrl(uniqueFileName);
+        fileUrl = pubData.publicUrl;
+      }
     }
 
     const mediaRecord = await db.createMedia({
@@ -128,7 +138,7 @@ export async function POST(req: NextRequest) {
       section: requestedSection,
       contentId,
       uploadedBy: session.username || 'admin',
-      storageLocation: 'supabase',
+      storageLocation,
     });
 
     return NextResponse.json({

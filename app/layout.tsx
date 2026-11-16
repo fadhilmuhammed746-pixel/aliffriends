@@ -8,6 +8,7 @@ import { BreakingTicker } from '@/components/navigation/BreakingTicker';
 import { PwaProvider, InstallAppModal } from '@/components/pwa';
 import { SplashScreen } from '@/components/splash';
 import { PageAnalytics } from '@/components/analytics/PageAnalytics';
+import { ScrollProgressBar, BackToTop } from '@/components/ui';
 import { db } from '@/lib/db';
 
 const playfair = Playfair_Display({
@@ -111,6 +112,7 @@ export default async function RootLayout({
         <meta name="google-site-verification" content="Fk5_KlvlTAi-SSvdpUIleu6sY-Hn5UaAHXTGDxTg57E" />
       </head>
       <body className="bg-canvas text-ink antialiased min-h-screen flex flex-col justify-between selection:bg-coral selection:text-white">
+        <ScrollProgressBar />
         <SplashScreen />
         <Suspense fallback={null}>
           <PageAnalytics />
@@ -125,6 +127,7 @@ export default async function RootLayout({
             <div className="relative">{children}</div>
           </div>
           <Footer />
+          <BackToTop />
           <InstallAppModal />
         </PwaProvider>
       </body>

@@ -6,4 +6,6 @@ export * from './SectionHeader';
 export * from './EmptyState';
 export * from './Skeleton';
 export * from './ScrollReveal';
+export * from './ScrollProgressBar';
+export * from './BackToTop';
 

@@ -91,6 +91,11 @@ const config: Config = {
         "scale-in": "scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "aurora": "aurora 15s ease infinite alternate",
         "shine": "shine 1.5s ease-in-out infinite",
+        "float-gentle": "floatGentle 4.5s ease-in-out infinite",
+        "glow-slow": "glowSlow 6s ease-in-out infinite",
+        "pulse-subtle": "pulseSubtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "rotate-slow": "rotateSlow 24s linear infinite",
+        "bounce-gentle": "bounceGentle 2s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -141,6 +146,26 @@ const config: Config = {
         shine: {
           "0%": { left: "-100%" },
           "100%": { left: "200%" },
+        },
+        floatGentle: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        glowSlow: {
+          "0%, 100%": { filter: "drop-shadow(0 0 10px rgba(230, 107, 78, 0.3))" },
+          "50%": { filter: "drop-shadow(0 0 24px rgba(230, 107, 78, 0.65))" },
+        },
+        pulseSubtle: {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.85", transform: "scale(1.02)" },
+        },
+        rotateSlow: {
+          "from": { transform: "rotate(0deg)" },
+          "to": { transform: "rotate(360deg)" },
+        },
+        bounceGentle: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
         },
       },
     },

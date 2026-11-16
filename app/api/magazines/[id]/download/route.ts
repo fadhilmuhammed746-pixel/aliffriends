@@ -90,6 +90,7 @@ export async function GET(
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${finalFilename}"; filename*=UTF-8''${encodeURIComponent(finalFilename)}`,
         'Content-Length': pdfBuffer.length.toString(),
+        'Accept-Ranges': 'bytes',
         'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400',
         'X-Content-Type-Options': 'nosniff',
       },

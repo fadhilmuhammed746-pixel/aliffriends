@@ -110,13 +110,13 @@ export const Navbar: React.FC = () => {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative text-[11px] uppercase tracking-tag font-serif font-bold transition-colors py-1 select-none ${
+                    className={`relative text-[11px] uppercase tracking-tag font-serif font-bold transition-all duration-200 py-1 select-none hover:-translate-y-0.5 ${
                       active ? 'text-forest' : 'text-ink-muted hover:text-forest'
                     }`}
                   >
                     <span>{link.name}</span>
                     {active && (
-                      <span className="absolute -bottom-1.5 left-0 right-0 h-[2px] bg-coral rounded-full" />
+                      <span className="absolute -bottom-1.5 left-0 right-0 h-[2px] bg-coral rounded-full shadow-[0_0_8px_rgba(230,107,78,0.6)] animate-scale-in" />
                     )}
                   </Link>
                 );
@@ -170,13 +170,13 @@ export const Navbar: React.FC = () => {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`relative text-[11px] uppercase tracking-tag font-serif font-bold transition-colors py-1 select-none ${
+                      className={`relative text-[11px] uppercase tracking-tag font-serif font-bold transition-all duration-200 py-1 select-none hover:-translate-y-0.5 ${
                         active ? 'text-forest' : 'text-ink-muted hover:text-forest'
                       }`}
                     >
                       <span>{link.name}</span>
                       {active && (
-                        <span className="absolute -bottom-1.5 left-0 right-0 h-[2px] bg-coral rounded-full" />
+                        <span className="absolute -bottom-1.5 left-0 right-0 h-[2px] bg-coral rounded-full shadow-[0_0_8px_rgba(230,107,78,0.6)] animate-scale-in" />
                       )}
                     </Link>
                   );

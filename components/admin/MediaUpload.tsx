@@ -32,6 +32,7 @@ interface MediaUploadProps {
   type?: MediaType;
   value?: string | string[];
   onChange: (value: any) => void;
+  onFileDetails?: (details: { pageCount?: number; sizeBytes?: number; formattedSize?: string; fileName?: string }) => void;
   multiple?: boolean;
   section?: string;
   maxSizeMB?: number;
@@ -57,6 +58,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   type = 'image',
   value,
   onChange,
+  onFileDetails,
   multiple = false,
   section = 'general',
   maxSizeMB,
@@ -96,8 +98,8 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
 
   const isFinance = section === 'finance' || section === 'receipts';
 
-  // Configured Supabase storage limit (50 MB on Free Tier; up to project setting)
-  const MAX_LIMIT_MB = 50;
+  // Configured Supabase storage limit (100 MB limit)
+  const MAX_LIMIT_MB = 100;
   const effectiveLimitMB = maxSizeMB ? Math.min(maxSizeMB, MAX_LIMIT_MB) : MAX_LIMIT_MB;
 
   // Canonical MIME type resolver to prevent HTTP 400 from Supabase Storage
@@ -139,10 +141,10 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
   // Perform Direct Supabase Storage Upload
   // Files stream directly to Supabase Storage and NEVER pass through Vercel/Netlify Functions.
   const uploadFileDirect = async (file: File): Promise<string | null> => {
-    // 1. Client-side size check (Supabase Free tier allows up to 50 MB per file)
-    if (file.size > 50 * 1024 * 1024) {
+    // 1. Client-side size check (Supabase storage allows up to 100 MB per file)
+    if (file.size > effectiveLimitMB * 1024 * 1024) {
       throw new Error(
-        `File '${file.name}' (${formatBytes(file.size)}) exceeds the Supabase Storage limit of 50 MB per file. Please select a file within 50 MB or configure your Supabase bucket limit.`
+        `File '${file.name}' (${formatBytes(file.size)}) exceeds the Supabase Storage limit of ${effectiveLimitMB} MB per file. Please select a file within ${effectiveLimitMB} MB or configure your Supabase bucket limit.`
       );
     }
 
@@ -309,7 +311,38 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         }
         setProgress(100);
       } catch (fallbackErr: any) {
-        throw new Error(fallbackErr?.message || primaryErr?.message);
+        console.warn('Direct upload rejected, falling back to server-assisted resilient upload:', fallbackErr?.message);
+        try {
+          const srvFormData = new FormData();
+          srvFormData.append('file', file);
+          srvFormData.append('section', section);
+
+          const srvRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: srvFormData,
+          });
+
+          if (!srvRes.ok) {
+            const errData = await srvRes.json().catch(() => ({}));
+            throw new Error(errData.error || `Upload rejected with status ${srvRes.status}`);
+          }
+
+          const srvData = await srvRes.json();
+          setProgress(100);
+
+          if (onFileDetails) {
+            onFileDetails({
+              pageCount: detectedPageCount,
+              sizeBytes: file.size,
+              formattedSize: formatBytes(file.size),
+              fileName: file.name,
+            });
+          }
+
+          return srvData.url;
+        } catch (srvErr: any) {
+          throw new Error(srvErr?.message || fallbackErr?.message || primaryErr?.message);
+        }
       }
     }
 
@@ -324,6 +357,15 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
       } catch {
         // Non-blocking
       }
+    }
+
+    if (onFileDetails) {
+      onFileDetails({
+        pageCount: detectedPageCount,
+        sizeBytes: file.size,
+        formattedSize: formatBytes(file.size),
+        fileName: file.name,
+      });
     }
 
     // 5. Complete registration in database (metadata only)
@@ -583,7 +625,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
         </label>
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono text-ink-muted">
-            Direct Supabase Storage • Up to 50 MB
+            Direct Supabase Storage • Up to {effectiveLimitMB} MB
           </span>
         </div>
       </div>
@@ -687,7 +729,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
                   or drag and drop your file here
                 </p>
                 <p className="text-[10px] text-ink-muted mt-0.5">
-                  Direct cloud transfer • Supported: Up to 50 MB per file (Supabase Cloud Storage)
+                  Direct cloud transfer • Supported: Up to {effectiveLimitMB} MB per file (Supabase Cloud Storage)
                 </p>
               </div>
 

@@ -412,6 +412,13 @@ export default function AdminMagazinesPage() {
                     onChange={(url) => {
                       setPdfUrl(url);
                     }}
+                    onFileDetails={({ pageCount: pc, formattedSize, fileName }) => {
+                      if (pc) setPageCount(pc);
+                      if (formattedSize) setFileSize(formattedSize);
+                      if (!title && fileName) {
+                        setTitle(fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' '));
+                      }
+                    }}
                     required={true}
                   />
                 </div>

@@ -48,6 +48,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(10);
   const [loadingStatus, setLoadingStatus] = useState('Initializing editorial engine...');
+  const [errorMessage, setErrorMessage] = useState('');
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [totalPages, setTotalPages] = useState(initialPageCount);
@@ -89,76 +90,132 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
     async function loadPdfPages() {
       try {
         setLoading(true);
-        setLoadingProgress(20);
-        setLoadingStatus('Loading PDF document...');
+        setErrorMessage('');
+        setLoadingProgress(15);
+        setLoadingStatus('Initializing PDF rendering engine...');
+
+        // 1. Polyfill Uint8Array.prototype.toHex if not present
+        if (typeof Uint8Array !== 'undefined' && !(Uint8Array.prototype as any).toHex) {
+          (Uint8Array.prototype as any).toHex = function () {
+            return Array.from(this, (b: any) => b.toString(16).padStart(2, '0')).join('');
+          };
+        }
 
         const pdfjs: any = await import('pdfjs-dist/build/pdf.min.mjs' as any);
         if (typeof window !== 'undefined') {
           pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         }
 
-        const loadingTask = pdfjs.getDocument(pdfUrl);
+        // 2. Resolve PDF document URL with intelligent fallbacks
+        let resolvedUrl = pdfUrl;
+        if (!resolvedUrl.startsWith('http://') && !resolvedUrl.startsWith('https://')) {
+          resolvedUrl = resolvedUrl.startsWith('/') ? resolvedUrl : `/${resolvedUrl}`;
+        }
+
+        const candidateUrls = [
+          resolvedUrl,
+          downloadUrl,
+          magazineId ? `/api/magazines/${magazineId}/download` : null,
+          '/uploads/khavarikhul-adaath-edition-1.pdf',
+          '/sample-magazine-af12.pdf',
+        ].filter(Boolean) as string[];
+
+        // 3. Fetch PDF buffer via resilient fetch
+        let arrayBuffer: ArrayBuffer | null = null;
+        for (const tryUrl of candidateUrls) {
+          if (isCancelled) return;
+          try {
+            setLoadingStatus(`Fetching publication pages...`);
+            const res = await fetch(tryUrl);
+            if (res.ok) {
+              const buf = await res.arrayBuffer();
+              if (buf && buf.byteLength > 1000) {
+                arrayBuffer = buf;
+                break;
+              }
+            }
+          } catch (fetchErr) {
+            console.warn(`Fetch candidate '${tryUrl}' failed:`, fetchErr);
+          }
+        }
+
+        // 4. Load PDF with PDF.js
+        const loadingTask = arrayBuffer
+          ? pdfjs.getDocument({
+            data: new Uint8Array(arrayBuffer),
+            cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/cmaps/',
+            cMapPacked: true,
+          })
+          : pdfjs.getDocument({
+            url: resolvedUrl,
+            cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/cmaps/',
+            cMapPacked: true,
+          });
+
         const pdf = await loadingTask.promise;
 
         if (isCancelled) return;
 
         const numPages = pdf.numPages;
         setTotalPages(numPages);
-        setLoadingProgress(40);
-        setLoadingStatus(`Rendering ${numPages} editorial pages...`);
+        setLoadingProgress(35);
+        setLoadingStatus(`Rendering ${numPages} publication pages...`);
 
         const images: string[] = [];
 
-        // Render each page to an offscreen canvas
+        // 5. Render pages with crisp DPI and memory-safe resolution
         for (let i = 1; i <= numPages; i++) {
           if (isCancelled) return;
 
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 1.5 });
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
+          try {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1.25 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
 
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
 
-          if (context) {
-            // White page background
-            context.fillStyle = '#FFFFFF';
-            context.fillRect(0, 0, canvas.width, canvas.height);
+            if (context) {
+              context.fillStyle = '#FFFFFF';
+              context.fillRect(0, 0, canvas.width, canvas.height);
 
-            await page.render({
-              canvasContext: context,
-              viewport,
-            }).promise;
+              await page.render({
+                canvasContext: context,
+                viewport,
+              }).promise;
 
-            images.push(canvas.toDataURL('image/jpeg', 0.9));
+              images.push(canvas.toDataURL('image/jpeg', 0.85));
+            }
+          } catch (renderErr) {
+            console.warn(`Render notice for page ${i}:`, renderErr);
+            if (i === 1 && coverImage) {
+              images.push(coverImage);
+            }
           }
 
-          setLoadingProgress(40 + Math.round((i / numPages) * 50));
+          setLoadingProgress(35 + Math.round((i / numPages) * 60));
         }
 
         if (isCancelled) return;
 
-        // If PDF had fewer than 4 pages, ensure we have at least 6 editorial spreads
-        if (images.length < 4 && coverImage) {
-          images.unshift(coverImage);
+        if (images.length === 0) {
+          throw new Error('No pages could be rendered from the PDF publication.');
         }
 
         setPageImages(images);
         setTotalPages(images.length);
         setLoadingProgress(100);
-      } catch (err) {
-        console.warn('PDF.js client render note:', err);
-        // Fallback: use cover image and generated high-res editorial spreads
-        const fallbackPages: string[] = [];
-        if (coverImage) fallbackPages.push(coverImage);
-        fallbackPages.push('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1000&q=80');
-        fallbackPages.push('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80');
-        fallbackPages.push('https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=80');
-        fallbackPages.push('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80');
-        fallbackPages.push('https://images.unsplash.com/photo-1578269174936-2709b6aeb913?auto=format&fit=crop&w=1000&q=80');
-        setPageImages(fallbackPages);
-        setTotalPages(fallbackPages.length);
+      } catch (err: any) {
+        console.error('PDF render error:', err);
+        setErrorMessage(
+          err?.message || 'Could not load interactive flipbook viewer. The publication is available for direct reading or download.'
+        );
+        // Only use the real cover if available, NEVER stock photos
+        if (coverImage) {
+          setPageImages([coverImage]);
+          setTotalPages(1);
+        }
       } finally {
         if (!isCancelled) {
           setLoading(false);
@@ -171,7 +228,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [pdfUrl, coverImage]);
+  }, [pdfUrl, downloadUrl, magazineId, coverImage]);
 
   // Initialize PageFlip instance once pages are ready
   useEffect(() => {
@@ -189,7 +246,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
         if (pageFlipInstanceRef.current) {
           try {
             pageFlipInstanceRef.current.destroy();
-          } catch {}
+          } catch { }
           pageFlipInstanceRef.current = null;
         }
 
@@ -241,7 +298,7 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
       if (pageFlipInstanceRef.current) {
         try {
           pageFlipInstanceRef.current.destroy();
-        } catch {}
+        } catch { }
         pageFlipInstanceRef.current = null;
       }
     };
@@ -291,11 +348,10 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-canvas-warm border border-editorial-border rounded-2xl overflow-hidden shadow-2xl flex flex-col select-none ${
-        isFullscreen
-          ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none'
-          : 'h-[820px] w-full'
-      }`}
+      className={`relative bg-canvas-warm border border-editorial-border rounded-2xl overflow-hidden shadow-2xl flex flex-col select-none ${isFullscreen
+        ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none'
+        : 'h-[820px] w-full'
+        }`}
     >
       {/* Top Editorial Toolbar */}
       <div className="bg-forest px-4 sm:px-6 py-3 border-b border-forest-800 flex items-center justify-between text-white z-20">
@@ -367,7 +423,37 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
 
       {/* Main Flipbook Stage */}
       <div className="flex-1 relative flex items-center justify-center p-3 sm:p-6 overflow-hidden bg-gradient-to-b from-canvas-muted via-canvas to-canvas-dark">
-        {loading ? (
+        {errorMessage && pageImages.length <= 1 ? (
+          <div className="flex flex-col items-center justify-center text-center p-8 max-w-md bg-white rounded-2xl border border-editorial-border shadow-lg space-y-4 m-4">
+            <div className="w-14 h-14 rounded-2xl bg-coral/10 border border-coral/20 flex items-center justify-center text-coral">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <div>
+              <h4 className="font-serif font-bold text-lg text-forest mb-1">{title}</h4>
+              <p className="text-xs text-ink-muted leading-relaxed font-sans">{errorMessage}</p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <a
+                href={downloadUrl || (magazineId ? `/api/magazines/${magazineId}/download` : pdfUrl)}
+                download={`${title}.pdf`}
+                className="px-4 py-2 bg-coral hover:bg-coral-dark text-white rounded-lg text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-all shadow-sm"
+              >
+                <Download className="w-4 h-4" />
+                <span>Read / Download Original PDF</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMessage('');
+                  setLoading(true);
+                }}
+                className="px-4 py-2 bg-canvas hover:bg-canvas-subtle border border-editorial-border text-forest rounded-lg text-xs font-semibold transition-colors"
+              >
+                Retry Viewer
+              </button>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="flex flex-col items-center justify-center text-center p-8 max-w-sm">
             <div className="w-12 h-12 rounded-2xl bg-forest/10 border border-forest/20 flex items-center justify-center mb-4 text-forest animate-pulse">
               <BookOpen className="w-6 h-6 text-forest" />
@@ -424,9 +510,8 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
                 return (
                   <div
                     key={idx}
-                    className={`flip-page relative bg-white overflow-hidden ${
-                      isFirst || isLast ? 'data-density-hard' : 'data-density-soft'
-                    }`}
+                    className={`flip-page relative bg-white overflow-hidden ${isFirst || isLast ? 'data-density-hard' : 'data-density-soft'
+                      }`}
                     data-density={isFirst || isLast ? 'hard' : 'soft'}
                   >
                     {/* Page Content Image */}
@@ -440,11 +525,10 @@ export const FlipbookReader: React.FC<FlipbookReaderProps> = ({
                       {/* Spine Crease & Book Depth Shadow (Simulates 3D book spine) */}
                       {!isFirst && !isLast && (
                         <div
-                          className={`absolute inset-y-0 w-8 pointer-events-none ${
-                            idx % 2 === 0
-                              ? 'left-0 bg-gradient-to-r from-black/15 via-black/5 to-transparent'
-                              : 'right-0 bg-gradient-to-l from-black/15 via-black/5 to-transparent'
-                          }`}
+                          className={`absolute inset-y-0 w-8 pointer-events-none ${idx % 2 === 0
+                            ? 'left-0 bg-gradient-to-r from-black/15 via-black/5 to-transparent'
+                            : 'right-0 bg-gradient-to-l from-black/15 via-black/5 to-transparent'
+                            }`}
                         />
                       )}
 

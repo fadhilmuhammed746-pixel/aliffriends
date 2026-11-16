@@ -198,6 +198,71 @@ body {
   animation: shimmer 4s linear infinite;
 }
 
+/* 3D Perspective Card Hover */
+.card-3d-hover {
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease;
+  transform-style: preserve-3d;
+}
+.card-3d-hover:hover {
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 0 24px 48px -12px rgba(18, 60, 50, 0.18), 0 8px 20px -4px rgba(230, 107, 78, 0.12);
+}
+
+/* Image Zoom on Container Hover */
+.img-zoom-hover {
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+}
+.group:hover .img-zoom-hover,
+.img-zoom-hover:hover {
+  transform: scale(1.045);
+}
+
+/* Animated Interactive Link Underline */
+.link-underline-animate {
+  position: relative;
+}
+.link-underline-animate::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 1.5px;
+  background: #E66B4E;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-underline-animate:hover::after {
+  width: 100%;
+}
+
+/* Ambient Floating Decorative Orbs */
+.ambient-orb {
+  filter: blur(80px);
+  pointer-events: none;
+  border-radius: 9999px;
+  animation: float-gentle 7s ease-in-out infinite alternate;
+}
+
+/* Shimmer Badge */
+.badge-glow {
+  position: relative;
+  overflow: hidden;
+}
+.badge-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(90deg, transparent, rgba(230, 107, 78, 0.45), transparent);
+  animation: shimmer-badge 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes shimmer-badge {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(150%); }
+}
+
 /* Reduced motion accessibility */
 @media (prefers-reduced-motion: reduce) {
   * {

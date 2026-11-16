@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 export interface ScrollRevealProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  animation?: 'fade-up' | 'fade-in' | 'scale-up' | 'slide-left' | 'slide-right';
+  animation?: 'fade-up' | 'fade-in' | 'scale-up' | 'slide-left' | 'slide-right' | 'blur-in' | 'flip-up';
   delay?: number; // ms
   duration?: number; // ms
   threshold?: number;
@@ -64,17 +64,20 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
 
   // Initial and active transform/opacity styles based on animation type
   const getAnimationStyles = () => {
-    const baseTransition = `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`;
+    const baseTransition = `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, filter ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`;
 
     if (isVisible) {
       return {
         opacity: 1,
         transform: 'none',
+        filter: 'blur(0px)',
         transition: baseTransition,
       };
     }
 
     let initialTransform = 'translateY(24px)';
+    let initialFilter = 'none';
+
     if (animation === 'fade-in') {
       initialTransform = 'none';
     } else if (animation === 'scale-up') {
@@ -83,13 +86,19 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
       initialTransform = 'translateX(-32px)';
     } else if (animation === 'slide-right') {
       initialTransform = 'translateX(32px)';
+    } else if (animation === 'blur-in') {
+      initialTransform = 'translateY(16px) scale(0.98)';
+      initialFilter = 'blur(10px)';
+    } else if (animation === 'flip-up') {
+      initialTransform = 'perspective(1000px) rotateX(16deg) translateY(32px)';
     }
 
     return {
       opacity: 0,
       transform: initialTransform,
+      filter: initialFilter,
       transition: baseTransition,
-      willChange: 'opacity, transform',
+      willChange: 'opacity, transform, filter',
     };
   };
 

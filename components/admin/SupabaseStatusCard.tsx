@@ -43,7 +43,7 @@ export const SupabaseStatusCard: React.FC = () => {
           provider: 'Supabase PostgreSQL & Cloud Storage',
           fileCount: media.length,
           totalSizeBytes: totalBytes,
-          maxUploadMB: 50,
+          maxUploadMB: 100,
           health: 'healthy',
           buckets: [
             {
@@ -178,10 +178,10 @@ export const SupabaseStatusCard: React.FC = () => {
               <FileCheck className="w-4 h-4 text-amber-600" />
               Max File Limit
             </span>
-            <Badge variant="forest" size="sm">50 MB / File</Badge>
+            <Badge variant="forest" size="sm">100 MB / File</Badge>
           </div>
           <p className="text-xs font-mono font-bold text-ink">
-            50 MB (Free Plan)
+            100 MB (Storage Plan)
           </p>
           <div className="text-[10px] font-mono text-ink-muted pt-1 border-t border-editorial-border/60">
             Supports TUS Resumable

@@ -181,14 +181,14 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Lead Story Card (7 cols) */}
               <Card
-                className="lg:col-span-7 p-0 group overflow-hidden border border-editorial-border shadow-card hover:border-forest/40 transition-all"
+                className="lg:col-span-7 p-0 group overflow-hidden border border-editorial-border shadow-card hover:border-forest/40 transition-all card-3d-hover"
                 hoverEffect={true}
               >
                 <Link href={`/newspaper/${leadArticle.slug}`} className="block relative aspect-[16/10] overflow-hidden bg-canvas">
                   <img
                     src={leadArticle.coverImage}
                     alt={leadArticle.title}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-[1.03]"
+                    className="w-full h-full object-cover img-zoom-hover"
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
                     <Badge variant="forest">{leadArticle.category}</Badge>
@@ -242,13 +242,13 @@ export default async function HomePage() {
                   <Link
                     key={art.id}
                     href={`/newspaper/${art.slug}`}
-                    className="flex gap-4 p-4 rounded-xl bg-white border border-editorial-border hover:border-forest/40 transition-all duration-300 group shadow-card hover:-translate-y-0.5"
+                    className="flex gap-4 p-4 rounded-xl bg-white border border-editorial-border hover:border-forest/40 transition-all duration-300 group shadow-card card-3d-hover"
                   >
                     <div className="w-24 sm:w-28 h-24 sm:h-28 rounded-lg overflow-hidden border border-editorial-border flex-shrink-0 bg-canvas">
                       <img
                         src={art.coverImage}
                         alt={art.title}
-                        className="w-full h-full object-cover transition-transform duration-500 ease-editorial group-hover:scale-[1.05]"
+                        className="w-full h-full object-cover img-zoom-hover"
                       />
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -279,17 +279,17 @@ export default async function HomePage() {
         <section className="bg-forest py-20 relative overflow-hidden text-white border-y border-forest-800">
           <div className="absolute top-0 right-0 w-80 h-80 bg-coral/10 rounded-full blur-[100px] pointer-events-none animate-float-slow" />
           <Container className="relative z-10">
-            <ScrollReveal animation="fade-up">
+            <ScrollReveal animation="flip-up" duration={750}>
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 {/* 3:4 Print-Style Cover with realistic soft shadow & tilt */}
                 <div className="lg:col-span-5 flex justify-center">
                   <div className="relative group max-w-sm w-full">
-                    <div className="absolute -inset-4 bg-gradient-to-r from-coral/30 to-amber-500/20 rounded-3xl blur-2xl opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-slow" />
+                    <div className="absolute -inset-4 bg-gradient-to-r from-coral/30 to-amber-500/20 rounded-3xl blur-2xl opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-slow pointer-events-none" />
                     <div className="magazine-cover-3-4 relative rounded-xl overflow-hidden bg-forest-950 border border-white/20 p-2 group">
                       <img
                         src={featuredMagazine.coverImage}
                         alt={featuredMagazine.title}
-                        className="w-full h-full object-cover rounded-lg transition-transform duration-500 ease-editorial group-hover:scale-[1.03]"
+                        className="w-full h-full object-cover rounded-lg img-zoom-hover"
                       />
                       <div className="absolute bottom-4 left-4 right-4 bg-forest-950/90 backdrop-blur-md p-3 rounded-lg border border-white/15 flex items-center justify-between text-xs text-white">
                         <span className="font-serif font-bold text-coral-light tracking-wide">
@@ -380,6 +380,7 @@ export default async function HomePage() {
       {featuredVideo && (
         <section className="bg-forest-950 text-canvas py-20 border-y border-forest-800 relative overflow-hidden">
           <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-forest-700/20 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
+          <div className="absolute top-10 right-10 w-72 h-72 bg-coral/10 rounded-full blur-[90px] pointer-events-none animate-float-slow" />
           <Container className="relative z-10">
             <ScrollReveal animation="fade-up">
               <SectionHeader
@@ -394,7 +395,7 @@ export default async function HomePage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 {/* 16:9 Video Player */}
-                <div className="lg:col-span-8 rounded-xl overflow-hidden border border-forest-800 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
+                <div className="lg:col-span-8 rounded-xl overflow-hidden border border-forest-800 shadow-2xl transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_20px_50px_rgba(230,107,78,0.2)]">
                   <VideoPlayer
                     videoType={featuredVideo.videoType}
                     youtubeUrl={featuredVideo.youtubeUrl}
@@ -465,14 +466,14 @@ export default async function HomePage() {
             {programs.slice(0, 3).map((prog, index) => (
               <ScrollReveal key={prog.id} animation="fade-up" delay={index * 120}>
                 <Card
-                  className="p-0 flex flex-col justify-between group h-full"
+                  className="p-0 flex flex-col justify-between group h-full card-3d-hover"
                   hoverEffect={true}
                 >
                   <Link href={`/programs/${prog.id}`} className="block relative aspect-video overflow-hidden bg-canvas">
                     <img
                       src={prog.coverImage}
                       alt={prog.title}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-[1.03]"
+                      className="w-full h-full object-cover img-zoom-hover"
                     />
                     <span className="absolute top-3 left-3 text-[10px] uppercase font-mono px-2.5 py-1 rounded bg-forest text-white font-bold">
                       {prog.category}
@@ -534,14 +535,14 @@ export default async function HomePage() {
               {albums.slice(0, 3).map((alb, index) => (
                 <ScrollReveal key={alb.id} animation="fade-up" delay={index * 120}>
                   <Card
-                    className="p-0 group relative aspect-[4/3] overflow-hidden"
+                    className="p-0 group relative aspect-[4/3] overflow-hidden card-3d-hover"
                     hoverEffect={true}
                   >
                     <Link href={`/gallery/${alb.id}`} className="block w-full h-full">
                       <img
                         src={alb.coverImage}
                         alt={alb.title}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-[1.05]"
+                        className="w-full h-full object-cover img-zoom-hover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-forest-950/90 via-forest-950/25 to-transparent" />
                       <div className="absolute bottom-5 left-5 right-5 text-white">
