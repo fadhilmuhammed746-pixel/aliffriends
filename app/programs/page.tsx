@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { Calendar, MapPin, Play, Eye, Sparkles } from 'lucide-react';
@@ -12,6 +13,21 @@ import {
 } from '@/components/ui';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Cultural & Academic Programs',
+  description:
+    'Chronicle of events, literary conclaves, formal assemblies, and cultural programs organized by ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/programs',
+  },
+  openGraph: {
+    title: 'Cultural & Academic Programs | ALIF FRIENDS 12',
+    description:
+      'Chronicle of events, literary conclaves, formal assemblies, and cultural programs organized by ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/programs',
+  },
+};
 
 export default async function ProgramsArchivePage() {
   const programs = await db.getPrograms(true);

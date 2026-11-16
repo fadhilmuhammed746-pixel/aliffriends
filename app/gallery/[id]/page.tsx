@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
@@ -7,6 +8,31 @@ import { ArrowLeft, Lock, Globe } from 'lucide-react';
 import { Container, Badge } from '@/components/ui';
 
 export const revalidate = 0;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const album = await db.getAlbumById(id);
+  if (!album) return {};
+
+  const cleanDesc = (album.description || `${album.title} - ALIF FRIENDS 12 Photo Gallery`).replace(/<[^>]*>/g, '').slice(0, 160);
+
+  return {
+    title: album.title,
+    description: cleanDesc,
+    alternates: {
+      canonical: `/gallery/${album.id}`,
+    },
+    openGraph: {
+      title: `${album.title} | ALIF FRIENDS 12`,
+      description: cleanDesc,
+      url: `https://aliffriends.vercel.app/gallery/${album.id}`,
+    },
+  };
+}
 
 export default async function AlbumDetailPage({
   params,

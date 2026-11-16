@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { Bell, Calendar, Flame, Sparkles, FileText, Download } from 'lucide-react';
@@ -11,6 +12,21 @@ import {
 } from '@/components/ui';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Official Bulletins & Announcements',
+  description:
+    'Stay updated with official notices, event schedules, and batch circulars from ALIF FRIENDS 12 at Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/announcements',
+  },
+  openGraph: {
+    title: 'Official Bulletins & Announcements | ALIF FRIENDS 12',
+    description:
+      'Stay updated with official notices, event schedules, and batch circulars from ALIF FRIENDS 12 at Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/announcements',
+  },
+};
 
 export default async function AnnouncementsPage() {
   const announcements = await db.getAnnouncements(true);

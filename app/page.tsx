@@ -104,7 +104,10 @@ export default async function HomePage() {
                 <span>The 12th Batch of Darul Falah Islamic Academy</span>
               </div>
 
-              <h1 className="font-serif font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-white leading-[0.95]">
+              <h1
+                aria-label="ALIF FRIENDS 12"
+                className="font-serif font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-white leading-[0.95]"
+              >
                 ALIF <span className="italic font-normal font-cormorant text-coral-light">Friends</span>{' '}
                 <span className="text-white font-sans font-black tracking-normal align-middle inline-block text-3xl sm:text-5xl md:text-6xl border border-coral bg-coral/20 px-3 py-0.5 rounded-xl ml-1 shadow-coral animate-glow-pulse">
                   12

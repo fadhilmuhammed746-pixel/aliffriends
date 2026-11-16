@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { Trophy, FileText, Video, Download, Award, Shield } from 'lucide-react';
@@ -12,6 +13,21 @@ import {
 import { saafAndSports } from '@/lib/content';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Batch Achievements & Accolades',
+  description:
+    'Academic honors, literary prizes, SAAF Super League football championship, and batch milestones of ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/achievements',
+  },
+  openGraph: {
+    title: 'Batch Achievements & Accolades | ALIF FRIENDS 12',
+    description:
+      'Academic honors, literary prizes, SAAF Super League football championship, and batch milestones of ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/achievements',
+  },
+};
 
 export default async function AchievementsPage() {
   const achievements = await db.getAchievements(true);

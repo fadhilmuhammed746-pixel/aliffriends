@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { VideoPlayer } from '@/components/video/VideoPlayer';
@@ -13,6 +14,21 @@ import {
 } from '@/components/ui';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Cinematic Videos & Documentaries',
+  description:
+    'Watch keynote speeches, batch documentaries, visual recaps, and event highlights from ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/videos',
+  },
+  openGraph: {
+    title: 'Cinematic Videos & Documentaries | ALIF FRIENDS 12',
+    description:
+      'Watch keynote speeches, batch documentaries, visual recaps, and event highlights from ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/videos',
+  },
+};
 
 export default async function VideosArchivePage() {
   const [settings, videos] = await Promise.all([

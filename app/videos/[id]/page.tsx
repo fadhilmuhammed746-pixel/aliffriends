@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
@@ -7,6 +8,32 @@ import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { Container, Card, Badge, Button } from '@/components/ui';
 
 export const revalidate = 0;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const video = await db.getVideoById(id);
+  if (!video) return {};
+
+  const cleanDesc = (video.description || `${video.title} - ALIF FRIENDS 12 Video Platform`).replace(/<[^>]*>/g, '').slice(0, 160);
+
+  return {
+    title: video.title,
+    description: cleanDesc,
+    alternates: {
+      canonical: `/videos/${video.id}`,
+    },
+    openGraph: {
+      title: `${video.title} | ALIF FRIENDS 12`,
+      description: cleanDesc,
+      url: `https://aliffriends.vercel.app/videos/${video.id}`,
+      images: video.thumbnailUrl ? [{ url: video.thumbnailUrl }] : undefined,
+    },
+  };
+}
 
 export default async function VideoDetailPage({
   params,

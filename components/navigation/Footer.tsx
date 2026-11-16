@@ -156,6 +156,16 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/members" className="hover:text-coral-light transition-colors">
+                  Class Directory & Members
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-coral-light transition-colors">
+                  Contact & Editorial Desk
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" className="hover:text-coral-light transition-colors">
                   About Batch 12 & Darul Falah
                 </Link>

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { Users, Shield, Lock } from 'lucide-react';
@@ -12,6 +13,21 @@ import {
 } from '@/components/ui';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Class Directory & Leadership Council',
+  description:
+    'Meet the students, class leaders, editorial council, and members of ALIF FRIENDS 12 from Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/members',
+  },
+  openGraph: {
+    title: 'Class Directory & Leadership Council | ALIF FRIENDS 12',
+    description:
+      'Meet the students, class leaders, editorial council, and members of ALIF FRIENDS 12 from Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/members',
+  },
+};
 
 export default async function ClassMembersPage() {
   const [settings, members] = await Promise.all([

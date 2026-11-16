@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
@@ -7,6 +8,32 @@ import { ArrowLeft, Calendar, MapPin, Sparkles, Image as ImageIcon, Video, FileT
 import { Container, Card, Badge, Button } from '@/components/ui';
 
 export const revalidate = 0;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const program = await db.getProgramById(id);
+  if (!program) return {};
+
+  const cleanDesc = (program.description || `${program.title} by ALIF FRIENDS 12`).replace(/<[^>]*>/g, '').slice(0, 160);
+
+  return {
+    title: program.title,
+    description: cleanDesc,
+    alternates: {
+      canonical: `/programs/${program.id}`,
+    },
+    openGraph: {
+      title: `${program.title} | ALIF FRIENDS 12`,
+      description: cleanDesc,
+      url: `https://aliffriends.vercel.app/programs/${program.id}`,
+      images: program.coverImage ? [{ url: program.coverImage }] : undefined,
+    },
+  };
+}
 
 export default async function ProgramDetailPage({
   params,

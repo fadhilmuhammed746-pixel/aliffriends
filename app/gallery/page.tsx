@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { Camera, Lock } from 'lucide-react';
@@ -11,6 +12,21 @@ import {
 } from '@/components/ui';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Batch Photo Gallery & Memory Archive',
+  description:
+    'Visual chronicles, memorable campus photographs, batch trips, and celebration albums of ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/gallery',
+  },
+  openGraph: {
+    title: 'Batch Photo Gallery & Memory Archive | ALIF FRIENDS 12',
+    description:
+      'Visual chronicles, memorable campus photographs, batch trips, and celebration albums of ALIF FRIENDS 12, Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/gallery',
+  },
+};
 
 export default async function GalleryArchivePage({
   searchParams,

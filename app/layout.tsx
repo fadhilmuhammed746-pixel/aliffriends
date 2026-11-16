@@ -33,29 +33,42 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL('https://aliffriends.vercel.app'),
   title: {
-    default: 'ALIF FRIENDS 12 | 12th Batch, Darul Falah Islamic Academy',
+    default: 'ALIF FRIENDS 12 | Official Website – Darul Falah Islamic Academy',
     template: '%s | ALIF FRIENDS 12',
   },
   description:
-    'ALIF FRIENDS 12 – The digital home of the 12th batch of Darul Falah Islamic Academy, Taliparamba, Kannur, Kerala. A Class. A Generation. A Thousand Memories. Preserving our friendship, learning experiences, publications, achievements, and unforgettable memories.',
+    'Official website of ALIF FRIENDS 12, the 12th batch of Darul Falah Islamic Academy, Taliparamba. Preserving our digital magazine archive, student newspaper reports, cultural programs, cinematic video broadcasts, achievements, and batch memory gallery.',
   keywords: [
     'ALIF FRIENDS 12',
+    'Alif Friends 12',
+    'ALIF FRIENDS',
     'Darul Falah Islamic Academy',
-    'DFIA',
+    'DFIA 12th Batch',
     'Taliparamba',
     'Kannur',
     'Kerala',
-    '12th Batch',
     'Darul Huda Islamic University',
     'DHIU',
     'SAAF Super League',
     'Alif Creations 12',
-    'Class Magazine',
+    'Khavarikhul Adaath',
+    'Class Magazine Archive',
   ],
   authors: [{ name: 'ALIF FRIENDS 12 Editorial & Class Council' }],
   manifest: '/manifest.json',
   alternates: {
     canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   appleWebApp: {
     capable: true,
@@ -79,9 +92,9 @@ export const metadata: Metadata = {
     google: '_QTASR8F-fJBxpNrUetvnAjdPD89YSO5UgLtsicynMw',
   },
   openGraph: {
-    title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
+    title: 'ALIF FRIENDS 12 | Official Website – Darul Falah Islamic Academy',
     description:
-      'The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
+      'Official website of ALIF FRIENDS 12, the 12th batch of Darul Falah Islamic Academy, Taliparamba. Preserving our digital magazine archive, student newspaper reports, cultural programs, cinematic video broadcasts, achievements, and batch memory gallery.',
     url: 'https://aliffriends.vercel.app',
     siteName: 'ALIF FRIENDS 12',
     locale: 'en_US',
@@ -91,15 +104,15 @@ export const metadata: Metadata = {
         url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
         width: 1200,
         height: 630,
-        alt: 'ALIF FRIENDS 12 Digital Publication',
+        alt: 'ALIF FRIENDS 12 – Darul Falah Islamic Academy',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ALIF FRIENDS 12 — A Class. A Generation. A Thousand Memories.',
+    title: 'ALIF FRIENDS 12 | Official Website – Darul Falah Islamic Academy',
     description:
-      'The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
+      'Official website of ALIF FRIENDS 12, the 12th batch of Darul Falah Islamic Academy, Taliparamba. Preserving our digital magazine archive, student newspaper reports, cultural programs, cinematic video broadcasts, achievements, and batch memory gallery.',
     images: [
       'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
     ],
@@ -134,19 +147,43 @@ export default async function RootLayout({
                 {
                   '@type': 'WebSite',
                   '@id': 'https://aliffriends.vercel.app/#website',
-                  url: 'https://aliffriends.vercel.app',
+                  url: 'https://aliffriends.vercel.app/',
                   name: 'ALIF FRIENDS 12',
+                  alternateName: ['Alif Friends 12', 'Alif Friends', 'ALIF FRIENDS XII', 'AF12'],
                   description:
-                    'The definitive digital publication, magazine archive, newsroom, and cinematic media platform of Alif Friends 12.',
+                    'Official digital website, publication archive, newsroom, and community hub of ALIF FRIENDS 12, the 12th batch of Darul Falah Islamic Academy.',
                   inLanguage: 'en-US',
+                  publisher: {
+                    '@id': 'https://aliffriends.vercel.app/#organization',
+                  },
                 },
                 {
-                  '@type': 'Organization',
+                  '@type': 'EducationalOrganization',
                   '@id': 'https://aliffriends.vercel.app/#organization',
                   name: 'ALIF FRIENDS 12',
-                  url: 'https://aliffriends.vercel.app',
-                  logo: 'https://aliffriends.vercel.app/logo-emblem.png',
+                  alternateName: 'Alif Friends 12 Batch Community',
+                  url: 'https://aliffriends.vercel.app/',
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: 'https://aliffriends.vercel.app/logo-emblem.png',
+                    caption: 'ALIF FRIENDS 12 Calligraphic Emblem',
+                  },
+                  description:
+                    'ALIF FRIENDS 12 is the student fellowship and alumni community of the 12th batch of Darul Falah Islamic Academy (DFIA), Taliparamba, Kannur, Kerala. A digital archive preserving publications, magazines, articles, achievements, cultural programs, and student memories.',
                   email: 'aliffriends12@gmail.com',
+                  sameAs: [
+                    'https://www.youtube.com/@AlifCreations12',
+                    'https://www.instagram.com/_alif_friends_/',
+                  ],
+                  foundingLocation: {
+                    '@type': 'Place',
+                    name: 'Darul Falah Islamic Academy, Taliparamba, Kannur, Kerala, India',
+                  },
+                  parentOrganization: {
+                    '@type': 'EducationalOrganization',
+                    name: 'Darul Falah Islamic Academy',
+                    url: 'https://darulfalah.in/',
+                  },
                 },
               ],
             }),

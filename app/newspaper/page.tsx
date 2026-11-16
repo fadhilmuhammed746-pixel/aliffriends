@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { ArticleCategory } from '@/lib/types';
@@ -17,6 +18,21 @@ import {
   Card,
   EmptyState,
 } from '@/components/ui';
+
+export const metadata: Metadata = {
+  title: 'Alif Gazette & Student Newsroom',
+  description:
+    'Read the latest editorial reports, class dispatches, and student journalism from ALIF FRIENDS 12 at Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/newspaper',
+  },
+  openGraph: {
+    title: 'Alif Gazette & Student Newsroom | ALIF FRIENDS 12',
+    description:
+      'Read the latest editorial reports, class dispatches, and student journalism from ALIF FRIENDS 12 at Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/newspaper',
+  },
+};
 
 const categories: ArticleCategory[] = [
   'Class News',

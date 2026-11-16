@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { BookOpen, Download, Eye, Calendar, Sparkles } from 'lucide-react';
@@ -12,6 +13,21 @@ import {
 } from '@/components/ui';
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Digital Magazine Archive',
+  description:
+    'Explore the official publications, commemorative editions, and digital flipbooks of ALIF FRIENDS 12 from Darul Falah Islamic Academy.',
+  alternates: {
+    canonical: '/magazine',
+  },
+  openGraph: {
+    title: 'Digital Magazine Archive | ALIF FRIENDS 12',
+    description:
+      'Explore the official publications, commemorative editions, and digital flipbooks of ALIF FRIENDS 12 from Darul Falah Islamic Academy.',
+    url: 'https://aliffriends.vercel.app/magazine',
+  },
+};
 
 export default async function MagazineArchivePage() {
   const magazines = await db.getMagazines(true);

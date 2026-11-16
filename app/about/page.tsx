@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import {
@@ -28,6 +29,21 @@ import {
   Card,
   Button,
 } from '@/components/ui';
+
+export const metadata: Metadata = {
+  title: 'About the Batch & Institution',
+  description:
+    'Learn about ALIF FRIENDS 12, the 12th batch of Darul Falah Islamic Academy (DFIA), Taliparamba, affiliated with Darul Huda Islamic University (DHIU).',
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: 'About the Batch & Institution | ALIF FRIENDS 12',
+    description:
+      'Learn about ALIF FRIENDS 12, the 12th batch of Darul Falah Islamic Academy (DFIA), Taliparamba, affiliated with Darul Huda Islamic University (DHIU).',
+    url: 'https://aliffriends.vercel.app/about',
+  },
+};
 
 export const revalidate = 0;
 
